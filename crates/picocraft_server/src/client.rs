@@ -171,6 +171,7 @@ impl Client {
                     return Err(PacketError::InvalidPacket);
                 }
             },
+            State::Login => todo!(),
             State::Configuration => todo!(),
             State::Play => todo!(),
         }

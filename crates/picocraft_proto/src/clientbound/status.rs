@@ -45,7 +45,7 @@ pub struct JsonStatusResponse {
     #[builder(into, default)]
     pub version: Version,
 
-    #[builder(with = |max: i32, online: i32| Players::new(online, max))]
+    #[builder(with = |max: i32, online: i32| Players::new(max, online))]
     pub players: Players,
 
     ///doesn't need to be the same level as [Players] or [Version], as [Chat]
