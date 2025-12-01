@@ -80,7 +80,10 @@ impl Client {
                     } else {
                         info!(
                             "Connection closed for client: {}",
-                            self.socket.socket.peer_addr().unwrap()
+                            self.socket
+                                .socket
+                                .peer_addr()
+                                .expect("Socket should have an address")
                         );
                     }
 
@@ -130,13 +133,13 @@ impl Client {
             return Ok(());
         }
 
-        let packet_length = self.read_packet_length().await.unwrap();
+        let packet_length = self.read_packet_length().await?;
 
-        let packet_id = VarInt::decode(&mut self.socket).await.unwrap();
+        let packet_id = VarInt::decode(&mut self.socket).await?;
 
         trace!("Packet ID: {}", *packet_id);
 
-        self.read_packet_body(packet_length).await.unwrap();
+        self.read_packet_body(packet_length).await?;
 
         trace!("Raw Packet Bytes: {:X?}", self.rx_buf.as_slice());
 
@@ -172,7 +175,7 @@ impl Client {
             State::Play => todo!(),
         }
 
-        self.socket.flush().await.unwrap();
+        self.socket.flush().await?;
 
         Ok(())
     }
@@ -191,7 +194,9 @@ impl Client {
 
     async fn read_packet_body(&mut self, length: VarInt) -> Result<(), PacketError> {
         //SAFETY: length has already been validated in read_packet_length
-        self.rx_buf.resize_default(*length as usize - 1).unwrap();
+        self.rx_buf
+            .resize_default(*length as usize - 1)
+            .expect("length has already been validated");
 
         self.socket
             .read_exact(&mut self.rx_buf)

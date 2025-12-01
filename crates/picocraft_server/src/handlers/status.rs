@@ -28,7 +28,7 @@ impl HandlePacket for StatusRequestPacket {
                     json.description.text,
                     json.enforces_secure_chat
                 )
-                .unwrap(),
+                .expect("this string should be less than or equal to 256 bytes"),
             )
             .build();
 
@@ -78,7 +78,7 @@ impl HandlePacket for PingRequestPacket {
 
         info!(
             "Handled status request for client: {}",
-            client.socket.socket.peer_addr().unwrap()
+            client.socket.socket.peer_addr().expect("Socket should have an address")
         );
 
         Err(PacketError::ConnectionClosed)
