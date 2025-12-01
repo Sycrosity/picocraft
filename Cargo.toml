@@ -27,7 +27,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 repository = "https://github.com/Sycrosity/picocraft/"
 # publish = true
@@ -36,10 +36,10 @@ keywords = ["minecraft", "minecraft-server", "picocraft", "no_std"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-picocraft_core = { path = "crates/picocraft_core", version = "0.0.1" }
-picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.1" }
-picocraft_server = { path = "crates/picocraft_server", version = "0.0.1" }
-picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.1" }
+picocraft_core = { path = "crates/picocraft_core", version = "0.0.2" }
+picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.2" }
+picocraft_server = { path = "crates/picocraft_server", version = "0.0.2" }
+picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.2" }
 
 embassy-futures = { version = "0.1.2", features = ["log"] }
 embedded-io = "0.7.1"
