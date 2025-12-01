@@ -78,7 +78,11 @@ impl HandlePacket for PingRequestPacket {
 
         info!(
             "Handled status request for client: {}",
-            client.socket.socket.peer_addr().expect("Socket should have an address")
+            client
+                .socket
+                .socket
+                .peer_addr()
+                .expect("Socket should have an address")
         );
 
         Err(PacketError::ConnectionClosed)
