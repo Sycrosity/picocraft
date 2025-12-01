@@ -1,0 +1,45 @@
+- player movement
+  - [ ] placing blocks [high]
+  - [ ] breaking blocks [high]
+  - [ ] walking/running [high]
+  - [ ] jumping [high]
+  - [ ] collision with blocks [high]
+
+- player interaction with blocks:
+  - [ ] tilling (shovel) [med]
+  - [ ] tilling (hoe) [med]
+  - [ ] stripping (axe) [med]
+  - [ ] planting seeds [low]
+  - [ ] open doors [med]
+  - [ ] open trapdoors [med]
+  - [ ] sign writing [low]
+  - [ ] waterlog [low]
+  - [ ] spreading with bonemeal [low]
+  - [ ] placing on different sides (chains, end rods) [med]
+- block dialogs
+  - [ ] chests [med]
+
+- random ticks:
+  - [ ] grass spreading [med]
+  - [ ] block drop chance (gravel -> flint) [med]
+- cascading effects
+  - [ ] falling blocks [med]
+  - [ ] fluid spilling [low]
+- block on block interactions
+  - [ ] water-lava -> obsidian [med]
+  - [ ] sand-torches -> break [low]
+  - [ ] stairs connecting [low]
+  - [ ] slabs top/bottom connection [low]
+  - [ ] fence auto connect [low]
+- world gen
+  - [ ] biomes [low]
+  - [ ] terrain [med]
+  - [ ] tree generation [med]
+- [ ] block properties [e.g. facing, half, shape] [med]
+- [ ] connected blocks (beds, doors) [med]
+- [ ] block dropping block thats not itself (stone -> cobble) [med]
+- [ ] silk touch/enchants [v low]
+- [ ] button pressing [v low]
+- [ ] mutliple items from one block destroy (like coal) [med]
+
+---- got to crafting table in list ----

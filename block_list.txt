@@ -1,0 +1,254 @@
+dirt
+dirt path
+farmland
+grass_block
+gravel
+sand
+water
+obsidian
+lava
+bedrock
+stripped oak log
+oak log
+oak planks
+oak stairs
+oak slab
+oak fence
+oak fence gate
+oak door
+oak trapdoor
+oak sign
+stripped spruce log
+spruce log
+spruce planks
+spruce stairs
+spruce slab
+spruce fence
+spruce fence gate
+spruce door
+spruce trapdoor
+spruce sign
+stripped birch log
+birch log
+birch planks
+birch stairs
+birch slab
+birch fence
+birch fence gate
+birch door
+birch trapdoor
+birch sign
+stripped cherry log
+cherry log
+cherry planks
+cherry stairs
+cherry slab
+cherry fence
+cherry fence gate
+cherry door
+cherry trapdoor
+cherry sign
+cobblestone
+cobblestone stairs
+cobblestone slab
+cobblestone wall
+stone
+stone stairs
+stone slab
+stone button
+chiseled stone bricks
+cracked stone bricks
+stone bricks
+stone brick stairs
+stone brick slab
+stone brick button
+sandstone
+sandstone stairs
+sandstone slab
+sandstone wall
+mossy cobblestone
+mossy cobblestone stairs
+smooth sandstone
+smooth sandstone stairs
+smooth sandstone slab
+smooth sandstone wall
+mossy stone bricks
+mossy stone brick stairs
+mossy cobblestone slab
+mossy stone brick slab
+chiseled deepslate
+cracked deepslate bricks
+deepslate bricks
+deepslate brick stairs
+deepslate brick slab
+deepslate brick button
+diorite
+diorite stairs
+diorite slab
+diorite wall
+moss block
+moss carpet
+granite
+granite stairs
+granite slab
+granite wall
+andesite
+andesite stairs
+andesite slab
+andesite wall
+deepslate
+bookshelf
+cobbled deepslate
+cobbled deepslate stairs
+cobbled deepslate slab
+cobbled deepslate wall
+end stone bricks
+end stone brick stairs
+end stone brick slab
+end stone brick button
+end stone
+end portal frame
+coal ore
+iron ore
+gold ore
+lapis ore
+diamond ore
+deepslate coal ore
+deepslate iron ore
+deepslate gold ore
+deepslate lapis ore
+deepslate diamond ore
+crafting table
+furnace
+blast furnace
+anvil
+damaged_anvil
+enchanting table
+stonecutter
+smithing table
+grindstone
+composter
+dandelion
+poppy
+blue orchid
+allium
+lily of the valley
+cornflower
+red mushroom
+brown mushroom
+crimson fungus
+warped fungus
+oak sapling
+spruce sapling
+birch sapling
+cherry sapling
+dead bush
+fern
+wheat
+carrots
+potatos
+pink petals
+torch
+lantern
+campfire
+red bed
+ladder
+glass
+glass pane
+snow block
+snow
+chain
+sugar cane
+cactus
+sweet berry bush
+white wool
+coal block
+iron block
+gold block
+lapis block
+diamond block
+ancient debris
+oxidized copper
+oxidized cut copper
+oxidized cut copper stairs
+oxidized cut copper slab
+copper block
+cut copper
+cut copper stairs
+cut copper slab
+copper ore
+deepslate copper ore
+oak leaves
+spruce leaves
+birch leaves
+cherry leaves
+blackstone
+blackstone stairs
+blackstone slab
+blackstone button
+chest
+barrel
+netherrack
+nether gold ore
+nether quartz ore
+glowstone
+kelp
+sea grass
+sea pickle
+vine
+nether wart
+soul campfire
+soul sand
+soul soil
+nether wart block
+crimson nylium
+quartz block
+magma block
+shroomlight
+crying obsidian
+soul lantern
+soil torch
+stripped crimson stem
+crimson stem
+crimson planks
+crimson stairs
+crimson slab
+crimson fence
+crimson fence gate
+crimson door
+crimson trapdoor
+crimson sign
+nether bricks
+nether brick stairs
+nether brick slab
+nether brick wall
+nether brick fence
+weeping vines plant
+spawner
+dragon egg
+nether portal
+end portal
+stripped warped stem
+warped stem
+warped planks
+warped stairs
+warped slab
+warped fence
+warped fence gate
+warped door
+warped trapdoor
+warped sign
+warped nylium
+warped wart block
+warped roots
+nether sprouts
+twisting vines
+fire
+soul fire
+coarse dirt
+oak_wall_sign
+spruce_wall_sign
+birch_wall_sign
+cherry_wall_sign
+crimson_wall_sign
+warped_wall_sign

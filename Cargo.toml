@@ -1,0 +1,78 @@
+[package]
+name = "picocraft"
+# description = ""
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[dependencies]
+picocraft_core.workspace = true
+picocraft_server.workspace = true
+
+tokio = { workspace = true, features = [
+  "macros",
+  "rt",
+  "rt-multi-thread",
+  "net",
+], optional = true }
+
+log.workspace = true
+critical-section = { version = "1", features = ["std"], optional = true }
+
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+repository = "https://github.com/Sycrosity/picocraft/"
+# publish = true
+readme = "README.md"
+keywords = ["minecraft", "minecraft-server", "picocraft", "no_std"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+picocraft_core = { path = "crates/picocraft_core", version = "0.0.1" }
+picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.1" }
+picocraft_server = { path = "crates/picocraft_server", version = "0.0.1" }
+picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.1" }
+
+embassy-futures = { version = "0.1.2", features = ["log"] }
+embedded-io = "0.7.1"
+embedded-io-async = "0.7.0"
+embassy-executor = { version = "0.9.1", features = ["log"] }
+embassy-time = { version = "0.5.0", features = ["log"] }
+embassy-net = { version = "0.7.1", features = ["log"] }
+embassy-sync = { version = "0.7.2", features = ["log"] }
+
+log = "0.4"
+
+heapless = "0.9"
+tokio = "1.48"
+uuid = { version = "1.18.1", default-features = false }
+thiserror = { version = "2", default-features = false }
+base64 = { version = "0.22.1", default-features = false }
+bon = { version = "3.8.1", default-features = false }
+
+core-json = { version = "0.4.0" }
+core-json-derive = { version = "0.4.1" }
+core-json-traits = { version = "0.4.1" }
+
+[features]
+default = ["std"]
+std = [
+  "alloc",
+  "picocraft_server/std",
+  "tokio",
+  "critical-section",
+]
+alloc = []
+tokio = ["dep:tokio"]
+
+
+[profile.dev.package."*"]
+opt-level = 3

@@ -1,0 +1,23 @@
+[package]
+name = "picocraft_derive"
+# description = ""
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+# homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[lib]
+name = "picocraft_derive"
+proc-macro = true
+
+[dependencies]
+quote = "1"
+syn = { version = "2", features = ["full"] }
+proc-macro2 = "1"
+
+picocraft_core.workspace = true
+embedded-io-async.workspace = true
+log.workspace = true

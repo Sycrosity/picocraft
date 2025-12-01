@@ -1,0 +1,26 @@
+[package]
+name = "picocraft_proto"
+# description = ""
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[dependencies]
+bon.workspace = true
+
+core-json-derive.workspace = true
+core-json-traits.workspace = true
+
+embedded-io-async.workspace = true
+
+log.workspace = true
+picocraft_core.workspace = true
+picocraft_derive.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []

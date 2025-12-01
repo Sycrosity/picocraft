@@ -1,0 +1,47 @@
+[package]
+name = "picocraft_server"
+# description = ""
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+# homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[dependencies]
+picocraft_core.workspace = true
+picocraft_proto.workspace = true
+
+log.workspace = true
+thiserror = { workspace = true }
+heapless.workspace = true
+
+embassy-net = { workspace = true, features = [
+  "medium-ethernet",
+  "proto-ipv4",
+  "tcp",
+] }
+embassy-sync.workspace = true
+embassy-time.workspace = true
+embassy-futures.workspace = true
+
+embedded-io.workspace = true
+embedded-io-async.workspace = true
+
+tokio = { workspace = true, optional = true }
+
+[features]
+default = ["std"]
+std = [
+  "alloc",
+  "picocraft_proto/std",
+  "tokio",
+  "log/std",
+  "tokio/full",
+  "embedded-io/std",
+  "embassy-sync/std",
+]
+alloc = ["embedded-io/alloc"]
+tokio = ["dep:tokio", "tokio/full"]
+embassy = []
