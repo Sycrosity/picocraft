@@ -37,17 +37,13 @@ impl HandlePacket for StatusRequestPacket {
         status_response
             .encode(&mut client.tx_buf)
             .await
-            .inspect_err(|e| error!("{e:#?}"))
-            .unwrap();
+            .inspect_err(|e| error!("{e:#?}"))?;
 
-        VarInt(client.tx_buf.len() as i32)
-            .encode(&mut client.socket)
-            .await
-            .unwrap();
+        client.encode_packet_length(client.tx_buf.len()).await?;
 
-        client.socket.write_all(&client.tx_buf).await.unwrap();
+        client.socket.write_all(&client.tx_buf).await?;
 
-        client.socket.flush().await.unwrap();
+        client.socket.flush().await?;
 
         trace!("Status response sent.");
 
@@ -68,16 +64,15 @@ impl HandlePacket for PingRequestPacket {
         pong_response
             .encode(&mut client.tx_buf)
             .await
-            .inspect_err(|e| error!("{e:#?}"))
-            .unwrap();
+            .inspect_err(|e| error!("{e:#?}"))?;
 
         client.encode_packet_length(client.tx_buf.len()).await?;
 
-        client.socket.write_all(&client.tx_buf).await.unwrap();
+        client.socket.write_all(&client.tx_buf).await?;
 
         trace!("Pong response sent.");
 
-        client.socket.flush().await.unwrap();
+        client.socket.flush().await?;
 
         client.socket.shutdown().await?;
 
