@@ -10,4 +10,3 @@ pub struct LoginStartPacket {
 #[derive(Debug, Packet)]
 #[packet(id = 0x03)]
 pub struct LoginAcknowledgedPacket;
-

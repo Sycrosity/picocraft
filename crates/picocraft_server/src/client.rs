@@ -176,7 +176,7 @@ impl Client {
                     let packet = LoginStartPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
                     LoginStartPacket::handle(packet, self).await?
-                },
+                }
                 LoginAcknowledgedPacket::ID => {
                     let packet =
                         LoginAcknowledgedPacket::decode(&mut self.rx_buf.as_slice()).await?;
