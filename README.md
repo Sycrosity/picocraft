@@ -7,7 +7,7 @@ picocraft ~~is~~ (hopefully will become) a no_std lightweight minecraft server i
 
 ## Current Project Status
 
-As of right now, `picocraft` can handle Status requests from clients, with support for `std` targets - the underlying `picocraft_proto` and `picocraft_core` are fully `no_std`.
+As of right now, `picocraft` can handle Status requests from clients and the first part of the login protocol, with support for `std` targets - the underlying `picocraft_proto` and `picocraft_core` are fully `no_std`.
 
 ## Usage
 

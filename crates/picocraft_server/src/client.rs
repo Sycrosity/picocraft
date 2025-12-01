@@ -171,7 +171,24 @@ impl Client {
                     return Err(PacketError::InvalidPacket);
                 }
             },
-            State::Login => todo!(),
+            State::Login => match packet_id {
+                LoginStartPacket::ID => {
+                    let packet = LoginStartPacket::decode(&mut self.rx_buf.as_slice()).await?;
+
+                    LoginStartPacket::handle(packet, self).await?
+                },
+                LoginAcknowledgedPacket::ID => {
+                    let packet =
+                        LoginAcknowledgedPacket::decode(&mut self.rx_buf.as_slice()).await?;
+
+                    LoginAcknowledgedPacket::handle(packet, self).await?
+                }
+                _ => {
+                    warn!("Unknown packet ID in Login state: {}", *packet_id);
+                    return Err(PacketError::InvalidPacket);
+                }
+            },
+
             State::Configuration => todo!(),
             State::Play => todo!(),
         }
