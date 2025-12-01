@@ -10,18 +10,19 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let Some(encode_attr) = parse_protocol_attribute(&input.attrs)? else {
-        return Err(syn::Error::new(
-            input.span(),
-            "`packet(...)` attribute is required.",
-        ));
-    };
+    let protocol_attr_result = parse_protocol_attribute(&input.attrs)?.ok_or(syn::Error::new(
+        input.span(),
+        "`enum_type = ...` value from packet attribute is required for deriving \
+                     Encode on enums",
+    ));
 
     match input.data {
         Data::Enum(enum_data) => {
-            let Some(enum_type) = encode_attr.enum_type else {
+            let protocol_attr = protocol_attr_result?;
+
+            let Some(enum_type) = protocol_attr.enum_type else {
                 return Err(syn::Error::new(
-                    encode_attr.span,
+                    protocol_attr.span,
                     "`enum_type = ...` value from packet attribute is required for deriving \
                      Encode on enums",
                 ));
@@ -58,7 +59,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
                     let ident = variant.ident.clone();
 
                     quote! {
-                        Self::#ident => #enum_type::from(#expr).encode(buffer).await?,
+                        Self::#ident => #enum_type::from(#expr).encode(&mut buffer).await?,
                     }
                 })
                 .collect();
@@ -91,7 +92,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
                     .map(|field| {
                         let name = field.ident.as_ref().unwrap();
                         quote! {
-                            self.#name.encode(buffer).await?;
+                            self.#name.encode(&mut buffer).await?;
                         }
                     })
                     .collect(),
@@ -99,7 +100,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
                     .map(|i| {
                         let lit = LitInt::new(&i.to_string(), Span::call_site());
                         quote! {
-                            self.#lit.encode(buffer).await?;
+                            self.#lit.encode(&mut buffer).await?;
                         }
                     })
                     .collect(),

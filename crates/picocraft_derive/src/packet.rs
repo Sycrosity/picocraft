@@ -56,10 +56,12 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
                 Fields::Unnamed(fields) => {
-                    let init = (0..fields.unnamed.len())
-                        .map(|_| {
+                    let init = fields.unnamed.iter().map(|field| {
+
+                            let ty = field.ty.clone();
+
                             quote! {
-                                ::picocraft_core::prelude::Decode::decode(&mut buffer).await?,
+                                <#ty as ::picocraft_core::packet::Decode>::decode(&mut buffer).await?,
                             }
                         })
                         .collect::<TokenStream>();

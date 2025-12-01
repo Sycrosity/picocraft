@@ -10,18 +10,19 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let Some(encode_attr) = parse_protocol_attribute(&input.attrs)? else {
-        return Err(syn::Error::new(
-            input.span(),
-            "`packet(...)` attribute is required.",
-        ));
-    };
+    let protocol_attr_result = parse_protocol_attribute(&input.attrs)?.ok_or(syn::Error::new(
+        input.span(),
+        "`enum_type = ...` value from packet attribute is required for deriving \
+                     Decode on enums",
+    ));
 
     match input.data {
         Data::Enum(enum_data) => {
-            let Some(enum_type) = encode_attr.enum_type else {
+            let protocol_attr = protocol_attr_result?;
+
+            let Some(enum_type) = protocol_attr.enum_type else {
                 return Err(syn::Error::new(
-                    encode_attr.span,
+                    protocol_attr.span,
                     "`enum_type = ...` value from packet attribute is required for deriving \
                      Decode on enums",
                 ));
@@ -94,7 +95,7 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                         let name = field.ident.clone().unwrap();
                         let ty = field.ty.clone();
                         quote! {
-                            #name: <#ty as ::picocraft_core::prelude::Decode>::decode(buffer).await?,
+                            #name: <#ty as ::picocraft_core::prelude::Decode>::decode(&mut buffer).await?,
                         }
                     });
 
@@ -105,16 +106,16 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
                 Fields::Unnamed(fields) => {
-                    let init = (0..fields.unnamed.len())
-                        .map(|_| {
-                            quote! {
-                                ::picocraft_core::prelude::Decode::decode(buffer).await?,
-                            }
-                        })
-                        .collect::<TokenStream>();
+                    let init = fields.unnamed.iter().map(|field| {
+                        let ty = field.ty.clone();
+
+                        quote! {
+                            <#ty as ::picocraft_core::prelude::Decode>::decode(&mut buffer).await?,
+                        }
+                    });
 
                     quote! {
-                        Self(#init)
+                        Self(#(#init)*)
                     }
                 }
                 Fields::Unit => quote!(Self),
