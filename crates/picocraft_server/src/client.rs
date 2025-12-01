@@ -3,64 +3,24 @@ use embedded_io::ReadExactError;
 use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
 
+pub mod player;
+
+pub use player::Player;
+
 #[derive(Debug)]
 pub struct Client {
-    pub player: PlayerData,
+    pub player: Player,
     state: State,
     pub socket: PacketSocket,
     pub rx_buf: Buffer<1024>,
     pub tx_buf: Buffer<1024>,
 }
 
-#[derive(Debug)]
-pub struct PlayerData {
-    protocol_version: VarInt,
-    username: String<16>,
-    uuid: UUID,
-}
-
-#[allow(unused)]
-impl PlayerData {
-    pub(crate) fn protocol_version(&self) -> VarInt {
-        self.protocol_version
-    }
-
-    pub(crate) fn set_protocol_version(&mut self, protocol_version: VarInt) {
-        self.protocol_version = protocol_version;
-    }
-
-    pub(crate) fn set_username(&mut self, username: heapless::String<16>) {
-        self.username = username;
-    }
-
-    pub(crate) fn set_uuid(&mut self, uuid: UUID) {
-        self.uuid = uuid;
-    }
-
-    pub(crate) fn username(&self) -> &heapless::String<16> {
-        &self.username
-    }
-
-    pub(crate) fn uuid(&self) -> UUID {
-        self.uuid
-    }
-}
-
-impl Default for PlayerData {
-    fn default() -> Self {
-        Self {
-            protocol_version: picocraft_proto::CURRENT_PROTOCOL_VERSION,
-            username: String::default(),
-            uuid: UUID::default(),
-        }
-    }
-}
-
 #[allow(unused)]
 impl Client {
     pub fn new(socket: tokio::net::TcpStream) -> Self {
         Self {
-            player: PlayerData::default(),
+            player: Player::default(),
             socket: crate::packet_socket::PacketSocket::new(socket),
             state: State::default(),
             rx_buf: Buffer::new(),
@@ -274,12 +234,16 @@ impl Client {
         Ok(true)
     }
 
+    pub(crate) async fn encode_packet_length(&mut self, len: usize) -> Result<(), PacketError> {
+        Ok(VarInt(len as i32).encode(&mut self.socket).await?)
+    }
+
     pub(crate) fn username(&self) -> &heapless::String<16> {
-        &self.player.username
+        self.player.username()
     }
 
     pub(crate) fn uuid(&self) -> UUID {
-        self.player.uuid
+        self.player.uuid()
     }
 
     pub(crate) fn state(&self) -> State {
@@ -288,9 +252,5 @@ impl Client {
 
     pub(crate) fn set_state(&mut self, state: State) {
         self.state = state;
-    }
-
-    pub(crate) async fn encode_packet_length(&mut self, len: usize) -> Result<(), PacketError> {
-        Ok(VarInt(len as i32).encode(&mut self.socket).await?)
     }
 }

@@ -23,6 +23,7 @@ pub mod packet_socket;
 pub mod server;
 pub mod shutdown;
 
+pub use client::Client;
 pub use server::Server;
 
 #[allow(unused)]
@@ -34,7 +35,7 @@ pub mod prelude {
     pub(crate) use picocraft_proto::prelude::*;
 
     pub(crate) use crate::buffer::Buffer;
-    pub use crate::client::Client;
+    pub use crate::client::{Client, Player};
     pub(crate) use crate::errors::*;
     pub(crate) use crate::handlers::HandlePacket;
     pub(crate) use crate::server::SERVER_CONFIG;
