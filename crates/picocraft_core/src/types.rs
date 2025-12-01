@@ -4,6 +4,4 @@ mod varint;
 mod vec;
 
 pub use self::core::*;
-pub use self::varint::*;
-// pub use self::vec::*;
-// pub use self::string::*;
+pub(crate) use crate::byteorder::{ReadBytesExt, WriteBytesExt};

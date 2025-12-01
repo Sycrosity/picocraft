@@ -8,9 +8,6 @@ use crate::prelude::*;
 const SEGMENT_BITS: u8 = 0x7f;
 const CONTINUE_BIT: u8 = 0x80;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
-pub struct VarInt(pub i32);
-
 impl core_json_traits::JsonSerialize for VarInt {
     fn serialize(&self) -> impl Iterator<Item = char> {
         (self.0).serialize()
