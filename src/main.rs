@@ -17,7 +17,7 @@ async fn main() -> Result<(), PicocraftError> {
     let config = picocraft_server::config::Config {
         address: Ipv4Addr::UNSPECIFIED,
         port: 25565,
-        motd: String::from_str("A Picocraft Server!").unwrap(),
+        motd: String::from_str("A Picocraft Server!").expect("String is less than 256 bytes"),
         max_players: MAX_PLAYERS,
     };
 

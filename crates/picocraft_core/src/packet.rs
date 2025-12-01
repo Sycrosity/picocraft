@@ -67,6 +67,10 @@ pub enum DecodeError<E: embedded_io_async::Error> {
     Custom,
     #[error("enum value is invalid")]
     InvalidEnumValue,
+    #[error("Invalid boolean as the byte is not 0x01 or 0x00")]
+    InvalidBoolean,
+    #[error("no bytes should be readable when decoding [`Optional`] ")]
+    UnexpectedOptionalRead,
 }
 
 impl<E: embedded_io::Error> From<ReadExactError<E>> for DecodeError<E> {

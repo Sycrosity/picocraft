@@ -8,9 +8,6 @@ use crate::prelude::*;
 const SEGMENT_BITS: u8 = 0x7f;
 const CONTINUE_BIT: u8 = 0x80;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
-pub struct VarInt(pub i32);
-
 impl core_json_traits::JsonSerialize for VarInt {
     fn serialize(&self) -> impl Iterator<Item = char> {
         (self.0).serialize()
@@ -21,9 +18,13 @@ impl core_json_traits::JsonDeserialize for VarInt {
     fn deserialize<'read, 'parent, B: core_json_traits::Read<'read>, S: core_json_traits::Stack>(
         value: core_json_traits::Value<'read, 'parent, B, S>,
     ) -> Result<Self, core_json_traits::JsonError<'read, B, S>> {
-        value
-            .to_number()
-            .map(|num| VarInt(num.i64().unwrap() as i32))
+        value.to_number().map(|num| {
+            VarInt(
+                num.i64()
+                    .expect("json decoding of Varint shouldn't be larger than i32")
+                    as i32,
+            )
+        })
     }
 }
 
