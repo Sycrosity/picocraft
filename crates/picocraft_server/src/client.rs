@@ -159,7 +159,29 @@ impl Client {
                 }
             },
 
-            State::Configuration => todo!(),
+            State::Configuration => match packet_id {
+                ClientInformationPacket::ID => {
+                    let packet =
+                        ClientInformationPacket::decode(&mut self.rx_buf.as_slice()).await?;
+
+                    ClientInformationPacket::handle(packet, self).await?
+                }
+                AcknowledgeFinishConfigurationPacket::ID => {
+                    let packet = AcknowledgeFinishConfigurationPacket::decode(
+                        &mut self.rx_buf.as_slice(),
+                    )
+                    .await?;
+
+                    AcknowledgeFinishConfigurationPacket::handle(packet, self).await?
+                }
+                _ => {
+                    warn!(
+                        "Unknown packet ID in Configuration state: {}",
+                        *packet_id
+                    );
+                    return Err(PacketError::InvalidPacket);
+                }
+            },
             State::Play => todo!(),
         }
 
