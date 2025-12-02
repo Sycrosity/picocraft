@@ -19,7 +19,7 @@ impl HandlePacket for LoginStartPacket {
             .await
             .inspect_err(|e| error!("{e:#?}"))?;
 
-        info!("Packet constructed: {:?}", login_success);
+        trace!("Packet constructed: {:?}", login_success);
 
         client.encode_packet_length(client.tx_buf.len()).await?;
 
@@ -35,13 +35,13 @@ impl HandlePacket for LoginStartPacket {
 
 impl HandlePacket for LoginAcknowledgedPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        info!(
-            "Player {} [{}] has logged in!",
+        debug!(
+            "{} [{}] has logged in.",
             &client.username(),
             &client.uuid()
         );
 
-        client.set_state(State::Play);
+        client.set_state(State::Configuration);
 
         Ok(())
     }
