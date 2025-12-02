@@ -1,10 +1,17 @@
-#![allow(
-    clippy::cast_sign_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_possible_truncation
-)]
 #![cfg_attr(not(test), no_std)]
-
+#![warn(
+    clippy::empty_structs_with_brackets,
+    clippy::error_impl_error,
+    clippy::large_include_file,
+    clippy::panic_in_result_fn,
+    clippy::redundant_test_prefix,
+    clippy::std_instead_of_core,
+    clippy::suspicious_xor_used_as_pow,
+    clippy::tests_outside_test_module,
+    clippy::try_err,
+    clippy::undocumented_unsafe_blocks,
+    clippy::unwrap_used
+)]
 #[cfg(test)]
 extern crate std;
 
