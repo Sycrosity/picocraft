@@ -1,9 +1,12 @@
 use crate::prelude::*;
 
+use picocraft_proto::serverbound::ClientInformation;
+
 #[derive(Debug, Default, Clone)]
 pub struct Player {
     profile: GameProfile,
     protocol_version: VarInt,
+    client_info: ClientInformation,
 }
 
 #[allow(unused)]
@@ -30,5 +33,13 @@ impl Player {
 
     pub(crate) fn uuid(&self) -> UUID {
         self.profile.uuid()
+    }
+
+    pub(crate) fn client_info(&self) -> &ClientInformation {
+        &self.client_info
+    }
+    
+    pub(crate) fn set_client_info(&mut self, client_info: ClientInformation) {
+        self.client_info = client_info;
     }
 }
