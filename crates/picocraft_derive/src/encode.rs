@@ -10,20 +10,21 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let protocol_attr_result = parse_protocol_attribute(&input.attrs)?.ok_or(syn::Error::new(
+    let protocol_attr_option = parse_protocol_attribute(&input.attrs)?;
+
+    let protocol_attr_result = protocol_attr_option.ok_or(syn::Error::new(
         input.span(),
-        "`enum_type = ...` value from packet attribute is required for deriving \
-                     Encode on enums",
+        "`value = ...` value from `protocol` attribute is required for deriving Encode on enums",
     ));
 
     match input.data {
         Data::Enum(enum_data) => {
             let protocol_attr = protocol_attr_result?;
 
-            let Some(enum_type) = protocol_attr.enum_type else {
+            let Some(value) = protocol_attr.value else {
                 return Err(syn::Error::new(
                     protocol_attr.span,
-                    "`enum_type = ...` value from packet attribute is required for deriving \
+                    "`value = ...` value from `protocol` attribute is required for deriving \
                      Encode on enums",
                 ));
             };
@@ -59,7 +60,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
                     let ident = variant.ident.clone();
 
                     quote! {
-                        Self::#ident => #enum_type::from(#expr).encode(&mut buffer).await?,
+                        Self::#ident => #value::from(#expr).encode(&mut buffer).await?,
                     }
                 })
                 .collect();
@@ -125,7 +126,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
 struct EncodeAttr {
     span: Span,
-    enum_type: Option<Expr>,
+    value: Option<Expr>,
 }
 
 fn parse_protocol_attribute(attributes: &[Attribute]) -> Result<Option<EncodeAttr>> {
@@ -138,12 +139,12 @@ fn parse_protocol_attribute(attributes: &[Attribute]) -> Result<Option<EncodeAtt
 
     let mut result = EncodeAttr {
         span: attribute.span(),
-        enum_type: None,
+        value: None,
     };
 
     attribute.parse_nested_meta(|meta| {
-        if meta.path.is_ident("enum_type") {
-            result.enum_type = Some(meta.value()?.parse::<syn::Expr>()?);
+        if meta.path.is_ident("value") {
+            result.value = Some(meta.value()?.parse::<syn::Expr>()?);
             Ok(())
         } else {
             Err(meta.error("unsupported procotol argument"))
