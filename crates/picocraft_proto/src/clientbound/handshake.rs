@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 #[derive(Debug)]
-pub struct LegacyKickPacket {}
+pub struct LegacyKickPacket;
 
 impl Packet for LegacyKickPacket {
     const ID: VarInt = VarInt(0xfe);
