@@ -15,7 +15,7 @@ pub struct HandshakePacket {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Encode, Decode)]
-#[protocol(enum_type = VarInt)]
+#[protocol(value = VarInt)]
 pub enum Intent {
     Status = 1,
     Login = 2,

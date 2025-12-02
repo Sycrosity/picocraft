@@ -10,20 +10,21 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let protocol_attr_result = parse_protocol_attribute(&input.attrs)?.ok_or(syn::Error::new(
+    let protocol_attr_option = parse_protocol_attribute(&input.attrs)?;
+
+    let protocol_attr_result = protocol_attr_option.ok_or(syn::Error::new(
         input.span(),
-        "`enum_type = ...` value from packet attribute is required for deriving \
-                     Decode on enums",
+        "`value = ...` value from `protocol` attribute is required for deriving Decode on enums",
     ));
 
     match input.data {
         Data::Enum(enum_data) => {
             let protocol_attr = protocol_attr_result?;
 
-            let Some(enum_type) = protocol_attr.enum_type else {
+            let Some(value) = protocol_attr.value else {
                 return Err(syn::Error::new(
                     protocol_attr.span,
-                    "`enum_type = ...` value from packet attribute is required for deriving \
+                    "`value = ...` value from `protocol` attribute is required for deriving \
                      Decode on enums",
                 ));
             };
@@ -72,9 +73,9 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
                         use ::picocraft_core::packet::Decode;
 
-                        let int = #enum_type::decode(&mut buffer).await?;
+                        let value = #value::decode(&mut buffer).await?;
 
-                        match i32::from(int) {
+                        match i32::from(value) {
 
                             #decode_fields
                             _ => Err(::picocraft_core::packet::DecodeError::InvalidEnumValue)
@@ -139,7 +140,7 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
 struct DecodeAttr {
     span: Span,
-    enum_type: Option<Expr>,
+    value: Option<Expr>,
 }
 
 fn parse_protocol_attribute(attributes: &[Attribute]) -> Result<Option<DecodeAttr>> {
@@ -152,12 +153,12 @@ fn parse_protocol_attribute(attributes: &[Attribute]) -> Result<Option<DecodeAtt
 
     let mut result = DecodeAttr {
         span: attribute.span(),
-        enum_type: None,
+        value: None,
     };
 
     attribute.parse_nested_meta(|meta| {
-        if meta.path.is_ident("enum_type") {
-            result.enum_type = Some(meta.value()?.parse::<syn::Expr>()?);
+        if meta.path.is_ident("value") {
+            result.value = Some(meta.value()?.parse::<syn::Expr>()?);
             Ok(())
         } else {
             Err(meta.error("unsupported procotol argument"))
