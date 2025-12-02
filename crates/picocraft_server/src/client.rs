@@ -34,41 +34,10 @@ impl Client {
             self.rx_buf.clear();
             self.tx_buf.clear();
 
-            //Doesn't need necessary currently.
-            // loop {
-            //     // Wait for the socket to be readable
-            //     if let Err(e) = self.socket.readable().await {
-            //         panic!("{:?}", e);
-            //     }
-
-            //     if self.rx_buf.is_empty() {
-            //         match self.socket.socket.try_read(&mut self.rx_buf) {
-
-            //             Ok(0) => {break;},
-            //             Ok(n) => {
-            //                 trace!(
-            //                     "Read {} bytes from {:?}.",
-            //                     n,
-            //                     self.socket.socket.peer_addr().unwrap()
-            //                 );
-
-            //                 trace!("Data: {:X?}", &self.rx_buf);
-            //             }
-            //             Err(ref e) if e.kind() == tokio::io::ErrorKind::WouldBlock => {
-            //                 info!("Socket would block, waiting for next readable event");
-            //                 continue;
-            //             }
-            //             Err(e) => {
-            //                 panic!("failed to read from socket: {:?}", e);
-            //             }
-            //         }
-            //     }
-            // }
-
             match self.process_packet().await {
                 Ok(()) => continue,
                 Err(PacketError::InvalidPacket) => {
-                    error!("Bad packet");
+                    warn!("Bad packet for player: {} [{}]", self.username(), self.uuid());
                 }
                 Err(PacketError::ConnectionClosed) => {
                     if !self.username().is_empty() {
@@ -117,6 +86,7 @@ impl Client {
                         self.username(),
                         self.uuid(),
                     );
+                    self.socket.shutdown().await?;
                 }
             }
         }

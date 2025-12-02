@@ -1,5 +1,5 @@
 use heapless::format;
-use picocraft_proto::serverbound::*;
+use picocraft_proto::serverbound::status::*;
 
 use crate::prelude::*;
 
