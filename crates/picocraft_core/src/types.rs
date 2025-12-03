@@ -23,6 +23,9 @@ pub type Vec<T, const N: usize> = heapless::Vec<T, N>;
 pub type Optional<T> = Option<T>;
 pub struct PrefixedOptional<T>(pub Option<T>);
 
+/// A placeholder for the NBT data type.
+pub struct NBT;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
 pub struct VarInt(pub i32);
 
