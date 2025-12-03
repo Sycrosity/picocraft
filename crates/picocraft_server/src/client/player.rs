@@ -1,6 +1,6 @@
-use crate::prelude::*;
-
 use picocraft_proto::serverbound::ClientInformation;
+
+use crate::prelude::*;
 
 #[derive(Debug, Default, Clone)]
 pub struct Player {
@@ -38,7 +38,7 @@ impl Player {
     pub(crate) fn client_info(&self) -> &ClientInformation {
         &self.client_info
     }
-    
+
     pub(crate) fn set_client_info(&mut self, client_info: ClientInformation) {
         self.client_info = client_info;
     }

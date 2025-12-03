@@ -35,11 +35,7 @@ impl HandlePacket for LoginStartPacket {
 
 impl HandlePacket for LoginAcknowledgedPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        debug!(
-            "{} [{}] has logged in.",
-            &client.username(),
-            &client.uuid()
-        );
+        debug!("{} [{}] has logged in.", &client.username(), &client.uuid());
 
         client.set_state(State::Configuration);
 

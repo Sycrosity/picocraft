@@ -1,6 +1,6 @@
-use crate::prelude::*;
-
 use picocraft_proto::serverbound::configuration::*;
+
+use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
@@ -8,7 +8,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         info!(
             "Client {} [{}] has finished configuration.",
-            client.player.username(), client.player.uuid()
+            client.player.username(),
+            client.player.uuid()
         );
 
         client.set_state(State::Play);
