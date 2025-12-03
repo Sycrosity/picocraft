@@ -1,23 +1,27 @@
-use core::net::Ipv4Addr;
+#![no_std]
+
+#[cfg(feature = "std")]
+extern crate std;
+
+mod logger;
+
 use core::prelude::rust_2024::*;
-use core::str::FromStr;
 
 #[allow(unused)]
-use log::{debug, error, info, trace, warn};
-use picocraft::prelude::*;
-use picocraft_server::Server;
-use picocraft_server::server::SERVER_CONFIG;
+use log::{debug, error, info, log, trace, warn};
+use picocraft_core::prelude::*;
+use picocraft_server::prelude::*;
 
-const MAX_PLAYERS: i32 = 10;
+const MAX_PLAYERS: i32 = 8;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), PicocraftError> {
-    picocraft::logger::init_logger_from_env();
+    logger::init_logger_from_env();
 
     let config = picocraft_server::config::Config {
-        address: Ipv4Addr::UNSPECIFIED,
+        address: core::net::Ipv4Addr::UNSPECIFIED,
         port: 25565,
-        motd: String::from_str("A Picocraft Server!").expect("String is less than 256 bytes"),
+        motd: String::try_from("A Picocraft Server!").expect("String is less than 256 bytes"),
         max_players: MAX_PLAYERS,
     };
 

@@ -6,7 +6,7 @@ use log::LevelFilter;
 
 const LOG_TARGETS: Option<&'static str> = option_env!("PICOCRAFT_LOGTARGETS");
 
-#[allow(clippy::undocumented_unsafe_blocks)]
+#[allow(clippy::undocumented_unsafe_blocks, unused)]
 pub fn init_logger(level: log::LevelFilter) {
     unsafe {
         log::set_logger_racy(&Logger).expect("interrupts should be disabled before logger init");
@@ -14,7 +14,7 @@ pub fn init_logger(level: log::LevelFilter) {
     }
 }
 
-#[allow(clippy::undocumented_unsafe_blocks)]
+#[allow(clippy::undocumented_unsafe_blocks, unused)]
 pub fn init_logger_from_env() {
     const LEVEL: Option<&'static str> = option_env!("PICOCRAFT_LOGLEVEL");
 

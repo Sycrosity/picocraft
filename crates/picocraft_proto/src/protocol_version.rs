@@ -1,6 +1,3 @@
-use core::ops::{Deref, DerefMut};
-use core::str::FromStr;
-
 use crate::prelude::*;
 
 pub const CURRENT_PROTOCOL_VERSION: VarInt = VarInt(773);
@@ -17,12 +14,12 @@ impl Default for ProtocolVersion {
 
 impl<const N: usize> From<ProtocolVersion> for String<N> {
     fn from(value: ProtocolVersion) -> Self {
-        String::from_str(value.version_name())
+        String::try_from(value.version_name())
             .expect("Version names are never longer than 8 characters")
     }
 }
 
-impl Deref for ProtocolVersion {
+impl core::ops::Deref for ProtocolVersion {
     type Target = VarInt;
 
     fn deref(&self) -> &Self::Target {
@@ -30,7 +27,7 @@ impl Deref for ProtocolVersion {
     }
 }
 
-impl DerefMut for ProtocolVersion {
+impl core::ops::DerefMut for ProtocolVersion {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
