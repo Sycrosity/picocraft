@@ -13,7 +13,7 @@ impl<const N: usize> Encode for Identifier<N> {
         &self,
         mut buffer: W,
     ) -> Result<(), EncodeError<W::Error>> {
-        VarInt(NAMESPACE.len() as i32 + self.0.len() as i32)
+        VarInt(NAMESPACE.len() as i32 + self.0.len() as i32 + 1)
             .encode(&mut buffer)
             .await?;
         buffer.write(NAMESPACE.as_bytes()).await?;
@@ -64,6 +64,14 @@ impl<const N: usize> Decode for Identifier<N> {
         Ok(Self(
             String::from_utf8(path_buf).map_err(DecodeError::InvalidUtf8)?,
         ))
+    }
+}
+
+impl<const N: usize> TryFrom<&str> for Identifier<N> {
+    type Error = heapless::CapacityError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(Identifier::new(String::try_from(value)?))
     }
 }
 
