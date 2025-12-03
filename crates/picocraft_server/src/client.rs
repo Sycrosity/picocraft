@@ -37,7 +37,11 @@ impl Client {
             match self.process_packet().await {
                 Ok(()) => continue,
                 Err(PacketError::InvalidPacket) => {
-                    warn!("Bad packet for player: {} [{}]", self.username(), self.uuid());
+                    warn!(
+                        "Bad packet for player: {} [{}]",
+                        self.username(),
+                        self.uuid()
+                    );
                 }
                 Err(PacketError::ConnectionClosed) => {
                     if !self.username().is_empty() {
@@ -159,7 +163,25 @@ impl Client {
                 }
             },
 
-            State::Configuration => todo!(),
+            State::Configuration => match packet_id {
+                ClientInformationPacket::ID => {
+                    let packet =
+                        ClientInformationPacket::decode(&mut self.rx_buf.as_slice()).await?;
+
+                    ClientInformationPacket::handle(packet, self).await?
+                }
+                AcknowledgeFinishConfigurationPacket::ID => {
+                    let packet =
+                        AcknowledgeFinishConfigurationPacket::decode(&mut self.rx_buf.as_slice())
+                            .await?;
+
+                    AcknowledgeFinishConfigurationPacket::handle(packet, self).await?
+                }
+                _ => {
+                    warn!("Unknown packet ID in Configuration state: {}", *packet_id);
+                    return Err(PacketError::InvalidPacket);
+                }
+            },
             State::Play => todo!(),
         }
 

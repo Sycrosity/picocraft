@@ -71,6 +71,8 @@ pub enum DecodeError<E: embedded_io_async::Error> {
     InvalidBoolean,
     #[error("no bytes should be readable when decoding [`Optional`] ")]
     UnexpectedOptionalRead,
+    #[error("namespace part of Identifier is not 'minecraft'")]
+    InvalidNamespace,
 }
 
 impl<E: embedded_io::Error> From<ReadExactError<E>> for DecodeError<E> {

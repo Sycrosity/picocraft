@@ -25,6 +25,9 @@ pub mod types;
 pub use crate::types::{UUID, VarInt};
 
 pub mod prelude {
+    pub(crate) use embedded_io_async::{Read, Write};
+
+    pub(crate) use crate::byteorder::{ReadBytesExt, WriteBytesExt};
     pub use crate::errors::*;
     pub use crate::packet::*;
     pub use crate::state::*;
