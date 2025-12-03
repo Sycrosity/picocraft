@@ -20,19 +20,6 @@ impl HandlePacket for ClientInformationPacket {
                 .build(),
         );
 
-        clientbound::FinishConfigurationPacket
-            .encode(&mut client.tx_buf)
-            .await
-            .inspect_err(|e| error!("{e:#?}"))?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-
-        client.socket.write_all(&client.tx_buf).await?;
-
-        client.socket.flush().await?;
-
-        trace!("Finish Configuration sent.");
-
         Ok(())
     }
 }

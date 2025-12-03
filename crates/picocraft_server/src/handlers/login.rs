@@ -2,6 +2,18 @@ use picocraft_proto::serverbound::login::*;
 
 use crate::prelude::*;
 
+const CAT_VARIANT: &[u8] = include_bytes!("login/cat_variant.bin");
+const COW_VARIANT: &[u8] = include_bytes!("login/cow_variant.bin");
+const CHICKEN_VARIANT: &[u8] = include_bytes!("login/chicken_variant.bin");
+const DAMAGE_TYPES: &[u8] = include_bytes!("login/damage_types.bin");
+const DIMENSION_TYPES: &[u8] = include_bytes!("login/dimension_types.bin");
+const FROG_VARIANT: &[u8] = include_bytes!("login/frog_variant.bin");
+const PAINTING_VARIANT: &[u8] = include_bytes!("login/painting_variant.bin");
+const PIG_VARIANT: &[u8] = include_bytes!("login/pig_variant.bin");
+const WOLF_SOUND_VARIANT: &[u8] = include_bytes!("login/wolf_sound_variant.bin");
+const WOLF_VARIANT: &[u8] = include_bytes!("login/wolf_variant.bin");
+const WORLDGEN_BIOME: &[u8] = include_bytes!("login/worldgen_biome.bin");
+
 impl HandlePacket for LoginStartPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
         trace!("Packet received: {:?}", &self);
@@ -22,9 +34,7 @@ impl HandlePacket for LoginStartPacket {
         trace!("Packet constructed: {:?}", login_success);
 
         client.encode_packet_length(client.tx_buf.len()).await?;
-
         client.socket.write_all(&client.tx_buf).await?;
-
         client.socket.flush().await?;
 
         trace!("Login Success packet sent.");
@@ -39,6 +49,58 @@ impl HandlePacket for LoginAcknowledgedPacket {
 
         client.set_state(State::Configuration);
 
+        clientbound::BrandPacket::new()
+            .encode(&mut client.tx_buf)
+            .await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
+        trace!("Sent Brand Packet.");
+
+        clientbound::KnownPacksPacket::new()
+            .encode(&mut client.tx_buf)
+            .await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
+        trace!("Sent KnownPacks Packet.");
+
+        encode_registry_data(CAT_VARIANT, client).await?;
+        encode_registry_data(COW_VARIANT, client).await?;
+        encode_registry_data(CHICKEN_VARIANT, client).await?;
+        encode_registry_data(DAMAGE_TYPES, client).await?;
+        encode_registry_data(DIMENSION_TYPES, client).await?;
+        encode_registry_data(FROG_VARIANT, client).await?;
+        encode_registry_data(PAINTING_VARIANT, client).await?;
+        encode_registry_data(PIG_VARIANT, client).await?;
+        encode_registry_data(WOLF_SOUND_VARIANT, client).await?;
+        encode_registry_data(WOLF_VARIANT, client).await?;
+        encode_registry_data(WORLDGEN_BIOME, client).await?;
+
+        clientbound::FinishConfigurationPacket
+            .encode(&mut client.tx_buf)
+            .await?;
+        trace!("Finish Configuration sent.");
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+
+        client.socket.write_all(&client.tx_buf).await?;
+
+        client.socket.flush().await?;
+
         Ok(())
     }
+}
+
+async fn encode_registry_data(bytes: &[u8], client: &mut Client) -> Result<(), PacketError> {
+    client.encode_packet_length(bytes.len()).await?;
+    client.socket.write_all(bytes).await?;
+    client.socket.flush().await?;
+    Ok(())
 }
