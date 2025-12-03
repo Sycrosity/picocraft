@@ -25,7 +25,6 @@ pub use protocol_version::{CURRENT_PROTOCOL_VERSION, CURRENT_VERSION_NAME};
 
 #[allow(unused)]
 pub mod prelude {
-    pub(crate) use core::str::FromStr;
 
     pub(crate) use picocraft_core::byteorder::{ReadBytesExt, WriteBytesExt};
     pub(crate) use picocraft_core::prelude::*;

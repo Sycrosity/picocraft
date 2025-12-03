@@ -109,7 +109,7 @@ pub struct Chat {
 impl Chat {
     pub fn new(text: &str) -> Self {
         Self {
-            text: String::from_str(text)
+            text: String::try_from(text)
                 .expect("Chat description must be less than 128 characters long"),
         }
     }
@@ -124,7 +124,7 @@ impl From<String<128>> for Chat {
 impl Default for Chat {
     fn default() -> Self {
         Self {
-            text: String::from_str("A picocraft server! :D").expect("String is long enough"),
+            text: String::try_from("A picocraft server! :D").expect("String is long enough"),
         }
     }
 }

@@ -40,6 +40,5 @@ pub mod prelude {
     pub use crate::client::{Client, Player};
     pub(crate) use crate::errors::*;
     pub(crate) use crate::handlers::HandlePacket;
-    pub(crate) use crate::server::SERVER_CONFIG;
-    pub use crate::server::Server;
+    pub use crate::server::{SERVER_CONFIG, Server};
 }
