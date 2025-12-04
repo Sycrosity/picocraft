@@ -37,6 +37,43 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Login (Play) packet sent.");
 
+        clientbound::SynchronisePlayerPositionPacket::default()
+            .encode(&mut client.tx_buf)
+            .await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
+        trace!("Synchronise Player Position packet sent.");
+
+        let actions = EnumSet::new().add_player().update_listed();
+
+        let mut players = PrefixedArray::new();
+
+        let mut action_array = Array::new();
+
+        let _ = action_array.push(clientbound::PlayerActions::AddPlayer {
+            name: client.username().clone(),
+            properties: Properties::default(),
+        });
+
+        let _ = action_array.push(clientbound::PlayerActions::UpdateListed(true));
+
+        let _ = players.push((client.uuid(), action_array));
+
+        let player_info_update = clientbound::PlayerInfoUpdatePacket::<1, 2> { actions, players };
+
+        trace!("Packet constructed: {:?}", player_info_update);
+
+        player_info_update.encode(&mut client.tx_buf).await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
         Ok(())
     }
 }
