@@ -72,3 +72,51 @@ macro_rules! impl_encode_integer {
 impl_encode_integer!(
     u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, f32, f64
 );
+
+macro_rules! impl_encode_decode_tuples {
+    ( $( $name:ident )+ ) => {
+
+        impl<$($name: Encode),+> crate::packet::Encode for ($($name,)+)
+        {
+
+            #[inline]
+            async fn encode<W>(
+                &self,
+                mut buffer: W
+            ) -> ::core::result::Result<(), crate::packet::EncodeError<W::Error>>
+            where
+                W: ::embedded_io_async::Write,
+            {
+                #[allow(non_snake_case)]
+                let ($($name,)+) = self;
+
+                $($name.encode(&mut buffer).await?;)+
+                Ok(())
+            }
+        }
+
+        impl<$($name: Decode),+> crate::packet::Decode for ($($name,)+) {
+
+            #[inline]
+            async fn decode<R>(
+                mut buffer: R
+            ) -> ::core::result::Result<Self, crate::packet::DecodeError<R::Error>>
+            where
+                R: ::embedded_io_async::Read,
+            {
+                Ok((
+                    $(<$name>::decode(&mut buffer).await?,)+
+                ))
+            }
+        }
+    };
+}
+
+impl_encode_decode_tuples! { A }
+impl_encode_decode_tuples! { A B }
+impl_encode_decode_tuples! { A B C}
+impl_encode_decode_tuples! { A B C D }
+impl_encode_decode_tuples! { A B C D E }
+impl_encode_decode_tuples! { A B C D E F }
+impl_encode_decode_tuples! { A B C D E F G }
+impl_encode_decode_tuples! { A B C D E F G H }
