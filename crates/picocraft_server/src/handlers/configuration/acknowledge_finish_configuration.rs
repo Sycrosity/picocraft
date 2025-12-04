@@ -65,9 +65,33 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         let player_info_update = clientbound::PlayerInfoUpdatePacket::<1, 2> { actions, players };
 
-        trace!("Packet constructed: {:?}", player_info_update);
+        trace!("Packet constructed: {:?}", &player_info_update);
 
         player_info_update.encode(&mut client.tx_buf).await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
+        let game_event = clientbound::GameEventPacket::builder()
+            .event(clientbound::GameEvent::StartWaitingForLevelChunks)
+            .build();
+
+        trace!("Packet constructed: {:?}", &game_event);
+
+        game_event.encode(&mut client.tx_buf).await?;
+
+        client.encode_packet_length(client.tx_buf.len()).await?;
+        client.socket.write_all(&client.tx_buf).await?;
+        client.socket.flush().await?;
+        client.tx_buf.clear();
+
+        let set_center_chunk = clientbound::SetCenterChunkPacket::default();
+
+        trace!("Packet constructed: {:?}", &set_center_chunk);
+
+        set_center_chunk.encode(&mut client.tx_buf).await?;
 
         client.encode_packet_length(client.tx_buf.len()).await?;
         client.socket.write_all(&client.tx_buf).await?;
