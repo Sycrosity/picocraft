@@ -1,0 +1,44 @@
+- [x] Client connects to the server
+- [x] C→S: Handshake State=2
+- [x] C→S: Login Start
+- [ ] S→C: Encryption Request (optional)
+- [ ] Client auth (Only if server sent Encryption Request)
+- [ ] C→S: Encryption Response (Only if server sent Encryption Request)
+- [ ] Server auth, both enable encryption (Only if server sent Encryption Request)
+- [ ] S → C: Set Compression (Optional, enables compression)
+- [x] S → C: Login Success
+- [x] C → S: Login Acknowledged
+- [x] C → S: Serverbound Plugin Message (Optional, minecraft:brand with the client's brand)
+- [x] C → S: Client Information (Optional)
+- [x] S → C: Clientbound Plugin Message (Optional, minecraft:brand with the server's brand)
+- [ ] S → C: Feature Flags (Optional)
+- [x] S → C: Clientbound Known Packs
+- [x] C → S: Serverbound Known Packs
+- [x] S → C: Registry Data (Multiple)
+- [ ] S → C: Update Tags (Optional)
+- [x] S → C: Finish Configuration
+- [x] C → S: Acknowledge Finish Configuration
+- [x] S → C: Login (play)
+- [ ] S → C: Change Difficulty (Optional)
+- [ ] S → C: Player Abilities (Optional)
+- [ ] S → C: Set Held Item (Optional)
+- [ ] S → C: Update Recipes (Optional)
+- [ ] S → C: Entity Event (Optional, for the OP permission level)
+- [ ] S → C: Commands (Optional)
+- [ ] S → C: Update Recipe Book (Optional)
+- [x] S → C: Synchronize Player Position
+- [x] C → S: Confirm Teleportation
+- [ ] C → S: Set Player Position and Rotation (Optional, to confirm the spawn position)
+- [ ] S → C: Server Data (Optional)
+- [ ] S → C: Player Info Update (Add Player action, all players except the one joining (the vanilla server separates these, you don't need to))
+- [ ] S → C: Player Info Update (Add Player action, joining player)
+- [ ] S → C: Initialize World Border (Optional)
+- [ ] S → C: Update Time (Optional)
+- [ ] S → C: Set Default Spawn Position (Optional, “home” spawn, not where the client will spawn on login)
+- [ ] S → C: Game Event (Start waiting for level chunks event, required for the client to spawn. Despite the name, a custom server may choose to send some chunks before sending this packet)
+- [ ] S → C: Set Ticking State (Optional)
+- [ ] S → C: Step Tick (Optional, the vanilla server sends this regardless of ticking state)
+- [ ] S → C: Set Center Chunk
+- [ ] S → C: Chunk Data and Update Light (One sent for each chunk in a circular area centered on the player's position)
+- [ ] C → S: Player Loaded (After the "Loading terrain..." screen has closed (see below), or skipped if 60 ticks pass before then)
+- [ ] S → C: inventory, entities, etc
