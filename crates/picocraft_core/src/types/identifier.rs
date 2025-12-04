@@ -37,8 +37,6 @@ impl<const N: usize> Decode for Identifier<N> {
             return Err(DecodeError::VarIntTooBig);
         }
 
-        // This warning is possibly a bug? See https://github.com/rust-lang/rust/issues/76200#issuecomment-3604535575
-        // #[allow(const_evaluatable_unchecked)]
         let mut namespace_buf = [0u8; NAMESPACE.len() + 1];
 
         buffer.read_exact(&mut namespace_buf).await?;
