@@ -2,10 +2,10 @@ mod core;
 mod identifier;
 mod optional;
 mod position;
+mod prefixed_array;
 mod string;
 mod uuid;
 mod varint;
-mod vec;
 
 pub type Boolean = bool;
 pub type Byte = i8;
@@ -20,6 +20,12 @@ pub type Double = f64;
 pub type UUID = ::uuid::Uuid;
 pub type String<const N: usize> = heapless::String<N>;
 pub type Vec<T, const N: usize> = heapless::Vec<T, N>;
+
+pub type PrefixedArray<T, const N: usize> = heapless::Vec<T, N>;
+
+#[derive(Debug, Default)]
+pub struct Array<T, const N: usize>(heapless::Vec<T, N>);
+
 pub type Optional<T> = Option<T>;
 pub struct PrefixedOptional<T>(pub Option<T>);
 
