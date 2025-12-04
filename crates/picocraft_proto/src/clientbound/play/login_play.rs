@@ -8,7 +8,7 @@ pub struct LoginPlayPacket {
     entity_id: Int,
     is_hardcore: Boolean,
     /// Identifiers for all dimensions on the server.
-    dimension_names: Vec<Identifier<16>, 3>,
+    dimension_names: PrefixedArray<Identifier<16>, 3>,
     /// Unused by the client.
     #[builder(default = VarInt(1))]
     max_players: VarInt,
