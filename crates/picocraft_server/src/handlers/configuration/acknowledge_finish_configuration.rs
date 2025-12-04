@@ -74,6 +74,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         client.socket.flush().await?;
         client.tx_buf.clear();
 
+        trace!("Player Info Update packet sent.");
+
         let game_event = clientbound::GameEventPacket::builder()
             .event(clientbound::GameEvent::StartWaitingForLevelChunks)
             .build();
@@ -86,6 +88,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         client.socket.write_all(&client.tx_buf).await?;
         client.socket.flush().await?;
         client.tx_buf.clear();
+
+        trace!("Game Event packet sent.");
 
         let set_center_chunk = clientbound::SetCenterChunkPacket::default();
 
