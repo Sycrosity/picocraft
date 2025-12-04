@@ -13,7 +13,7 @@
 - [x] S → C: Clientbound Plugin Message (Optional, minecraft:brand with the server's brand)
 - [ ] S → C: Feature Flags (Optional)
 - [x] S → C: Clientbound Known Packs
-- [x] C → S: Serverbound Known Packs
+- [ ] C → S: Serverbound Known Packs
 - [x] S → C: Registry Data (Multiple)
 - [ ] S → C: Update Tags (Optional)
 - [x] S → C: Finish Configuration
@@ -31,7 +31,7 @@
 - [ ] C → S: Set Player Position and Rotation (Optional, to confirm the spawn position)
 - [ ] S → C: Server Data (Optional)
 - [ ] S → C: Player Info Update (Add Player action, all players except the one joining (the vanilla server separates these, you don't need to))
-- [ ] S → C: Player Info Update (Add Player action, joining player)
+- [x] S → C: Player Info Update (Add Player action, joining player)
 - [ ] S → C: Initialize World Border (Optional)
 - [ ] S → C: Update Time (Optional)
 - [ ] S → C: Set Default Spawn Position (Optional, “home” spawn, not where the client will spawn on login)
