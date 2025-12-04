@@ -182,7 +182,18 @@ impl Client {
                     return Err(PacketError::InvalidPacket);
                 }
             },
-            State::Play => todo!(),
+            State::Play => match packet_id {
+                ConfirmTeleportationPacket::ID => {
+                    let packet =
+                        ConfirmTeleportationPacket::decode(&mut self.rx_buf.as_slice()).await?;
+
+                    ConfirmTeleportationPacket::handle(packet, self).await?
+                }
+                _ => {
+                    warn!("Unknown packet ID in Play state: {}", *packet_id);
+                    return Err(PacketError::InvalidPacket);
+                }
+            },
         }
 
         self.socket.flush().await?;
