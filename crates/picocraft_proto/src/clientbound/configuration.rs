@@ -3,8 +3,8 @@ use crate::prelude::*;
 #[derive(Debug, Packet)]
 #[packet(id = 0x01, state = State::Configuration)]
 pub struct BrandPacket {
-    identifier: Identifier<5>,
-    brand: String<16>,
+    pub identifier: Identifier<5>,
+    pub brand: String<16>,
 }
 
 impl BrandPacket {

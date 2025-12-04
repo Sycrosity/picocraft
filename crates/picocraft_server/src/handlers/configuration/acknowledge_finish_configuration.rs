@@ -1,4 +1,4 @@
-use picocraft_proto::serverbound::configuration::*;
+use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
 
 use crate::prelude::*;
 

@@ -68,7 +68,6 @@ impl Client {
                         self.username(),
                         self.uuid()
                     );
-                    // break;
                 }
                 Err(PacketError::SocketError(_)) => {
                     error!(
