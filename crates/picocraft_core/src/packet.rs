@@ -6,7 +6,7 @@ use crate::prelude::*;
 pub const MAX_PACKET_SIZE: VarInt = VarInt(2_097_152);
 
 /// \[`VarInt`, `VarInt`, `[u8]`\]
-pub trait Packet: Decode + Encode + Sized + core::fmt::Debug {
+pub trait Packet: Decode + Encode + Sized + core::fmt::Debug + core::fmt::Display {
     const ID: VarInt;
     const STATE: State;
 
@@ -46,6 +46,8 @@ pub enum EncodeError<E: embedded_io_async::Error> {
     TryFromInt(core::num::TryFromIntError),
     #[error("This operation is unsupported")]
     UnsupportedOperation,
+    #[error("unknown")]
+    Unknown,
 }
 
 #[derive(Debug, Error)]

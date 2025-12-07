@@ -134,15 +134,12 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
 
-                // impl #impl_generics ::core::convert::From<::picocraft_core::packet::RawPacket<'_>> for #ident #ty_generics #where_clause {
-                //     fn from(value: ::picocraft_core::packet::RawPacket<'_>) {
+                impl #impl_generics ::core::fmt::Display for #ident #ty_generics #where_clause {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        write!(f, "{} [ID: {:02x?}]", stringify!(#ident), Self::ID.0)
+                    }
+                }
 
-                //         <#ident as ::picocraft_core::packet::Decode>::decode(&mut value.data)
-                //             .await
-                //             .expect("failed to decode packet from RawPacket")
-
-                //     }
-                // }
             })
         }
     }
