@@ -37,7 +37,11 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Login (Play) packet sent.");
 
-        clientbound::SynchronisePlayerPositionPacket::default()
+        clientbound::SynchronisePlayerPositionPacket::builder()
+            .x(0f64)
+            .z(0f64)
+            .y(156f64)
+            .build()
             .encode(&mut client.tx_buf)
             .await?;
 
@@ -63,7 +67,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         let _ = players.push((client.uuid(), action_array));
 
-        let player_info_update = clientbound::PlayerInfoUpdatePacket::<1, 2> { actions, players };
+        let player_info_update = clientbound::PlayerInfoUpdatePacket::<2> { actions, players };
 
         trace!("Packet constructed: {:?}", &player_info_update);
 
@@ -91,15 +95,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Game Event packet sent.");
 
-        let set_center_chunk = clientbound::SetCenterChunkPacket::default();
 
-        trace!("Packet constructed: {:?}", &set_center_chunk);
-
-        set_center_chunk.encode(&mut client.tx_buf).await?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
         client.tx_buf.clear();
 
         Ok(())

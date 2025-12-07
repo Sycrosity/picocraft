@@ -1,17 +1,24 @@
 use crate::prelude::*;
 
-#[derive(Debug, Default, Packet)]
+#[derive(Debug, Default, Packet, bon::Builder)]
 #[packet(id = 0x46, state = State::Play)]
 pub struct SynchronisePlayerPositionPacket {
+    #[builder(default)]
     id: VarInt,
     x: Double,
     y: Double,
     z: Double,
+    #[builder(default)]
     velocity_x: Double,
+    #[builder(default)]
     velocity_y: Double,
+    #[builder(default)]
     velocity_z: Double,
+    #[builder(default)]
     yaw: Float,
+    #[builder(default)]
     pitch: Float,
+    #[builder(default)]
     flags: TeleportFlags,
 }
 
