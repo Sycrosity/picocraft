@@ -46,11 +46,17 @@ async fn main() -> Result<(), PicocraftError> {
                     match client.handle_connection().await {
                         Ok(()) => debug!(
                             "Connection with {:?} handled successfully.",
-                            client.socket.socket.peer_addr().unwrap()
+                            client
+                                .socket
+                                .remote_endpoint()
+                                .expect("socket should be open")
                         ),
                         Err(_) => error!(
                             "Connection with {:?} ended with an error.",
-                            client.socket.socket.peer_addr().unwrap()
+                            client
+                                .socket
+                                .remote_endpoint()
+                                .expect("socket should be open")
                         ),
                     }
                 });
