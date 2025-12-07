@@ -49,11 +49,11 @@ embassy-time = { version = "0.5.0", features = ["log"] }
 embassy-net = { version = "0.7.1", features = ["log"] }
 embassy-sync = { version = "0.7.2", features = ["log"] }
 
-log = "0.4"
+log = "0.4.29"
 
 heapless = "0.9"
 tokio = "1.48"
-uuid = { version = "1.18.1", default-features = false }
+uuid = { version = "1.19.0", default-features = false }
 thiserror = { version = "2", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 bon = { version = "3.8.1", default-features = false }
@@ -72,14 +72,14 @@ std = [
 ]
 alloc = []
 tokio = ["dep:tokio"]
-
+release = ["log/release_max_level_off"]
 
 [profile.dev.package."*"]
 opt-level = 3
 
-[profile.release-embedded]
-inherits = "release"
+[profile.release]
+# inherits = "release"
 codegen-units = 1
 debug = 0
 lto = true
-opt-level = "z"
+opt-level = "s"
