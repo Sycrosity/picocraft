@@ -1,18 +1,18 @@
 use crate::prelude::*;
 
 #[derive(Debug)]
-pub struct PlayerInfoUpdatePacket<const N: usize, const ACTIONS: usize> {
+pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub actions: EnumSet,
-    pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), N>,
+    pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), 8>,
 }
 
-impl<const N: usize, const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<N, ACTIONS> {
+impl<const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<ACTIONS> {
     const ID: VarInt = VarInt(0x44);
 
     const STATE: State = State::Play;
 }
 
-impl<const N: usize, const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<N, ACTIONS> {
+impl<const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<ACTIONS> {
     async fn encode<W: embedded_io_async::Write>(
         &self,
         mut buffer: W,
@@ -23,7 +23,13 @@ impl<const N: usize, const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<N, 
     }
 }
 
-impl<const N: usize, const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<N, ACTIONS> {
+impl<const ACTIONS: usize> core::fmt::Display for PlayerInfoUpdatePacket<ACTIONS> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "PlayerInfoUpdatePacket (id: {})", Self::ID)
+    }
+}
+
+impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
     async fn decode<R: embedded_io_async::Read>(
         mut buffer: R,
     ) -> Result<Self, DecodeError<R::Error>> {
@@ -33,10 +39,10 @@ impl<const N: usize, const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<N, 
 
         let array_length = *VarInt::decode(&mut buffer).await?;
 
-        if array_length > N as i32 {
+        if array_length > 8 {
             log::warn!(
                 "Decoded array length of PlayerInfoUpdatePacket {array_length} exceeds maximum \
-                 size of {N}."
+                 size of 8."
             );
             return Err(DecodeError::VarIntTooBig);
         }
@@ -51,7 +57,7 @@ impl<const N: usize, const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<N, 
             return Err(DecodeError::VarIntTooBig);
         }
 
-        let mut players = PrefixedArray::<(UUID, Array<PlayerActions, ACTIONS>), N>::new();
+        let mut players = PrefixedArray::new();
 
         for _ in 0..array_length {
             players

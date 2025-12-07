@@ -27,3 +27,9 @@ impl Decode for LegacyKickPacket {
         todo!("Decode is not yet implemented for LegacyKick")
     }
 }
+
+impl core::fmt::Display for LegacyKickPacket {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "LegacyKickPacket")
+    }
+}

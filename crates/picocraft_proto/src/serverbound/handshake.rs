@@ -31,6 +31,12 @@ impl Packet for LegacyPingPacket {
     const STATE: State = State::Handshake;
 }
 
+impl core::fmt::Display for LegacyPingPacket {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "LegacyPingPacket")
+    }
+}
+
 #[allow(unused)]
 impl Encode for LegacyPingPacket {
     async fn encode<W: embedded_io_async::Write>(
