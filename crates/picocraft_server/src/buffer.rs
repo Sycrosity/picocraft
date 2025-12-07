@@ -28,7 +28,7 @@ impl<const N: usize> Buffer<N> {
     }
 }
 
-impl<const N: usize> embedded_io_async::Write for Buffer<N> {
+impl<const N: usize> Write for Buffer<N> {
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         use embedded_io::Write;
 

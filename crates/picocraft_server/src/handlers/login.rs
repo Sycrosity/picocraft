@@ -98,9 +98,13 @@ impl HandlePacket for LoginAcknowledgedPacket {
     }
 }
 
-async fn encode_registry_data(bytes: &[u8], client: &mut Client) -> Result<(), PacketError> {
+async fn encode_registry_data(
+    bytes: &'static [u8],
+    client: &mut Client,
+) -> Result<(), PacketError> {
     client.encode_packet_length(bytes.len()).await?;
-    client.socket.write_all(bytes).await?;
-    client.socket.flush().await?;
+
+    bytes.encode(&mut client.socket).await?;
+
     Ok(())
 }

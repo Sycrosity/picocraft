@@ -21,7 +21,7 @@ impl Client {
     pub fn new(socket: tokio::net::TcpStream) -> Self {
         Self {
             player: Player::default(),
-            socket: crate::packet_socket::PacketSocket::new(socket),
+            socket: PacketSocket::new(socket),
             state: State::default(),
             rx_buf: Buffer::new(),
             tx_buf: Buffer::new(),
@@ -54,9 +54,8 @@ impl Client {
                         info!(
                             "Connection closed for client: {}",
                             self.socket
-                                .socket
-                                .peer_addr()
-                                .expect("Socket should have an address")
+                                .remote_endpoint()
+                                .expect("socket should be open")
                         );
                     }
 
