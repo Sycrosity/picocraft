@@ -46,7 +46,7 @@ pub struct Position(i64);
 pub struct PrefixedOptional<T>(pub Option<T>);
 
 /// A placeholder for the NBT data type.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NBT;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]

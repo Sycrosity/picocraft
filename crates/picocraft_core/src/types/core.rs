@@ -28,6 +28,13 @@ impl Decode for () {
     }
 }
 
+impl Encode for &'static [u8] {
+    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>> {
+        buffer.write_all(self).await?;
+        Ok(())
+    }
+}
+
 macro_rules! impl_decode_integer {
     ($($ty:ty), *) => {
         $(
