@@ -44,3 +44,29 @@ impl<const N: usize> Write for Buffer<N> {
 impl<const N: usize> embedded_io::ErrorType for Buffer<N> {
     type Error = heapless::CapacityError;
 }
+
+#[derive(Debug, Default)]
+pub struct ByteCountWriter {
+    pub count: usize,
+}
+
+impl ByteCountWriter {
+    pub fn new() -> Self {
+        Self { count: 0 }
+    }
+}
+
+impl Write for ByteCountWriter {
+    async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        self.count += buf.len();
+        Ok(buf.len())
+    }
+
+    async fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+}
+
+impl embedded_io::ErrorType for ByteCountWriter {
+    type Error = core::convert::Infallible;
+}

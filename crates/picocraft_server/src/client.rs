@@ -113,8 +113,6 @@ impl Client {
 
         self.read_packet_body(packet_length).await?;
 
-        trace!("Raw Packet Bytes: {:X?}", self.rx_buf.as_slice());
-
         match self.state {
             State::Handshake => match packet_id {
                 HandshakePacket::ID => {
@@ -123,7 +121,7 @@ impl Client {
                     HandshakePacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Handshake state: {}", *packet_id);
+                    warn!("Unknown packet ID in Handshake state: {:x?}", *packet_id);
                     return Err(PacketError::InvalidPacket);
                 }
             },
@@ -139,7 +137,7 @@ impl Client {
                     PingRequestPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Status state: {}", *packet_id);
+                    warn!("Unknown packet ID in Status state: {:x?}", *packet_id);
                     return Err(PacketError::InvalidPacket);
                 }
             },
@@ -156,7 +154,7 @@ impl Client {
                     LoginAcknowledgedPacket::handle(packet, self).await?
                 }
                 _ => {
-                    warn!("Unknown packet ID in Login state: {}", *packet_id);
+                    warn!("Unknown packet ID in Login state: {:x?}", *packet_id);
                     return Err(PacketError::InvalidPacket);
                 }
             },
@@ -176,7 +174,10 @@ impl Client {
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?
                 }
                 _ => {
-                    warn!("Unknown packet ID in Configuration state: {}", *packet_id);
+                    warn!(
+                        "Unknown packet ID in Configuration state: {:x?}",
+                        *packet_id
+                    );
                     return Err(PacketError::InvalidPacket);
                 }
             },
@@ -188,7 +189,7 @@ impl Client {
                     ConfirmTeleportationPacket::handle(packet, self).await?
                 }
                 _ => {
-                    warn!("Unknown packet ID in Play state: {}", *packet_id);
+                    warn!("Unknown packet ID in Play state: {:x?}", *packet_id);
                     return Err(PacketError::InvalidPacket);
                 }
             },
@@ -258,8 +259,28 @@ impl Client {
         Ok(true)
     }
 
-    pub(crate) async fn encode_packet_length(&mut self, len: usize) -> Result<(), PacketError> {
-        Ok(VarInt(len as i32).encode(&mut self.socket).await?)
+    pub(crate) async fn encode_packet<P: Packet>(&mut self, packet: &P) -> Result<(), PacketError> {
+        debug!("Encoding packet: {}", packet);
+
+        let mut counting_writer = ByteCountWriter::new();
+
+        packet.encode(&mut counting_writer).await?;
+
+        let len = counting_writer.count;
+
+        let before = std::time::Instant::now();
+
+        VarInt(len as i32).encode(&mut self.socket).await?;
+
+        packet.encode(&mut self.socket).await?;
+
+        self.socket.flush().await?;
+
+        info!("big {}", before.elapsed().as_secs_f64());
+
+        trace!("Packet sent: {}", packet);
+
+        Ok(())
     }
 
     pub(crate) fn username(&self) -> &heapless::String<16> {
