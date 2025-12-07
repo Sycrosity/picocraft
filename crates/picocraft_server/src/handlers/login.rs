@@ -26,18 +26,9 @@ impl HandlePacket for LoginStartPacket {
             client.player.uuid(),
         ));
 
-        login_success
-            .encode(&mut client.tx_buf)
-            .await
-            .inspect_err(|e| error!("{e:#?}"))?;
-
         trace!("Packet constructed: {:?}", login_success);
 
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-
-        trace!("Login Success packet sent.");
+        client.encode_packet(&login_success).await?;
 
         Ok(())
     }
@@ -49,27 +40,13 @@ impl HandlePacket for LoginAcknowledgedPacket {
 
         client.set_state(State::Configuration);
 
-        clientbound::BrandPacket::new()
-            .encode(&mut client.tx_buf)
+        client
+            .encode_packet(&clientbound::BrandPacket::new())
             .await?;
 
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
-
-        trace!("Sent Brand Packet.");
-
-        clientbound::KnownPacksPacket::new()
-            .encode(&mut client.tx_buf)
+        client
+            .encode_packet(&clientbound::KnownPacksPacket::new())
             .await?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
-
-        trace!("Sent KnownPacks Packet.");
 
         encode_registry_data(CAT_VARIANT, client).await?;
         encode_registry_data(COW_VARIANT, client).await?;
@@ -83,16 +60,9 @@ impl HandlePacket for LoginAcknowledgedPacket {
         encode_registry_data(WOLF_VARIANT, client).await?;
         encode_registry_data(WORLDGEN_BIOME, client).await?;
 
-        clientbound::FinishConfigurationPacket
-            .encode(&mut client.tx_buf)
+        client
+            .encode_packet(&clientbound::FinishConfigurationPacket)
             .await?;
-        trace!("Finish Configuration sent.");
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-
-        client.socket.write_all(&client.tx_buf).await?;
-
-        client.socket.flush().await?;
 
         Ok(())
     }
@@ -102,7 +72,9 @@ async fn encode_registry_data(
     bytes: &'static [u8],
     client: &mut Client,
 ) -> Result<(), PacketError> {
-    client.encode_packet_length(bytes.len()).await?;
+    VarInt(bytes.len() as i32)
+        .encode(&mut client.socket)
+        .await?;
 
     bytes.encode(&mut client.socket).await?;
 

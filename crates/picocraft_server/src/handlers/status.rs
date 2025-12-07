@@ -34,18 +34,7 @@ impl HandlePacket for StatusRequestPacket {
 
         trace!("Packet constructed: {:?}", &status_response);
 
-        status_response
-            .encode(&mut client.tx_buf)
-            .await
-            .inspect_err(|e| error!("{e:#?}"))?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-
-        client.socket.write_all(&client.tx_buf).await?;
-
-        client.socket.flush().await?;
-
-        trace!("Status response sent.");
+        client.encode_packet(&status_response).await?;
 
         Ok(())
     }
@@ -61,20 +50,7 @@ impl HandlePacket for PingRequestPacket {
 
         trace!("Packet constructed: {:?}", &pong_response);
 
-        pong_response
-            .encode(&mut client.tx_buf)
-            .await
-            .inspect_err(|e| error!("{e:#?}"))?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-
-        client.socket.write_all(&client.tx_buf).await?;
-
-        trace!("Pong response sent.");
-
-        client.socket.flush().await?;
-
-        client.socket.shutdown().await?;
+        client.encode_packet(&pong_response).await?;
 
         info!(
             "Handled status request for client: {}",

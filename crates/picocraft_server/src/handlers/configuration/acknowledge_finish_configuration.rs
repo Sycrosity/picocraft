@@ -28,29 +28,17 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Packet constructed: {:?}", login_play);
 
-        login_play.encode(&mut client.tx_buf).await?;
+        client.encode_packet(&login_play).await?;
 
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
-
-        trace!("Login (Play) packet sent.");
-
-        clientbound::SynchronisePlayerPositionPacket::builder()
+        let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
             .x(0f64)
             .z(0f64)
             .y(156f64)
-            .build()
-            .encode(&mut client.tx_buf)
-            .await?;
+            .build();
 
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
+        trace!("Packet constructed: {:?}", &synchronise_player_position);
 
-        trace!("Synchronise Player Position packet sent.");
+        client.encode_packet(&synchronise_player_position).await?;
 
         let actions = EnumSet::new().add_player().update_listed();
 
@@ -71,14 +59,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Packet constructed: {:?}", &player_info_update);
 
-        player_info_update.encode(&mut client.tx_buf).await?;
-
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
-
-        trace!("Player Info Update packet sent.");
+        client.encode_packet(&player_info_update).await?;
 
         let game_event = clientbound::GameEventPacket::builder()
             .event(clientbound::GameEvent::StartWaitingForLevelChunks)
@@ -86,17 +67,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         trace!("Packet constructed: {:?}", &game_event);
 
-        game_event.encode(&mut client.tx_buf).await?;
+        client.encode_packet(&game_event).await?;
 
-        client.encode_packet_length(client.tx_buf.len()).await?;
-        client.socket.write_all(&client.tx_buf).await?;
-        client.socket.flush().await?;
-        client.tx_buf.clear();
-
-        trace!("Game Event packet sent.");
-
-
-        client.tx_buf.clear();
 
         Ok(())
     }
