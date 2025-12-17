@@ -1,3 +1,5 @@
+use embassy_futures::select::{Either, select};
+use embassy_time::Ticker;
 use embedded_io::ReadExactError;
 
 use crate::buffer::ByteCountWriter;
