@@ -27,13 +27,58 @@ impl Client {
         }
     }
 
+    //TODO This isn't a very elegant way to do this - having a "raw packet" type or similar would be better.
+   pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
+        trace!("Processing \"{:?}\" packet", &self.state);
+
+        // if self.state != State::Play && self.is_legacy_ping().await? {
+        //     LegacyPingPacket::handle(LegacyPingPacket, self).await?;
+        //     self.socket.shutdown().await?;
+        //     return Ok(());
+        // }
+
+        let packet_length = self.read_packet_length().await?;
+
+        let packet_id = VarInt::decode(&mut self.socket).await?;
+
+        trace!("Packet ID: {:02x?}", *packet_id);
+
+        self.read_packet_body(packet_length).await?;
+
+        Ok((packet_length, packet_id))
+    }
+
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
         debug!("Handling connection for new player");
+
+        //TODO We need a generic timer implemation that works with either tokio or
+        // embassy
+        let mut ticker = tokio::time::interval(std::time::Duration::from_secs(15));
+        let _ = ticker.tick().await; // advance to next tick
+
+        // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
+
         loop {
             self.rx_buf.clear();
-            self.tx_buf.clear();
 
-            match self.process_packet().await {
+            // This method may lose packets if both a packet is received and 15 seconds have
+            // elapsed since the last keep-alive, but thats a good enough tradeoff for now.
+            let res = match select(self.read_packet(), ticker.tick()).await {
+                Either::First(Ok((packet_length, packet_id))) => {
+                    self.process_packet(packet_length, packet_id).await
+                }
+                Either::First(Err(e)) => Err(e),
+                Either::Second(_) => {
+                    if self.state() == State::Play {
+                        let keep_alive = clientbound::KeepAlivePacket::new();
+                        self.encode_packet(&keep_alive).await
+                    } else {
+                        panic!("The client has timed out.");
+                    }
+                }
+            };
+
+            match res {
                 Ok(()) => continue,
                 Err(PacketError::InvalidPacket) => {
                     warn!(
@@ -93,24 +138,12 @@ impl Client {
         }
     }
 
-    async fn process_packet(&mut self) -> Result<(), PacketError> {
+    async fn process_packet(
+        &mut self,
+        packet_length: VarInt,
+        packet_id: VarInt,
+    ) -> Result<(), PacketError> {
         use serverbound::*;
-
-        trace!("Processing \"{:?}\" packet", &self.state);
-
-        if self.state != State::Play && self.is_legacy_ping().await? {
-            LegacyPingPacket::handle(LegacyPingPacket, self).await?;
-            self.socket.shutdown().await?;
-            return Ok(());
-        }
-
-        let packet_length = self.read_packet_length().await?;
-
-        let packet_id = VarInt::decode(&mut self.socket).await?;
-
-        trace!("Packet ID: {}", *packet_id);
-
-        self.read_packet_body(packet_length).await?;
 
         match self.state {
             State::Handshake => match packet_id {
@@ -261,13 +294,15 @@ impl Client {
     pub(crate) async fn encode_packet<P: Packet>(&mut self, packet: &P) -> Result<(), PacketError> {
         debug!("Encoding packet: {}", packet);
 
+        let before: std::time::Instant = std::time::Instant::now();
+
         let mut counting_writer = ByteCountWriter::new();
 
         packet.encode(&mut counting_writer).await?;
 
         let len = counting_writer.count;
 
-        let before = std::time::Instant::now();
+        let before_send = std::time::Instant::now();
 
         VarInt(len as i32).encode(&mut self.socket).await?;
 
@@ -275,7 +310,11 @@ impl Client {
 
         self.socket.flush().await?;
 
-        info!("big {}", before.elapsed().as_secs_f64());
+        info!(
+            "Time for packet to be sent: {:?}, time for enc too: {:?}",
+            before_send.elapsed(),
+            before.elapsed()
+        );
 
         trace!("Packet sent: {}", packet);
 
