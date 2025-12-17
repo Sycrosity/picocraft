@@ -1,5 +1,7 @@
+use picocraft_proto::chunks::*;
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
 
+use crate::buffer::ByteCountWriter;
 use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
@@ -22,8 +24,9 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         let login_play = clientbound::LoginPlayPacket::builder()
             .dimension_names(vec)
             .is_hardcore(false)
-            .view_distance(VarInt(8))
-            .simulation_distance(VarInt(8))
+            .view_distance(VarInt(16))
+            .simulation_distance(VarInt(16))
+            .game_mode(1)
             .build();
 
         trace!("Packet constructed: {:?}", login_play);
@@ -40,7 +43,10 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&synchronise_player_position).await?;
 
-        let actions = EnumSet::new().add_player().update_listed();
+        let actions = EnumSet::new()
+            .add_player()
+            .update_listed()
+            .update_game_mode();
 
         let mut players = PrefixedArray::new();
 
@@ -53,9 +59,11 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         let _ = action_array.push(clientbound::PlayerActions::UpdateListed(true));
 
+        let _ = action_array.push(clientbound::PlayerActions::UpdateGameMode(VarInt(1)));
+
         let _ = players.push((client.uuid(), action_array));
 
-        let player_info_update = clientbound::PlayerInfoUpdatePacket::<2> { actions, players };
+        let player_info_update = clientbound::PlayerInfoUpdatePacket::<3> { actions, players };
 
         trace!("Packet constructed: {:?}", &player_info_update);
 
@@ -69,6 +77,110 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&game_event).await?;
 
+        let mut data = Array::new();
+
+        data.resize(
+            8,
+            ChunkSection {
+                block_count: 4096,
+                block_states: BlockPalettedContainer {
+                    bits_per_entry: 0,
+                    palette: Palette::SingleValued(VarInt(18)),
+                    data: Array::new(),
+                },
+                biomes: BiomePalettedContainer {
+                    bits_per_entry: 0,
+                    palette: Palette::SingleValued(VarInt(0)),
+                    data: Array::new(),
+                },
+            },
+        )
+        .unwrap();
+
+        let empty_chunk = ChunkSection {
+            block_count: 0,
+            block_states: BlockPalettedContainer {
+                bits_per_entry: 0,
+                palette: Palette::SingleValued(VarInt(0)),
+                data: Array::new(),
+            },
+            biomes: BiomePalettedContainer {
+                bits_per_entry: 0,
+                palette: Palette::SingleValued(VarInt(0)),
+                data: Array::new(),
+            },
+        };
+
+        data.resize(16, empty_chunk.clone()).unwrap();
+
+        let mut counting_writer = ByteCountWriter::new();
+
+        data.encode(&mut counting_writer).await?;
+
+        let data_size = counting_writer.count;
+
+        let mut light_arrays = PrefixedArray::new();
+
+        light_arrays.resize(18, FullSkyLightSection).unwrap();
+
+        let mut chunk_data_and_update_light = clientbound::ChunkDataAndUpdateLightPacket::builder()
+            .chunk_x(0)
+            .chunk_z(0)
+            .data(ChunkData {
+                heightmaps: PrefixedArray::new(),
+                size: VarInt(data_size as i32),
+                data: data.clone(),
+                block_entities: PrefixedArray::new(),
+            })
+            .light(LightData {
+                sky_light_mask: BitSet(PrefixedArray::from_slice(&[0x3ffff]).unwrap()),
+                block_light_mask: BitSet(PrefixedArray::from_slice(&[0x3ffff]).unwrap()),
+                empty_sky_light_mask: BitSet(PrefixedArray::new()),
+                empty_block_light_mask: BitSet(PrefixedArray::new()),
+                sky_light_arrays: light_arrays.clone(),
+                block_light_arrays: light_arrays.clone(),
+            })
+            .build();
+
+        debug!("Packet constructed: Chunk and light data");
+
+        // empty_chunk.block_count = 4096;
+
+        // empty_chunk.block_states = BlockPalettedContainer {
+        //     bits_per_entry: 0,
+        //     palette: Palette::SingleValued(VarInt(3)),
+        //     data: Array::new(),
+        // };
+
+        for x in -10i32..10 {
+            for z in -10i32..10 {
+                if (2 * x + 1).abs() > 15 || (2 * z + 1).abs() > 15 {
+                    chunk_data_and_update_light
+                        .data
+                        .data
+                        .fill(empty_chunk.clone());
+                } else {
+                    info!("Sending full chunk at {x} {z}");
+
+                    chunk_data_and_update_light.data.data = data.clone();
+                }
+
+                info!("{x} {z}");
+
+                chunk_data_and_update_light.chunk_x = x;
+                chunk_data_and_update_light.chunk_z = z;
+
+                for i in 0..8 {
+                    chunk_data_and_update_light.data.data[i]
+                        .block_states
+                        .palette = Palette::SingleValued(VarInt(
+                        1 + (2 * x + 1).abs().max((2 * z + 1).abs()) / 2,
+                    ));
+                }
+
+                client.encode_packet(&chunk_data_and_update_light).await?;
+            }
+        }
 
         Ok(())
     }
