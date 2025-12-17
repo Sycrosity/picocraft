@@ -42,6 +42,8 @@ pub enum SocketError {
     UnexpectedEof,
     #[error("socket is not (yet) readable")]
     NotReadable,
+    #[error("tried to read/write an oversized buffer")]
+    OversizedBuffer,
 }
 
 impl From<embedded_io::ReadExactError<SocketError>> for SocketError {

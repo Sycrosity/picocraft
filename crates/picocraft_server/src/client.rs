@@ -1,5 +1,6 @@
 use embedded_io::ReadExactError;
 
+use crate::buffer::ByteCountWriter;
 use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
 
@@ -13,7 +14,6 @@ pub struct Client {
     state: State,
     pub socket: PacketSocket,
     pub rx_buf: Buffer<1024>,
-    pub tx_buf: Buffer<1024>,
 }
 
 #[allow(unused)]
@@ -24,7 +24,6 @@ impl Client {
             socket: PacketSocket::new(socket),
             state: State::default(),
             rx_buf: Buffer::new(),
-            tx_buf: Buffer::new(),
         }
     }
 

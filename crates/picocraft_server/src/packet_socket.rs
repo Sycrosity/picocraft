@@ -3,16 +3,19 @@ use crate::prelude::*;
 #[derive(Debug)]
 pub struct PacketSocket {
     // pub socket: tokio::io::BufWriter<tokio::net::TcpStream>,
-    inner: tokio::net::TcpStream,
+    pub inner: tokio::io::BufStream<tokio::net::TcpStream>,
 }
 
 impl PacketSocket {
     pub fn new(socket: tokio::net::TcpStream) -> Self {
-        Self { inner: socket }
+        Self {
+            inner: tokio::io::BufStream::with_capacity(1024, 1024, socket),
+        }
     }
 
     pub async fn peek(&mut self, buf: &mut [u8]) -> Result<usize, SocketError> {
         self.inner
+            .get_mut()
             .peek(buf)
             .await
             .inspect_err(|e| warn!("failed to peek at upcoming data: {e}"))
@@ -29,8 +32,9 @@ impl PacketSocket {
             .map_err(|_| SocketError::IoError)
     }
 
-    pub async fn readable(&mut self) -> Result<(), SocketError> {
+    pub async fn readable(&self) -> Result<(), SocketError> {
         self.inner
+            .get_ref()
             .readable()
             .await
             .inspect_err(|e| warn!("socket not readable: {e}"))
@@ -38,7 +42,7 @@ impl PacketSocket {
     }
 
     pub fn remote_endpoint(&self) -> Option<core::net::SocketAddr> {
-        self.inner.peer_addr().ok()
+        self.inner.get_ref().peer_addr().ok()
     }
 }
 
@@ -72,12 +76,7 @@ impl embedded_io_async::Write for PacketSocket {
     async fn flush(&mut self) -> Result<(), Self::Error> {
         use tokio::io::AsyncWriteExt;
 
-        self.inner
-            .split()
-            .1
-            .flush()
-            .await
-            .map_err(|_| SocketError::IoError)
+        self.inner.flush().await.map_err(|_| SocketError::IoError)
     }
 }
 
