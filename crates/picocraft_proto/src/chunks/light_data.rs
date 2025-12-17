@@ -1,11 +1,39 @@
 use crate::prelude::*;
 
 #[derive(Debug, Encode, Decode)]
-pub struct LightData<const SKYS: usize, const BLOCKS: usize> {
-    sky_light_mask: BitSet<1>,
-    block_light_mask: BitSet<1>,
-    empty_sky_light_mask: BitSet<1>,
-    empty_block_light_mask: BitSet<1>,
-    sky_light_arrays: PrefixedArray<PrefixedArray<Byte, 2048>, SKYS>,
-    block_light_arrays: PrefixedArray<PrefixedArray<Byte, 2048>, BLOCKS>,
+pub struct LightData<Section: SkyLightSection, const SECTIONS: usize> {
+    pub sky_light_mask: BitSet<1>,
+    pub block_light_mask: BitSet<1>,
+    pub empty_sky_light_mask: BitSet<1>,
+    pub empty_block_light_mask: BitSet<1>,
+    pub sky_light_arrays: PrefixedArray<Section, SECTIONS>,
+    pub block_light_arrays: PrefixedArray<Section, SECTIONS>,
+}
+
+pub trait SkyLightSection: Encode + Decode + core::fmt::Debug {}
+
+#[derive(Debug, Clone)]
+pub struct FullSkyLightSection;
+
+impl SkyLightSection for FullSkyLightSection {}
+
+impl Encode for FullSkyLightSection {
+    async fn encode<W: embedded_io_async::Write>(
+        &self,
+        mut buffer: W,
+    ) -> Result<(), EncodeError<W::Error>> {
+        VarInt(2048).encode(&mut buffer).await?;
+
+        for _ in 0..2048 {
+            buffer.write(&[0xffu8]).await?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Decode for FullSkyLightSection {
+    async fn decode<R: embedded_io_async::Read>(_buffer: R) -> Result<Self, DecodeError<R::Error>> {
+        todo!()
+    }
 }

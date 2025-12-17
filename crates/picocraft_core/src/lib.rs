@@ -28,8 +28,14 @@ pub mod prelude {
     pub(crate) use embedded_io_async::{Read, Write};
 
     pub(crate) use crate::byteorder::{ReadBytesExt, WriteBytesExt};
+    pub use crate::consts::WORLD_HEIGHT;
     pub use crate::errors::*;
     pub use crate::packet::*;
     pub use crate::state::*;
     pub use crate::types::*;
+}
+
+pub mod consts {
+    // Height of the Minecraft world in blocks. MUST be a multiple of 16.
+    pub const WORLD_HEIGHT: usize = 256;
 }
