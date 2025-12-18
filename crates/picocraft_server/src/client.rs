@@ -1,5 +1,4 @@
 use embassy_futures::select::{Either, select};
-use embassy_time::Ticker;
 use embedded_io::ReadExactError;
 
 use crate::buffer::ByteCountWriter;
@@ -29,9 +28,14 @@ impl Client {
         }
     }
 
-    //TODO This isn't a very elegant way to do this - having a "raw packet" type or similar would be better.
-   pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
-        trace!("Processing \"{:?}\" packet", &self.state);
+    //TODO This isn't a very elegant way to do this - having a "raw packet" type or
+    // similar would be better.
+    pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
+        trace!(
+            "Reading packet for {} in {:?} state.",
+            self.socket.remote_endpoint().expect("Socket is initiated"),
+            &self.state
+        );
 
         // if self.state != State::Play && self.is_legacy_ping().await? {
         //     LegacyPingPacket::handle(LegacyPingPacket, self).await?;
@@ -51,11 +55,14 @@ impl Client {
     }
 
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
-        debug!("Handling connection for new player");
+        debug!(
+            "Handling connection for {}",
+            self.socket.remote_endpoint().expect("Socket is initiated")
+        );
 
         //TODO We need a generic timer implemation that works with either tokio or
         // embassy
-        let mut ticker = tokio::time::interval(std::time::Duration::from_secs(15));
+        let mut ticker = tokio::time::interval(core::time::Duration::from_secs(15));
         let _ = ticker.tick().await; // advance to next tick
 
         // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
@@ -80,6 +87,8 @@ impl Client {
                 }
             };
 
+            //TODO really, this should be propogated properly, with text from the source
+            // and ideally the path.
             match res {
                 Ok(()) => continue,
                 Err(PacketError::InvalidPacket) => {
@@ -105,6 +114,7 @@ impl Client {
                         );
                     }
 
+                    self.socket.shutdown().await?;
                     return Ok(());
                 }
                 Err(PacketError::Unknown) => {
@@ -114,12 +124,15 @@ impl Client {
                         self.uuid()
                     );
                 }
-                Err(PacketError::SocketError(_)) => {
+                Err(PacketError::SocketError(e)) => {
                     error!(
-                        "Socket error for player: {} [{}]",
+                        "Socket error: {e} for player: {} [{}]",
                         self.username(),
                         self.uuid(),
                     );
+
+                    self.socket.shutdown().await?;
+                    return Err(PacketError::ConnectionClosed);
                 }
                 Err(PacketError::EncodeError) => {
                     error!(
@@ -241,8 +254,6 @@ impl Client {
             return Err(PacketError::InvalidPacket);
         }
 
-        trace!("Packet Length: {packet_length}");
-
         Ok(packet_length)
     }
 
@@ -294,9 +305,7 @@ impl Client {
     }
 
     pub(crate) async fn encode_packet<P: Packet>(&mut self, packet: &P) -> Result<(), PacketError> {
-        debug!("Encoding packet: {}", packet);
-
-        let before: std::time::Instant = std::time::Instant::now();
+        trace!("Encoding packet: {}", packet);
 
         let mut counting_writer = ByteCountWriter::new();
 
@@ -304,19 +313,11 @@ impl Client {
 
         let len = counting_writer.count;
 
-        let before_send = std::time::Instant::now();
-
         VarInt(len as i32).encode(&mut self.socket).await?;
 
         packet.encode(&mut self.socket).await?;
 
         self.socket.flush().await?;
-
-        info!(
-            "Time for packet to be sent: {:?}, time for enc too: {:?}",
-            before_send.elapsed(),
-            before.elapsed()
-        );
 
         trace!("Packet sent: {}", packet);
 

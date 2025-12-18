@@ -45,7 +45,7 @@ async fn main() -> Result<(), PicocraftError> {
                 tokio::spawn(async move {
                     match client.handle_connection().await {
                         Ok(()) => debug!(
-                            "Connection with {:?} handled successfully.",
+                            "Connection with {:?} finished successfully.",
                             client
                                 .socket
                                 .remote_endpoint()

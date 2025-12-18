@@ -2,7 +2,6 @@ use crate::prelude::*;
 
 #[derive(Debug, Packet)]
 #[packet(id = 0x00, state = State::Handshake)]
-// #[resource(name = "minecraft:intent")]
 pub struct HandshakePacket {
     /// See [minecraft.wiki's protocol version numbers page](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers).
     pub protocol_version: VarInt,
@@ -53,7 +52,6 @@ impl Decode for LegacyPingPacket {
     ) -> Result<Self, DecodeError<R::Error>> {
         //To keep Decode implimentations consistent with other implementations, we have
         // already read the identifying byte (0xFE) before calling this function.
-
         let mut buf = [0u8; 4];
 
         buffer.read_exact(&mut buf).await?;

@@ -45,7 +45,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                         let name = field.ident.as_ref().unwrap();
 
                         quote! {
-                            #name: {::log::trace!("Processing {} field of {}", stringify!(#name), stringify!(#ident)); <#ty as ::picocraft_core::packet::Decode>::decode(&mut buffer).await?},
+                            #name: <#ty as ::picocraft_core::packet::Decode>::decode(&mut buffer).await?,
                         }
                     });
 

@@ -29,7 +29,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .game_mode(1)
             .build();
 
-        trace!("Packet constructed: {:?}", login_play);
+        // trace!("Packet constructed: {:?}", login_play);
 
         client.encode_packet(&login_play).await?;
 
@@ -39,7 +39,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .y(156f64)
             .build();
 
-        trace!("Packet constructed: {:?}", &synchronise_player_position);
+        // trace!("Packet constructed: {:?}", &synchronise_player_position);
 
         client.encode_packet(&synchronise_player_position).await?;
 
@@ -142,16 +142,6 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             })
             .build();
 
-        debug!("Packet constructed: Chunk and light data");
-
-        // empty_chunk.block_count = 4096;
-
-        // empty_chunk.block_states = BlockPalettedContainer {
-        //     bits_per_entry: 0,
-        //     palette: Palette::SingleValued(VarInt(3)),
-        //     data: Array::new(),
-        // };
-
         for x in -10i32..10 {
             for z in -10i32..10 {
                 if (2 * x + 1).abs() > 15 || (2 * z + 1).abs() > 15 {
@@ -160,12 +150,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                         .data
                         .fill(empty_chunk.clone());
                 } else {
-                    info!("Sending full chunk at {x} {z}");
-
                     chunk_data_and_update_light.data.data = data.clone();
                 }
-
-                info!("{x} {z}");
 
                 chunk_data_and_update_light.chunk_x = x;
                 chunk_data_and_update_light.chunk_z = z;
@@ -181,6 +167,12 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                 client.encode_packet(&chunk_data_and_update_light).await?;
             }
         }
+
+        debug!(
+            "Finished sending chunks to {} [{}]",
+            client.player.username(),
+            client.player.uuid()
+        );
 
         Ok(())
     }

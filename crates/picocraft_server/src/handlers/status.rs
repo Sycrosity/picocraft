@@ -52,7 +52,7 @@ impl HandlePacket for PingRequestPacket {
 
         client.encode_packet(&pong_response).await?;
 
-        info!(
+        debug!(
             "Handled status request for client: {}",
             client
                 .socket
