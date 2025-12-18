@@ -18,14 +18,13 @@ pub struct FullSkyLightSection;
 impl SkyLightSection for FullSkyLightSection {}
 
 impl Encode for FullSkyLightSection {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         VarInt(2048).encode(&mut buffer).await?;
 
         for _ in 0..2048 {
-            buffer.write(&[0xffu8]).await?;
+            buffer
+                .write_u8(0xff)
+                .await?;
         }
 
         Ok(())
@@ -33,7 +32,7 @@ impl Encode for FullSkyLightSection {
 }
 
 impl Decode for FullSkyLightSection {
-    async fn decode<R: embedded_io_async::Read>(_buffer: R) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(_buffer: R) -> Result<Self, DecodeError> {
         todo!()
     }
 }

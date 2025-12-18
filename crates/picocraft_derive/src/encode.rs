@@ -67,7 +67,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
             Ok(quote! {
                 impl #impl_generics ::picocraft_core::packet::Encode for #ident #ty_generics #where_clause {
-                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::packet::EncodeError<W::Error>>
+                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::errors::EncodeError>
                     where W: ::embedded_io_async::Write {
 
                         use ::picocraft_core::packet::Encode;
@@ -109,7 +109,7 @@ pub fn derive_encode(item: TokenStream) -> Result<TokenStream> {
             };
             Ok(quote! {
                 impl #impl_generics ::picocraft_core::packet::Encode for #ident #ty_generics #where_clause {
-                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::packet::EncodeError<W::Error>>
+                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::errors::EncodeError>
                     where W: ::embedded_io_async::Write {
 
                         use ::picocraft_core::packet::Encode;

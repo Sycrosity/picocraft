@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 impl<T: Encode> Encode for Optional<T> {
-    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         match &self {
             Some(t) => t.encode(&mut buffer).await,
             None => Ok(()),
@@ -10,7 +10,7 @@ impl<T: Encode> Encode for Optional<T> {
 }
 
 impl<T: Decode> Decode for Optional<T> {
-    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         match T::decode(&mut buffer).await {
             Ok(t) => Ok(Some(t)),
             Err(error) => match error {
@@ -22,7 +22,7 @@ impl<T: Decode> Decode for Optional<T> {
 }
 
 impl<T: Encode> Encode for PrefixedOptional<T> {
-    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         match &self.0 {
             Some(t) => {
                 true.encode(&mut buffer).await?;
@@ -34,7 +34,7 @@ impl<T: Encode> Encode for PrefixedOptional<T> {
 }
 
 impl<T: Decode> Decode for PrefixedOptional<T> {
-    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         Ok(PrefixedOptional(match bool::decode(&mut buffer).await? {
             true => Some(T::decode(&mut buffer).await?),
             false => None,

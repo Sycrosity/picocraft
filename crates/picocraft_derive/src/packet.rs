@@ -96,7 +96,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
             };
             Ok(quote! {
                 impl #impl_generics ::picocraft_core::packet::Encode for #ident #ty_generics #where_clause {
-                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::packet::EncodeError<W::Error>>
+                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::errors::EncodeError>
                     where W: ::embedded_io_async::Write {
 
                         use ::picocraft_core::prelude::*;
@@ -109,7 +109,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                 }
 
                 impl #impl_generics ::picocraft_core::packet::Decode for #ident #ty_generics #where_clause {
-                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::packet::DecodeError<R::Error>>
+                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::errors::DecodeError>
                     where R: ::embedded_io_async::Read {
 
                         use ::picocraft_core::prelude::*;
@@ -136,7 +136,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
 
                 impl #impl_generics ::core::fmt::Display for #ident #ty_generics #where_clause {
                     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                        write!(f, "{} [ID: {:02x?}]", stringify!(#ident), Self::ID.0)
+                        write!(f, "{} (ID: {:02x?})", stringify!(#ident), Self::ID.0)
                     }
                 }
 

@@ -38,18 +38,13 @@ impl core::fmt::Display for LegacyPingPacket {
 
 #[allow(unused)]
 impl Encode for LegacyPingPacket {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         todo!("Encode is not implemented yet for LegacyPing")
     }
 }
 
 impl Decode for LegacyPingPacket {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         //To keep Decode implimentations consistent with other implementations, we have
         // already read the identifying byte (0xFE) before calling this function.
         let mut buf = [0u8; 4];

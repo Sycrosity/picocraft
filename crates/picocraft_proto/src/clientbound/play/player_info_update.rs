@@ -13,10 +13,7 @@ impl<const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<ACTIONS> {
 }
 
 impl<const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<ACTIONS> {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         Self::ID.encode(&mut buffer).await?;
         self.actions.encode(&mut buffer).await?;
         self.players.encode(&mut buffer).await
@@ -30,9 +27,7 @@ impl<const ACTIONS: usize> core::fmt::Display for PlayerInfoUpdatePacket<ACTIONS
 }
 
 impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let actions = EnumSet::decode(&mut buffer).await?;
 
         let mut action_bitset = actions.0;
@@ -135,10 +130,7 @@ pub enum PlayerActions {
 }
 
 impl Encode for PlayerActions {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         match self {
             PlayerActions::AddPlayer { name, properties } => {
                 name.encode(&mut buffer).await?;

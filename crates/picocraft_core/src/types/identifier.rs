@@ -9,24 +9,19 @@ impl<const N: usize> Identifier<N> {
 }
 
 impl<const N: usize> Encode for Identifier<N> {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         VarInt(NAMESPACE.len() as i32 + self.0.len() as i32 + 1)
             .encode(&mut buffer)
             .await?;
         buffer.write(NAMESPACE.as_bytes()).await?;
         buffer.write_u8(b':').await?;
-        buffer.write(self.0.as_bytes()).await?;
+        buffer.write_all(self.0.as_bytes()).await?;
         Ok(())
     }
 }
 
 impl<const N: usize> Decode for Identifier<N> {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let length = *VarInt::decode(&mut buffer).await?;
 
         if length < NAMESPACE.len() as i32 + 1 {
@@ -86,7 +81,7 @@ impl<const N: usize> TryFrom<&str> for Identifier<N> {
 //     async fn encode_identifier<W: embedded_io_async::Write>(
 //         &self,
 //         mut buffer: W,
-//     ) -> Result<(), EncodeError<W::Error>> {
+//     ) -> Result<(), EncodeError> {
 //         VarInt(Self::NAMESPACE.len() as i32 + self.path().len() as i32)
 //             .encode(&mut buffer)
 //             .await?;
@@ -97,7 +92,7 @@ impl<const N: usize> TryFrom<&str> for Identifier<N> {
 
 //     async fn decode_identifier<R: embedded_io_async::Read>(
 //         mut buffer: R,
-//     ) -> Result<Self, DecodeError<R::Error>>
+//     ) -> Result<Self, DecodeError>
 //     where
 //         Self: Sized,
 //     {

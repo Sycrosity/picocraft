@@ -14,22 +14,22 @@ impl PacketSocket {
     }
 
     pub async fn peek(&mut self, buf: &mut [u8]) -> Result<usize, SocketError> {
-        self.inner
+        Ok(self
+            .inner
             .get_mut()
             .peek(buf)
             .await
-            .inspect_err(|e| warn!("failed to peek at upcoming data: {e}"))
-            .map_err(|_| SocketError::IoError)
+            .inspect_err(|e| warn!("failed to peek at upcoming data: {e}"))?)
     }
 
     pub async fn shutdown(&mut self) -> Result<(), SocketError> {
         use tokio::io::AsyncWriteExt;
 
-        self.inner
+        Ok(self
+            .inner
             .shutdown()
             .await
-            .inspect_err(|e| warn!("failed to send shutdown command: {e}"))
-            .map_err(|_| SocketError::IoError)
+            .inspect_err(|e| warn!("failed to send shutdown command: {e}"))?)
     }
 
     pub async fn readable(&self) -> Result<(), SocketError> {
@@ -50,33 +50,21 @@ impl embedded_io_async::Read for PacketSocket {
     async fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         use tokio::io::AsyncReadExt;
 
-        match self.inner.read(buf).await {
-            Ok(n) => Ok(n),
-            Err(_) => Err(SocketError::IoError),
-        }
+        Ok(self.inner.read(buf).await?)
     }
 }
-
-// impl embedded_io_async::ReadReady for PacketSocket {
-//     async fn read_ready(&mut self) -> Result<(), Self::Error> {
-
-//     }
-// }
 
 impl embedded_io_async::Write for PacketSocket {
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         use tokio::io::AsyncWriteExt;
 
-        match self.inner.write(buf).await.inspect_err(|e| error!("{e:?}")) {
-            Ok(n) => Ok(n),
-            Err(_) => Err(SocketError::IoError),
-        }
+        Ok(self.inner.write(buf).await?)
     }
 
     async fn flush(&mut self) -> Result<(), Self::Error> {
         use tokio::io::AsyncWriteExt;
 
-        self.inner.flush().await.map_err(|_| SocketError::IoError)
+        Ok(self.inner.flush().await?)
     }
 }
 

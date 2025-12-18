@@ -1,13 +1,11 @@
+pub mod player;
+
 use embassy_futures::select::{Either, select};
-use embedded_io::ReadExactError;
+pub use player::Player;
 
 use crate::buffer::ByteCountWriter;
 use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
-
-pub mod player;
-
-pub use player::Player;
 
 #[derive(Debug)]
 pub struct Client {
@@ -31,6 +29,8 @@ impl Client {
     //TODO This isn't a very elegant way to do this - having a "raw packet" type or
     // similar would be better.
     pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
+        self.rx_buf.clear();
+
         trace!(
             "Reading packet for {} in {:?} state.",
             self.socket.remote_endpoint().expect("Socket is initiated"),
@@ -47,7 +47,10 @@ impl Client {
 
         let packet_id = VarInt::decode(&mut self.socket).await?;
 
-        trace!("Packet ID: {:02x?}", *packet_id);
+        trace!(
+            "Packet Length: {packet_length} - Packet ID: {:02x?}",
+            *packet_id
+        );
 
         self.read_packet_body(packet_length).await?;
 
@@ -68,8 +71,6 @@ impl Client {
         // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
 
         loop {
-            self.rx_buf.clear();
-
             // This method may lose packets if both a packet is received and 15 seconds have
             // elapsed since the last keep-alive, but thats a good enough tradeoff for now.
             let res = match select(self.read_packet(), ticker.tick()).await {
@@ -98,7 +99,9 @@ impl Client {
                         self.uuid()
                     );
                 }
-                Err(PacketError::ConnectionClosed) => {
+                Err(
+                    PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
+                ) => {
                     if !self.username().is_empty() {
                         info!(
                             "Connection closed for player: {} [{}]",
@@ -124,9 +127,9 @@ impl Client {
                         self.uuid()
                     );
                 }
-                Err(PacketError::SocketError(e)) => {
+                Err(PacketError::Socket(e)) => {
                     error!(
-                        "Socket error: {e} for player: {} [{}]",
+                        "Socket error: {e:?} for player: {} [{}]",
                         self.username(),
                         self.uuid(),
                     );
@@ -134,20 +137,19 @@ impl Client {
                     self.socket.shutdown().await?;
                     return Err(PacketError::ConnectionClosed);
                 }
-                Err(PacketError::EncodeError) => {
+                Err(PacketError::Encode(e)) => {
                     error!(
-                        "Encode error for player: {} [{}]",
+                        "Encode error {e:?} for player: {} [{}]",
                         self.username(),
                         self.uuid(),
                     );
                 }
-                Err(PacketError::DecodeError) => {
+                Err(PacketError::Decode(e)) => {
                     error!(
-                        "Decode error for player: {} [{}]",
+                        "Decode error: {e:?} for player: {} [{}]",
                         self.username(),
                         self.uuid(),
                     );
-                    self.socket.shutdown().await?;
                 }
             }
         }
@@ -251,7 +253,7 @@ impl Client {
         let packet_length = VarInt::decode(&mut self.socket).await?;
 
         if packet_length > MAX_PACKET_SIZE || *packet_length > self.rx_buf.capacity() as i32 {
-            return Err(PacketError::InvalidPacket);
+            return Err(PacketError::Decode(DecodeError::VarIntTooBig));
         }
 
         Ok(packet_length)
@@ -263,15 +265,9 @@ impl Client {
             .resize_default(*length as usize - 1)
             .expect("length has already been validated");
 
-        self.socket
-            .read_exact(&mut self.rx_buf)
-            .await
-            .map_err(|e| match e {
-                ReadExactError::UnexpectedEof => {
-                    PacketError::SocketError(SocketError::UnexpectedEof)
-                }
-                ReadExactError::Other(e) => e.into(),
-            })?;
+        if *length as u32 - 1 > 0 {
+            self.socket.read(&mut self.rx_buf).await?;
+        }
 
         Ok(())
     }
@@ -295,7 +291,7 @@ impl Client {
 
         // Consume the first byte (0xFE), consistent with the format of handling other
         // packets.
-        let _ = self.socket.read_u8().await.expect("next byte should exist");
+        let _ = self.socket.read_u8().await?;
 
         let _ = serverbound::LegacyPingPacket::decode(&mut self.socket)
             .await

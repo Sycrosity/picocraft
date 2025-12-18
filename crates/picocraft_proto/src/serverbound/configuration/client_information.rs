@@ -52,10 +52,7 @@ pub struct SkinParts {
 }
 
 impl Encode for SkinParts {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         let mut bits: u8 = 0;
         if self.cape {
             bits |= 0x01;
@@ -84,9 +81,7 @@ impl Encode for SkinParts {
 }
 
 impl Decode for SkinParts {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let bits = u8::decode(&mut buffer).await?;
 
         Ok(SkinParts {

@@ -8,13 +8,13 @@ impl EnumSet {
 }
 
 impl Encode for EnumSet {
-    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         self.0.encode(&mut buffer).await
     }
 }
 
 impl Decode for EnumSet {
-    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         Ok(Self(UnsignedByte::decode(&mut buffer).await?))
     }
 }

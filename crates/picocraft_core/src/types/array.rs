@@ -23,10 +23,7 @@ impl<T: Encode, const N: usize> core::ops::Deref for Array<T, N> {
 }
 
 impl<T: Encode, const N: usize> Encode for Array<T, N> {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         for element in &self.0 {
             element.encode(&mut buffer).await?;
         }

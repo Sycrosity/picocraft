@@ -87,7 +87,7 @@ impl TryFrom<usize> for VarInt {
 }
 
 impl crate::packet::Encode for VarInt {
-    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         let mut value = **self as u32;
 
         while value >= u32::from(CONTINUE_BIT) {
@@ -103,7 +103,7 @@ impl crate::packet::Encode for VarInt {
 }
 
 impl crate::packet::Decode for VarInt {
-    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let mut value = 0b0;
         let mut pos = 0b0;
 

@@ -15,7 +15,7 @@ pub struct ChunkData<
 impl<const WORLD_HEIGHT: usize, const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> Decode
     for ChunkData<WORLD_HEIGHT, CHUNK_SECTIONS, BLOCK_TYPES>
 {
-    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError<R::Error>>
+    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
         R: embedded_io_async::Read,
     {
@@ -51,7 +51,7 @@ pub struct BlockPalettedContainer<const N: usize, const ENTRIES: usize> {
 }
 
 impl<const N: usize, const ENTRIES: usize> Encode for BlockPalettedContainer<N, ENTRIES> {
-    async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>>
+    async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError>
     where
         W: embedded_io_async::Write,
     {
@@ -93,7 +93,7 @@ impl<const N: usize, const ENTRIES: usize> Encode for BlockPalettedContainer<N, 
 }
 
 impl<const N: usize, const ELEMENTS: usize> Decode for BlockPalettedContainer<N, ELEMENTS> {
-    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError<R::Error>>
+    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
         R: embedded_io_async::Read,
     {
@@ -109,7 +109,7 @@ pub struct BiomePalettedContainer<const N: usize, const ENTRIES: usize> {
 }
 
 impl<const N: usize, const ENTRIES: usize> Encode for BiomePalettedContainer<N, ENTRIES> {
-    async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError<W::Error>>
+    async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError>
     where
         W: embedded_io_async::Write,
     {
@@ -148,7 +148,7 @@ impl<const N: usize, const ENTRIES: usize> Encode for BiomePalettedContainer<N, 
 }
 
 impl<const N: usize, const ELEMENTS: usize> Decode for BiomePalettedContainer<N, ELEMENTS> {
-    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError<R::Error>>
+    async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
         R: embedded_io_async::Read,
     {

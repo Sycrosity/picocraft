@@ -1,5 +1,3 @@
-use embedded_io::ReadExactError;
-
 /// Extends [`Write`] with methods for writing numbers. (For `std::io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
@@ -131,7 +129,7 @@ pub trait ReadBytesExt: embedded_io_async::Read {
     /// assert_eq!(5, rdr.read_u8().unwrap());
     /// ```
     #[inline]
-    async fn read_u8(&mut self) -> Result<u8, ReadExactError<Self::Error>> {
+    async fn read_u8(&mut self) -> Result<u8, embedded_io::ReadExactError<Self::Error>> {
         let mut buf = [0; 1];
         self.read_exact(&mut buf).await?;
         Ok(buf[0])
@@ -162,7 +160,7 @@ pub trait ReadBytesExt: embedded_io_async::Read {
     /// assert_eq!(-5, rdr.read_i8().unwrap());
     /// ```
     #[inline]
-    async fn read_i8(&mut self) -> Result<i8, ReadExactError<Self::Error>> {
+    async fn read_i8(&mut self) -> Result<i8, embedded_io::ReadExactError<Self::Error>> {
         let mut buf = [0; 1];
         self.read_exact(&mut buf).await?;
         Ok(buf[0] as i8)
