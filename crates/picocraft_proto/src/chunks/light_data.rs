@@ -22,9 +22,7 @@ impl Encode for FullSkyLightSection {
         VarInt(2048).encode(&mut buffer).await?;
 
         for _ in 0..2048 {
-            buffer
-                .write_u8(0xff)
-                .await?;
+            buffer.write_u8(0xff).await?;
         }
 
         Ok(())
