@@ -14,7 +14,8 @@ picocraft_core.workspace = true
 picocraft_proto.workspace = true
 
 log.workspace = true
-thiserror = { workspace = true }
+static_cell.workspace = true
+thiserror.workspace = true
 heapless.workspace = true
 
 embassy-net = { workspace = true, features = [
@@ -28,6 +29,10 @@ embassy-futures.workspace = true
 
 embedded-io.workspace = true
 embedded-io-async.workspace = true
+
+rand.workspace = true
+rand_chacha.workspace = true
+rand_xoshiro.workspace = true
 
 tokio = { workspace = true, optional = true }
 

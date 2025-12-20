@@ -3,8 +3,8 @@ use crate::prelude::*;
 #[derive(Debug, Packet)]
 #[packet(id = 0x01, state = State::Configuration)]
 pub struct BrandPacket {
-    identifier: Identifier<5>,
-    brand: String<16>,
+    pub identifier: Identifier<5>,
+    pub brand: String<16>,
 }
 
 impl BrandPacket {
@@ -45,7 +45,7 @@ pub struct FinishConfigurationPacket;
 #[derive(Debug, Packet)]
 #[packet(id = 0x0E, state = State::Configuration)]
 pub struct KnownPacksPacket {
-    pub known_packs: Vec<KnownPack, 1>,
+    pub known_packs: PrefixedArray<KnownPack, 1>,
 }
 
 impl KnownPacksPacket {
@@ -58,7 +58,7 @@ impl KnownPacksPacket {
 impl Default for KnownPacksPacket {
     fn default() -> Self {
         Self {
-            known_packs: Vec::from_array([KnownPack::default()]),
+            known_packs: PrefixedArray::from_array([KnownPack::default()]),
         }
     }
 }

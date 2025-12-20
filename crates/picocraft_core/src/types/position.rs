@@ -9,19 +9,14 @@ impl Position {
 }
 
 impl Encode for Position {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
-        buffer.write(&self.0.to_be_bytes()).await?;
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
+        buffer.write_all(&self.0.to_be_bytes()).await?;
         Ok(())
     }
 }
 
 impl Decode for Position {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let mut bytes = [0u8; 8];
         buffer.read_exact(&mut bytes).await?;
         let packed = i64::from_be_bytes(bytes);

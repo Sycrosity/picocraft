@@ -2,3 +2,4 @@
 
 .DS_Store
 .rustfmt.toml
+*.code-workspace

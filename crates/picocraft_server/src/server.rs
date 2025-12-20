@@ -12,13 +12,17 @@ pub type ServerConfig = RwLock<CriticalSectionRawMutex, Config>;
 #[allow(unused)]
 pub struct Server {
     listener: TcpListener,
+    system_rng: &'static SystemRng,
 }
 
 pub static SERVER_CONFIG: ServerConfig = ServerConfig::new(Config::default());
 
 impl Server {
-    pub fn new(listener: TcpListener) -> Self {
-        Server { listener }
+    pub fn new(listener: TcpListener, system_rng: &'static SystemRng) -> Self {
+        Server {
+            listener,
+            system_rng,
+        }
     }
 
     pub async fn next_connection(&self) -> Result<Option<Client>, PicocraftError> {
@@ -26,7 +30,7 @@ impl Server {
             Either::First(Ok((socket, addr))) => {
                 info!("New connection from: {}", &addr);
 
-                let client = Client::new(socket);
+                let client = Client::new(socket, self.system_rng);
 
                 Ok(Some(client))
             }

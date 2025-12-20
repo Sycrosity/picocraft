@@ -45,7 +45,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                         let name = field.ident.as_ref().unwrap();
 
                         quote! {
-                            #name: {::log::trace!("Processing {} field of {}", stringify!(#name), stringify!(#ident)); <#ty as ::picocraft_core::packet::Decode>::decode(&mut buffer).await?},
+                            #name: <#ty as ::picocraft_core::packet::Decode>::decode(&mut buffer).await?,
                         }
                     });
 
@@ -96,7 +96,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
             };
             Ok(quote! {
                 impl #impl_generics ::picocraft_core::packet::Encode for #ident #ty_generics #where_clause {
-                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::packet::EncodeError<W::Error>>
+                    async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), ::picocraft_core::errors::EncodeError>
                     where W: ::embedded_io_async::Write {
 
                         use ::picocraft_core::prelude::*;
@@ -109,7 +109,7 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                 }
 
                 impl #impl_generics ::picocraft_core::packet::Decode for #ident #ty_generics #where_clause {
-                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::packet::DecodeError<R::Error>>
+                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::errors::DecodeError>
                     where R: ::embedded_io_async::Read {
 
                         use ::picocraft_core::prelude::*;
@@ -134,15 +134,12 @@ pub fn derive_packet(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
 
-                // impl #impl_generics ::core::convert::From<::picocraft_core::packet::RawPacket<'_>> for #ident #ty_generics #where_clause {
-                //     fn from(value: ::picocraft_core::packet::RawPacket<'_>) {
+                impl #impl_generics ::core::fmt::Display for #ident #ty_generics #where_clause {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        write!(f, "{} (ID: {:02x?})", stringify!(#ident), Self::ID.0)
+                    }
+                }
 
-                //         <#ident as ::picocraft_core::packet::Decode>::decode(&mut value.data)
-                //             .await
-                //             .expect("failed to decode packet from RawPacket")
-
-                //     }
-                // }
             })
         }
     }

@@ -8,89 +8,77 @@ use crate::prelude::*;
 const SEGMENT_BITS: u8 = 0x7f;
 const CONTINUE_BIT: u8 = 0x80;
 
-impl core_json_traits::JsonSerialize for VarInt {
+impl core_json_traits::JsonSerialize for VarLong {
     fn serialize(&self) -> impl Iterator<Item = char> {
         (self.0).serialize()
     }
 }
 
-impl core_json_traits::JsonDeserialize for VarInt {
+impl core_json_traits::JsonDeserialize for VarLong {
     fn deserialize<'read, 'parent, B: core_json_traits::Read<'read>, S: core_json_traits::Stack>(
         value: core_json_traits::Value<'read, 'parent, B, S>,
     ) -> Result<Self, core_json_traits::JsonError<'read, B, S>> {
-        value.to_number().map(|num| {
-            VarInt(
-                num.i64()
-                    .expect("json decoding of Varint shouldn't be larger than i32")
-                    as i32,
-            )
-        })
+        value
+            .to_number()
+            .map(|num| VarLong(num.i64().expect("number should be an integer.")))
     }
 }
 
-impl core::fmt::Display for VarInt {
+impl core::fmt::Display for VarLong {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl Deref for VarInt {
-    type Target = i32;
+impl Deref for VarLong {
+    type Target = i64;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl embedded_io::ErrorType for VarInt {
+impl embedded_io::ErrorType for VarLong {
     type Error = embedded_io::ErrorKind;
 }
 
-impl From<i32> for VarInt {
-    fn from(value: i32) -> Self {
+impl From<i64> for VarLong {
+    fn from(value: i64) -> Self {
         Self(value)
     }
 }
 
-impl From<&i32> for VarInt {
-    fn from(value: &i32) -> Self {
+impl From<&i64> for VarLong {
+    fn from(value: &i64) -> Self {
         Self::from(*value)
     }
 }
 
-impl From<u32> for VarInt {
-    fn from(value: u32) -> Self {
-        Self(value as i32)
+impl From<u64> for VarLong {
+    fn from(value: u64) -> Self {
+        Self(value as i64)
     }
 }
 
-impl From<&u32> for VarInt {
-    fn from(value: &u32) -> Self {
+impl From<&u64> for VarLong {
+    fn from(value: &u64) -> Self {
         Self::from(*value)
     }
 }
 
-impl TryFrom<i64> for VarInt {
-    type Error = core::num::TryFromIntError;
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        Ok(Self::from(i32::try_from(value)?))
-    }
-}
-
-impl TryFrom<usize> for VarInt {
+impl TryFrom<usize> for VarLong {
     type Error = core::num::TryFromIntError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        Ok(Self::from(i32::try_from(value)?))
+        Ok(Self::from(i64::try_from(value)?))
     }
 }
 
-impl crate::packet::Encode for VarInt {
+impl crate::packet::Encode for VarLong {
     async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
-        let mut value = **self as u32;
+        let mut value = **self as u64;
 
-        while value >= u32::from(CONTINUE_BIT) {
+        while value >= u64::from(CONTINUE_BIT) {
             let byte_to_write = (value as u8) | CONTINUE_BIT;
             buffer.write_all(&[byte_to_write]).await?;
             value >>= 7;
@@ -102,7 +90,7 @@ impl crate::packet::Encode for VarInt {
     }
 }
 
-impl crate::packet::Decode for VarInt {
+impl crate::packet::Decode for VarLong {
     async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let mut value = 0b0;
         let mut pos = 0b0;
@@ -110,23 +98,23 @@ impl crate::packet::Decode for VarInt {
         loop {
             let byte = buffer.read_u8().await?;
 
-            value |= i32::from(byte & SEGMENT_BITS) << pos;
+            value |= i64::from(byte & SEGMENT_BITS) << pos;
 
             if (byte & CONTINUE_BIT) == 0 {
-                return Ok(VarInt(value));
+                return Ok(VarLong(value));
             }
 
             pos += 7;
 
             if pos >= 32 {
-                return Err(DecodeError::VarIntTooBig);
+                return Err(DecodeError::VarLongTooBig);
             }
         }
     }
 }
 
-impl From<VarInt> for i32 {
-    fn from(value: VarInt) -> Self {
+impl From<VarLong> for i64 {
+    fn from(value: VarLong) -> Self {
         *value
     }
 }

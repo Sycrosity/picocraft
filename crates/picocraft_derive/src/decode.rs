@@ -68,7 +68,7 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
             Ok(quote! {
 
                 impl #impl_generics ::picocraft_core::packet::Decode for #ident #ty_generics #where_clause {
-                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::packet::DecodeError<R::Error>>
+                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::errors::DecodeError>
                     where R: ::embedded_io_async::Read {
 
                         use ::picocraft_core::packet::Decode;
@@ -78,7 +78,7 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                         match i32::from(value) {
 
                             #decode_fields
-                            _ => Err(::picocraft_core::packet::DecodeError::InvalidEnumValue)
+                            _ => Err(::picocraft_core::errors::DecodeError::InvalidEnumValue)
 
                         }
                     }
@@ -125,7 +125,7 @@ pub fn derive_decode(item: TokenStream) -> Result<TokenStream> {
             Ok(quote! {
 
                 impl #impl_generics ::picocraft_core::packet::Decode for #ident #ty_generics #where_clause {
-                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::packet::DecodeError<R::Error>>
+                    async fn decode<R>(mut buffer: R) -> ::core::result::Result<Self,::picocraft_core::errors::DecodeError>
                     where R: ::embedded_io_async::Read {
 
                         use ::picocraft_core::packet::Decode;

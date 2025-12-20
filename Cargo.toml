@@ -20,14 +20,20 @@ tokio = { workspace = true, features = [
 ], optional = true }
 
 log.workspace = true
+static_cell.workspace = true
+
 critical-section = { version = "1", features = ["std"], optional = true }
+rand.workspace = true
+rand_xoshiro.workspace = true
+rand_chacha.workspace = true
+embassy-sync.workspace = true
 
 [workspace]
 members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 repository = "https://github.com/Sycrosity/picocraft/"
 # publish = true
@@ -36,10 +42,10 @@ keywords = ["minecraft", "minecraft-server", "picocraft", "no_std"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-picocraft_core = { path = "crates/picocraft_core", version = "0.0.2" }
-picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.2" }
-picocraft_server = { path = "crates/picocraft_server", version = "0.0.2" }
-picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.2" }
+picocraft_core = { path = "crates/picocraft_core", version = "0.0.3" }
+picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.3" }
+picocraft_server = { path = "crates/picocraft_server", version = "0.0.3" }
+picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.3" }
 
 embassy-futures = { version = "0.1.2", features = ["log"] }
 embedded-io = "0.7.1"
@@ -49,11 +55,16 @@ embassy-time = { version = "0.5.0", features = ["log"] }
 embassy-net = { version = "0.7.1", features = ["log"] }
 embassy-sync = { version = "0.7.2", features = ["log"] }
 
-log = "0.4"
+log = "0.4.29"
+static_cell = "2.1.1"
+
+rand = { version = "0.9.2", default-features = false, features = ["log"] }
+rand_xoshiro = "0.7.0"
+rand_chacha = { version = "0.9.0", default-features = false }
 
 heapless = "0.9"
 tokio = "1.48"
-uuid = { version = "1.18.1", default-features = false }
+uuid = { version = "1.19.0", default-features = false }
 thiserror = { version = "2", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 bon = { version = "3.8.1", default-features = false }
@@ -64,22 +75,17 @@ core-json-traits = { version = "0.4.1" }
 
 [features]
 default = ["std"]
-std = [
-  "alloc",
-  "picocraft_server/std",
-  "tokio",
-  "critical-section",
-]
+std = ["alloc", "picocraft_server/std", "tokio", "critical-section"]
 alloc = []
 tokio = ["dep:tokio"]
-
+release = ["log/release_max_level_off"]
 
 [profile.dev.package."*"]
 opt-level = 3
 
-[profile.release-embedded]
-inherits = "release"
+[profile.release]
+# inherits = "release"
 codegen-units = 1
 debug = 0
 lto = true
-opt-level = "z"
+opt-level = "s"

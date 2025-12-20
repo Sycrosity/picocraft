@@ -11,19 +11,20 @@ impl Packet for LegacyKickPacket {
 
 impl Encode for LegacyKickPacket {
     #[allow(unused)]
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         todo!("Encode is not yet implemented for LegacyKick")
     }
 }
 
 impl Decode for LegacyKickPacket {
     #[allow(unused)]
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         todo!("Decode is not yet implemented for LegacyKick")
+    }
+}
+
+impl core::fmt::Display for LegacyKickPacket {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "LegacyKickPacket")
     }
 }

@@ -1,11 +1,16 @@
+mod array;
+mod bitsets;
 mod core;
+mod enum_set;
 mod identifier;
+mod nbt;
 mod optional;
 mod position;
+mod prefixed_array;
 mod string;
 mod uuid;
 mod varint;
-mod vec;
+mod varlong;
 
 pub type Boolean = bool;
 pub type Byte = i8;
@@ -21,16 +26,32 @@ pub type UUID = ::uuid::Uuid;
 pub type String<const N: usize> = heapless::String<N>;
 pub type Vec<T, const N: usize> = heapless::Vec<T, N>;
 pub type Optional<T> = Option<T>;
-pub struct PrefixedOptional<T>(pub Option<T>);
+pub type PrefixedArray<T, const N: usize> = heapless::Vec<T, N>;
 
-/// A placeholder for the NBT data type.
-pub struct NBT;
+#[derive(Debug, Clone, Default)]
+pub struct Array<T, const N: usize>(heapless::Vec<T, N>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
-pub struct VarInt(pub i32);
+#[derive(Debug, Clone, Default)]
+pub struct BitSet<const N: usize>(pub PrefixedArray<Long, N>);
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct EnumSet(pub UnsignedByte);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Identifier<const N: usize>(pub String<N>);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Position(i64);
+
+#[derive(Debug)]
+pub struct PrefixedOptional<T>(pub Option<T>);
+
+/// A placeholder for the NBT data type.
+#[derive(Debug, Clone)]
+pub struct NBT;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
+pub struct VarInt(pub i32);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
+pub struct VarLong(pub i64);

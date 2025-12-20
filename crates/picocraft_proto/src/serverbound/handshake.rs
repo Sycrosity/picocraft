@@ -2,7 +2,6 @@ use crate::prelude::*;
 
 #[derive(Debug, Packet)]
 #[packet(id = 0x00, state = State::Handshake)]
-// #[resource(name = "minecraft:intent")]
 pub struct HandshakePacket {
     /// See [minecraft.wiki's protocol version numbers page](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers).
     pub protocol_version: VarInt,
@@ -31,23 +30,23 @@ impl Packet for LegacyPingPacket {
     const STATE: State = State::Handshake;
 }
 
+impl core::fmt::Display for LegacyPingPacket {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "LegacyPingPacket")
+    }
+}
+
 #[allow(unused)]
 impl Encode for LegacyPingPacket {
-    async fn encode<W: embedded_io_async::Write>(
-        &self,
-        mut buffer: W,
-    ) -> Result<(), EncodeError<W::Error>> {
+    async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         todo!("Encode is not implemented yet for LegacyPing")
     }
 }
 
 impl Decode for LegacyPingPacket {
-    async fn decode<R: embedded_io_async::Read>(
-        mut buffer: R,
-    ) -> Result<Self, DecodeError<R::Error>> {
+    async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         //To keep Decode implimentations consistent with other implementations, we have
         // already read the identifying byte (0xFE) before calling this function.
-
         let mut buf = [0u8; 4];
 
         buffer.read_exact(&mut buf).await?;
