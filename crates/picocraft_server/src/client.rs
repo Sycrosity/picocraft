@@ -12,17 +12,20 @@ pub struct Client {
     pub player: Player,
     state: State,
     pub socket: PacketSocket,
-    pub rx_buf: Buffer<1024>,
+    // pub remote_addr: core::net::SocketAddrV4,
+    rx_buf: Buffer<1024>,
+    system_rng: &'static SystemRng,
 }
 
 #[allow(unused)]
 impl Client {
-    pub fn new(socket: tokio::net::TcpStream) -> Self {
+    pub fn new(socket: tokio::net::TcpStream, system_rng: &'static SystemRng) -> Self {
         Self {
             player: Player::default(),
-            socket: PacketSocket::new(socket),
             state: State::default(),
+            socket: PacketSocket::new(socket),
             rx_buf: Buffer::new(),
+            system_rng,
         }
     }
 
@@ -57,6 +60,13 @@ impl Client {
         Ok((packet_length, packet_id))
     }
 
+    pub async fn system_random<T>(&self) -> T
+    where
+        rand::distr::StandardUniform: rand::distr::Distribution<T>,
+    {
+        self.system_rng.lock().await.borrow_mut().random::<T>()
+    }
+
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
         debug!(
             "Handling connection for {}",
@@ -65,7 +75,7 @@ impl Client {
 
         //TODO We need a generic timer implemation that works with either tokio or
         // embassy
-        let mut ticker = tokio::time::interval(core::time::Duration::from_secs(15));
+        let mut ticker = tokio::time::interval(core::time::Duration::from_secs(10));
         let _ = ticker.tick().await; // advance to next tick
 
         // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
@@ -80,7 +90,8 @@ impl Client {
                 Either::First(Err(e)) => Err(e),
                 Either::Second(_) => {
                     if self.state() == State::Play {
-                        let keep_alive = clientbound::KeepAlivePacket::new();
+                        let keep_alive =
+                            clientbound::KeepAlivePacket::new(self.system_random().await);
                         self.encode_packet(&keep_alive).await
                     } else {
                         panic!("The client has timed out.");

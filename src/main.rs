@@ -5,12 +5,18 @@ extern crate std;
 
 mod logger;
 
+use core::cell::RefCell;
 use core::prelude::rust_2024::*;
 
-#[allow(unused)]
-use log::{debug, error, info, log, trace, warn};
+use embassy_sync::mutex::Mutex;
+use log::{debug, error, info};
 use picocraft_core::prelude::*;
 use picocraft_server::prelude::*;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
+use static_cell::StaticCell;
+
+static SYSTEM_RNG: StaticCell<SystemRng> = StaticCell::new();
 
 const MAX_PLAYERS: i32 = 8;
 
@@ -31,7 +37,13 @@ async fn main() -> Result<(), PicocraftError> {
 
     *SERVER_CONFIG.write().await = config;
 
-    let server = Server::new(listener);
+    // This should be seeded from a system level CSPRNG.
+    let seed = 0xbeee_eeee_eeee_eee5;
+
+    let system_rng =
+        SYSTEM_RNG.init_with(|| Mutex::new(RefCell::new(ChaCha8Rng::seed_from_u64(seed))));
+
+    let server = Server::new(listener, system_rng);
 
     info!(
         "Server listening at: {}:{}",
