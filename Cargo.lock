@@ -475,7 +475,7 @@ dependencies = [
 
 [[package]]
 name = "picocraft"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "critical-section",
  "embassy-sync",
@@ -491,7 +491,7 @@ dependencies = [
 
 [[package]]
 name = "picocraft_core"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "core-json-derive",
  "core-json-traits",
@@ -505,7 +505,7 @@ dependencies = [
 
 [[package]]
 name = "picocraft_derive"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "embedded-io-async 0.7.0",
  "log",
@@ -517,7 +517,7 @@ dependencies = [
 
 [[package]]
 name = "picocraft_proto"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bon",
  "core-json-derive",
@@ -530,7 +530,7 @@ dependencies = [
 
 [[package]]
 name = "picocraft_server"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "embassy-futures",
  "embassy-net",
