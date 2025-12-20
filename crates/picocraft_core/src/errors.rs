@@ -47,11 +47,12 @@ pub enum DecodeError {
     UnexpectedEof,
     #[error("length of VarInt did not match with the minimum size of the data structure")]
     VarIntTooSmall(VarInt),
-    #[error(
-        "cannot decode VarInt! Exceeds maximum capacity of 5 bytes. Max/Min: \
-         (2147483647/-2147483648)"
-    )]
+    #[error("length of VarLong did not match with the minimum size of the data structure")]
+    VarLongTooSmall(VarLong),
+    #[error("cannot decode VarInt! Exceeds maximum capacity of 5 bytes.")]
     VarIntTooBig,
+    #[error("cannot decode VarLong! Exceeds maximum capacity of 10 bytes.")]
+    VarLongTooBig,
     #[error("custom error")]
     Custom,
     #[error("enum value is invalid")]

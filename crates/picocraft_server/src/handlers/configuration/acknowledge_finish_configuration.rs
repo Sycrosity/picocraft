@@ -133,8 +133,14 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                 block_entities: PrefixedArray::new(),
             })
             .light(LightData {
-                sky_light_mask: BitSet(PrefixedArray::from_slice(&[0x3ffff]).unwrap()),
-                block_light_mask: BitSet(PrefixedArray::from_slice(&[0x3ffff]).unwrap()),
+                sky_light_mask: BitSet(
+                    PrefixedArray::from_slice(&[0x3ffff])
+                        .expect("Value should be small enough to fit in the prefixed array"),
+                ),
+                block_light_mask: BitSet(
+                    PrefixedArray::from_slice(&[0x3ffff])
+                        .expect("Value should be small enough to fit in the prefixed array"),
+                ),
                 empty_sky_light_mask: BitSet(PrefixedArray::new()),
                 empty_block_light_mask: BitSet(PrefixedArray::new()),
                 sky_light_arrays: light_arrays.clone(),
