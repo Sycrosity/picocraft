@@ -10,6 +10,7 @@ mod prefixed_array;
 mod string;
 mod uuid;
 mod varint;
+mod varlong;
 
 pub type Boolean = bool;
 pub type Byte = i8;
@@ -51,3 +52,6 @@ pub struct NBT;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
 pub struct VarInt(pub i32);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Default)]
+pub struct VarLong(pub i64);
