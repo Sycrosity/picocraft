@@ -69,6 +69,12 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&player_info_update).await?;
 
+        let initialise_world_border = clientbound::InitialiseWorldBorderPacket::default();
+
+        trace!("Packet constructed: {:?}", &initialise_world_border);
+
+        client.encode_packet(&initialise_world_border).await?;
+
         let game_event = clientbound::GameEventPacket::builder()
             .event(clientbound::GameEvent::StartWaitingForLevelChunks)
             .build();
