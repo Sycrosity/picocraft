@@ -4,36 +4,35 @@ name = "picocraft_server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-# homepage.workspace = true
-repository.workspace = true
 readme.workspace = true
 keywords.workspace = true
+repository.workspace = true
 
 [dependencies]
 picocraft_core.workspace = true
 picocraft_proto.workspace = true
 
 log.workspace = true
-static_cell.workspace = true
-thiserror.workspace = true
 heapless.workspace = true
-
-embassy-net = { workspace = true, features = [
-  "medium-ethernet",
-  "proto-ipv4",
-  "tcp",
-] }
-embassy-sync.workspace = true
-embassy-time.workspace = true
-embassy-futures.workspace = true
-
-embedded-io.workspace = true
-embedded-io-async.workspace = true
+thiserror.workspace = true
+static_cell.workspace = true
 
 rand.workspace = true
 rand_chacha.workspace = true
 rand_xoshiro.workspace = true
 
+embedded-io.workspace = true
+embedded-io-async.workspace = true
+
+embassy-time.workspace = true
+embassy-sync.workspace = true
+embassy-futures.workspace = true
+
+embassy-net = { workspace = true, features = [
+  "medium-ethernet",
+  "proto-ipv4",
+  "tcp",
+], optional = true }
 tokio = { workspace = true, optional = true }
 
 [features]
@@ -49,4 +48,4 @@ std = [
 ]
 alloc = ["embedded-io/alloc"]
 tokio = ["dep:tokio", "tokio/full"]
-embassy = []
+embassy = ["dep:embassy-net"]
