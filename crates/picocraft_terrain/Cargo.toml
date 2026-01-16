@@ -1,0 +1,28 @@
+[package]
+name = "picocraft_terrain"
+# description = ""
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+keywords.workspace = true
+repository.workspace = true
+
+[dependencies]
+
+log.workspace = true
+
+heapless.workspace = true
+
+rand.workspace = true
+rand_xoshiro.workspace = true
+
+picocraft_core.workspace = true
+picocraft_proto.workspace = true
+noise.workspace = true
+
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
