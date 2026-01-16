@@ -11,6 +11,7 @@ pub type ServerConfig = RwLock<CriticalSectionRawMutex, Config>;
 
 #[allow(unused)]
 pub struct Server {
+    // config: ServerConfig,
     listener: TcpListener,
     system_rng: &'static SystemRng,
 }
@@ -18,8 +19,13 @@ pub struct Server {
 pub static SERVER_CONFIG: ServerConfig = ServerConfig::new(Config::default());
 
 impl Server {
-    pub fn new(listener: TcpListener, system_rng: &'static SystemRng) -> Self {
+    pub fn new(
+        // config: ServerConfig,
+        listener: TcpListener,
+        system_rng: &'static SystemRng,
+    ) -> Self {
         Server {
+            // config,
             listener,
             system_rng,
         }

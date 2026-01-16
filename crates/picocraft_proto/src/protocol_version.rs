@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
-pub const CURRENT_PROTOCOL_VERSION: VarInt = VarInt(773);
-pub const CURRENT_VERSION_NAME: &str = "1.21.10";
+pub const CURRENT_PROTOCOL_VERSION: VarInt = VarInt(774);
+pub const CURRENT_VERSION_NAME: &str = "1.21.11";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ProtocolVersion(VarInt);
@@ -14,7 +14,7 @@ impl Default for ProtocolVersion {
 
 impl<const N: usize> From<ProtocolVersion> for String<N> {
     fn from(value: ProtocolVersion) -> Self {
-        String::try_from(value.version_name())
+        String::try_from(value.version_name().expect("Version isn't part of the k nown version numbers"))
             .expect("Version names are never longer than 8 characters")
     }
 }
@@ -34,8 +34,9 @@ impl core::ops::DerefMut for ProtocolVersion {
 }
 
 impl ProtocolVersion {
-    pub fn version_name(&self) -> &'static str {
-        match *self.0 {
+    pub fn version_name(&self) -> Option<&'static str> {
+        Some(match *self.0 {
+            774 => "1.21.11",
             773 => "1.21.10",
             772 => "1.21.7",
             771 => "1.21.6",
@@ -99,7 +100,7 @@ impl ProtocolVersion {
             5 => "1.7.6",
             4 => "1.7.2",
 
-            _ => "unknown version",
-        }
+            _ => return None,
+        })
     }
 }

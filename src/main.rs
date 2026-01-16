@@ -6,7 +6,6 @@ extern crate std;
 mod logger;
 
 use core::cell::RefCell;
-use core::prelude::rust_2024::*;
 
 use embassy_sync::mutex::Mutex;
 use log::{debug, error, info};
@@ -17,6 +16,9 @@ use rand_chacha::ChaCha8Rng;
 use static_cell::StaticCell;
 
 static SYSTEM_RNG: StaticCell<SystemRng> = StaticCell::new();
+// static SERVER_CONFIG:
+// StaticCell<Mutex<RefCell<picocraft_server::config::Config>>> =
+// StaticCell::new();
 
 const MAX_PLAYERS: i32 = 8;
 
