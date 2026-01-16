@@ -11,6 +11,7 @@ repository.workspace = true
 [dependencies]
 picocraft_core.workspace = true
 picocraft_proto.workspace = true
+picocraft_terrain.workspace = true
 
 log.workspace = true
 heapless.workspace = true
