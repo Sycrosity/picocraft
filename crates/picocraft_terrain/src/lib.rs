@@ -14,9 +14,10 @@
 )]
 
 pub mod dimension;
+pub mod noise_map;
 pub mod world;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "images")]
 extern crate std;
 
 #[allow(unused)]
