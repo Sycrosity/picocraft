@@ -1,5 +1,8 @@
+use crate::packet::Encode;
+
 mod array;
 mod bitsets;
+mod boolean;
 mod core;
 mod enum_set;
 mod identifier;
