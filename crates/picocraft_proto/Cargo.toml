@@ -19,6 +19,7 @@ core-json-derive.workspace = true
 core-json-traits.workspace = true
 
 embedded-io-async.workspace = true
+heapless.workspace = true
 
 [features]
 default = ["std"]

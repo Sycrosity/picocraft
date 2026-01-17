@@ -37,15 +37,20 @@ pub mod prelude {
     pub(crate) use picocraft_proto::prelude::*;
     pub(crate) use rand::prelude::*;
 
-    pub use crate::SystemRng;
     pub(crate) use crate::buffer::Buffer;
     pub use crate::client::{Client, Player};
     pub(crate) use crate::errors::*;
     pub(crate) use crate::handlers::HandlePacket;
-    pub use crate::server::{SERVER_CONFIG, Server};
+    pub use crate::server::Server;
+    pub use crate::{ServerConfig, SystemRng};
 }
 
 pub type SystemRng = embassy_sync::mutex::Mutex<
     embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex,
     core::cell::RefCell<rand_chacha::ChaCha8Rng>,
+>;
+
+pub type ServerConfig = embassy_sync::rwlock::RwLock<
+    embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex,
+    crate::config::Config,
 >;

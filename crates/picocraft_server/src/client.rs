@@ -15,17 +15,23 @@ pub struct Client {
     // pub remote_addr: core::net::SocketAddrV4,
     rx_buf: Buffer<1024>,
     system_rng: &'static SystemRng,
+    server_config: &'static ServerConfig,
 }
 
 #[allow(unused)]
 impl Client {
-    pub fn new(socket: tokio::net::TcpStream, system_rng: &'static SystemRng) -> Self {
+    pub fn new(
+        socket: tokio::net::TcpStream,
+        system_rng: &'static SystemRng,
+        server_config: &'static ServerConfig,
+    ) -> Self {
         Self {
             player: Player::default(),
             state: State::default(),
             socket: PacketSocket::new(socket),
             rx_buf: Buffer::new(),
             system_rng,
+            server_config,
         }
     }
 
@@ -65,6 +71,10 @@ impl Client {
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
     {
         self.system_rng.lock().await.borrow_mut().random::<T>()
+    }
+
+    pub fn server_config(&self) -> &'_ ServerConfig {
+        self.server_config
     }
 
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
