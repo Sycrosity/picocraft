@@ -48,7 +48,6 @@ impl Server {
     }
 }
 
-
 #[cfg(feature = "embassy")]
 #[embassy_executor::task]
 pub async fn handle_connection_task(mut client: Client) -> ! {
