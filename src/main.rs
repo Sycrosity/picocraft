@@ -6,17 +6,19 @@ extern crate std;
 mod logger;
 
 use core::cell::RefCell;
-use core::prelude::rust_2024::*;
 
 use embassy_sync::mutex::Mutex;
+use embassy_sync::rwlock::RwLock;
 use log::{debug, error, info};
 use picocraft_core::prelude::*;
+use picocraft_server::ServerConfig;
 use picocraft_server::prelude::*;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use static_cell::StaticCell;
 
 static SYSTEM_RNG: StaticCell<SystemRng> = StaticCell::new();
+static SERVER_CONFIG: StaticCell<ServerConfig> = StaticCell::new();
 
 const MAX_PLAYERS: i32 = 8;
 
@@ -35,7 +37,7 @@ async fn main() -> Result<(), PicocraftError> {
         .await
         .unwrap();
 
-    *SERVER_CONFIG.write().await = config;
+    let config_mutex = SERVER_CONFIG.init_with(|| RwLock::new(config));
 
     // This should be seeded from a system level CSPRNG.
     let seed = 0xbeee_eeee_eeee_eee5;
@@ -43,12 +45,12 @@ async fn main() -> Result<(), PicocraftError> {
     let system_rng =
         SYSTEM_RNG.init_with(|| Mutex::new(RefCell::new(ChaCha8Rng::seed_from_u64(seed))));
 
-    let server = Server::new(listener, system_rng);
+    let server = Server::new(config_mutex, listener, system_rng);
 
     info!(
         "Server listening at: {}:{}",
-        &SERVER_CONFIG.read().await.address,
-        &SERVER_CONFIG.read().await.port
+        config_mutex.read().await.address,
+        config_mutex.read().await.port
     );
 
     loop {

@@ -7,19 +7,21 @@ use crate::config::Config;
 use crate::prelude::*;
 use crate::shutdown::shutdown_signal;
 
-pub type ServerConfig = RwLock<CriticalSectionRawMutex, Config>;
-
 #[allow(unused)]
 pub struct Server {
+    config: &'static ServerConfig,
     listener: TcpListener,
     system_rng: &'static SystemRng,
 }
 
-pub static SERVER_CONFIG: ServerConfig = ServerConfig::new(Config::default());
-
 impl Server {
-    pub fn new(listener: TcpListener, system_rng: &'static SystemRng) -> Self {
+    pub fn new(
+        config: &'static ServerConfig,
+        listener: TcpListener,
+        system_rng: &'static SystemRng,
+    ) -> Self {
         Server {
+            config,
             listener,
             system_rng,
         }
@@ -30,7 +32,7 @@ impl Server {
             Either::First(Ok((socket, addr))) => {
                 info!("New connection from: {}", &addr);
 
-                let client = Client::new(socket, self.system_rng);
+                let client = Client::new(socket, self.system_rng, self.config);
 
                 Ok(Some(client))
             }
@@ -46,7 +48,6 @@ impl Server {
     }
 }
 
-//
 #[cfg(feature = "embassy")]
 #[embassy_executor::task]
 pub async fn handle_connection_task(mut client: Client) -> ! {

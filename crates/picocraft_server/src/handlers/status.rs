@@ -7,12 +7,14 @@ impl HandlePacket for StatusRequestPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
         trace!("Packet received: {:?}", &self);
 
+        // let server_config = client.server_config().lock().await.borrow();
+
         // This should really be built with values from the server config for player
         // count
         let json = clientbound::JsonStatusResponse::builder()
-            .players(SERVER_CONFIG.read().await.max_players, 0)
-            // The clone here ideally shouldn't occur
-            .description(SERVER_CONFIG.read().await.motd.clone())
+            .players(client.server_config().read().await.max_players, 0)
+            //TODO the clone here ideally shouldn't occur
+            .description(client.server_config().read().await.motd.clone())
             .build();
 
         let status_response = clientbound::StatusResponsePacket::<256>::builder()
