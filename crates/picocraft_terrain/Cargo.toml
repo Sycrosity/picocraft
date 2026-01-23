@@ -20,9 +20,3 @@ noise.workspace = true
 
 picocraft_core.workspace = true
 picocraft_proto.workspace = true
-
-image = { version = "0.25.9", optional = true }
-
-
-[features]
-images = ["dep:image"]

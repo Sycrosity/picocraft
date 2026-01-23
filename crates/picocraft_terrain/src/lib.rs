@@ -14,14 +14,12 @@
 )]
 
 pub mod dimension;
-pub mod noise_map;
+pub mod noise;
 pub mod world;
-
-#[cfg(feature = "images")]
-extern crate std;
 
 #[allow(unused)]
 pub mod prelude {
 
+    pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
 }

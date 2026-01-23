@@ -29,18 +29,14 @@ impl World {
     }
 
     pub fn generate_terrain_map(&mut self) {
-        let mut random = rand_xoshiro::Xoroshiro128PlusPlus::seed_from_u64(self.seed);
+        // let mut random =
+        // rand_xoshiro::Xoroshiro128PlusPlus::seed_from_u64(self.seed);
 
-        // Example terrain generation using a simple noise function
-        random.fill(self.terrain_map.map.as_flattened_mut());
-    }
+        let perlin: FbmPerlin = FbmPerlin::new(self.seed() as u32).set_octaves(4);
 
-    #[cfg(feature = "images")]
-    pub fn write_maps_to_folder<P: AsRef<std::path::Path>>(
-        &self,
-        folder: P,
-    ) -> image::ImageResult<()> {
-        self.terrain_map
-            .write_to_image(folder.as_ref().join("terrain_map.png"))
+        self.terrain_map.apply(|x, y| {
+            (perlin.get([(x as f64 / 128.0 - 128.0), (y as f64 / 128.0 - 128.0)]) * 32.0 + 96.0)
+                as u8
+        });
     }
 }

@@ -37,6 +37,6 @@ pub mod prelude {
 }
 
 pub mod consts {
-    // Height of the Minecraft world in blocks. MUST be a multiple of 16.
+    // Height of the Minecraft world in blocks.
     pub const WORLD_HEIGHT: usize = 256;
 }
