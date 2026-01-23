@@ -58,7 +58,7 @@ impl KnownPacksPacket {
 impl Default for KnownPacksPacket {
     fn default() -> Self {
         Self {
-            known_packs: PrefixedArray::from_array([KnownPack::default()]),
+            known_packs: PrefixedArray::from_vec(Vec::from_array([KnownPack::default()])),
         }
     }
 }
