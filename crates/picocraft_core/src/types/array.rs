@@ -4,6 +4,10 @@ impl<T, const N: usize> Array<T, N> {
     pub fn new() -> Self {
         Self(Vec::new())
     }
+
+    pub fn from_vec(vec: heapless::Vec<T, N>) -> Self {
+        Self(vec)
+    }
 }
 
 /// This is an anti-pattern, and probably isn't a good idea in the long run,

@@ -27,6 +27,7 @@ pub use protocol_version::{CURRENT_PROTOCOL_VERSION, CURRENT_VERSION_NAME};
 #[allow(unused)]
 pub mod prelude {
 
+    pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::byteorder::{ReadBytesExt, WriteBytesExt};
     pub(crate) use picocraft_core::prelude::*;
     pub(crate) use picocraft_derive::{Decode, Encode, Packet};

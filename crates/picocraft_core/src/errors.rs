@@ -59,6 +59,8 @@ pub enum DecodeError {
     InvalidEnumValue,
     #[error("Invalid boolean as the byte is not 0x01 or 0x00")]
     InvalidBoolean,
+    #[error("decoding this type or variant is unsupported")]
+    Unimplemented,
     #[error("no bytes should be readable when decoding [`Optional`] ")]
     UnexpectedOptionalRead,
     #[error("namespace part of Identifier is not 'minecraft'")]

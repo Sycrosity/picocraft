@@ -26,6 +26,7 @@ pub use crate::types::{UUID, VarInt};
 
 pub mod prelude {
     pub(crate) use embedded_io_async::{Read, Write};
+    pub(crate) use heapless::Vec;
 
     pub(crate) use crate::byteorder::{ReadBytesExt, WriteBytesExt};
     pub use crate::consts::WORLD_HEIGHT;

@@ -16,10 +16,9 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.set_state(State::Play);
 
-        let vec = PrefixedArray::from_slice(&[Identifier(
+        let vec = PrefixedArray::from_vec(Vec::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
-        )])
-        .expect("max 3 dimensions");
+        )]));
 
         let login_play = clientbound::LoginPlayPacket::builder()
             .dimension_names(vec)
@@ -139,14 +138,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                 block_entities: PrefixedArray::new(),
             })
             .light(LightData {
-                sky_light_mask: BitSet(
-                    PrefixedArray::from_slice(&[0x3ffff])
-                        .expect("Value should be small enough to fit in the prefixed array"),
-                ),
-                block_light_mask: BitSet(
-                    PrefixedArray::from_slice(&[0x3ffff])
-                        .expect("Value should be small enough to fit in the prefixed array"),
-                ),
+                sky_light_mask: BitSet(PrefixedArray::from_vec(Vec::from_array([0x3ffff]))),
+                block_light_mask: BitSet(PrefixedArray::from_vec(Vec::from_array([0x3ffff]))),
                 empty_sky_light_mask: BitSet(PrefixedArray::new()),
                 empty_block_light_mask: BitSet(PrefixedArray::new()),
                 sky_light_arrays: light_arrays.clone(),
