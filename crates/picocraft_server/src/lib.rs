@@ -32,6 +32,7 @@ pub use server::Server;
 pub mod prelude {
 
     pub(crate) use embedded_io_async::{Read, Write};
+    pub(crate) use heapless::Vec;
     pub(crate) use log::{debug, error, info, log, trace, warn};
     pub(crate) use picocraft_core::prelude::*;
     pub(crate) use picocraft_proto::prelude::*;

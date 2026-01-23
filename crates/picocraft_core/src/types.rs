@@ -104,10 +104,8 @@ pub struct SoundEvent {
     pub fixed_range: Optional<Float>,
 }
 
-// below are types which aren't part of the protocol but are useful to have
+// Below are types which aren't part of the protocol but are useful to have
 // here.
-
-pub type Vec<T, const N: usize> = heapless::Vec<T, N>;
 
 #[derive(Debug)]
 pub enum PicoCow<'a, T: Clone + 'a> {
