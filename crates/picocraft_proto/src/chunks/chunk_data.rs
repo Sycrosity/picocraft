@@ -1,19 +1,16 @@
 use crate::prelude::*;
 
 #[derive(Debug, Encode)]
-pub struct ChunkData<
-    const WORLD_HEIGHT: usize,
-    const CHUNK_SECTIONS: usize,
-    const BLOCK_TYPES: usize,
-> {
-    pub heightmaps: PrefixedArray<Heightmap<WORLD_HEIGHT>, 0>,
+pub struct ChunkDataProto<const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> {
+    pub heightmaps: PrefixedArray<Heightmap, 3>,
     pub size: VarInt,
-    pub data: Array<ChunkSection<BLOCK_TYPES>, CHUNK_SECTIONS>,
-    pub block_entities: PrefixedArray<BlockEntities, 0>,
+    // 512 is the number of longs needed to represent a 16x16x16 section with max 8 bits per block.
+    pub data: Array<ChunkSectionProto<512, BLOCK_TYPES>, CHUNK_SECTIONS>,
+    pub block_entities: PrefixedArray<BlockEntitiesProto, 0>,
 }
 
-impl<const WORLD_HEIGHT: usize, const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> Decode
-    for ChunkData<WORLD_HEIGHT, CHUNK_SECTIONS, BLOCK_TYPES>
+impl<const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> Decode
+    for ChunkDataProto<CHUNK_SECTIONS, BLOCK_TYPES>
 {
     async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
@@ -23,11 +20,18 @@ impl<const WORLD_HEIGHT: usize, const CHUNK_SECTIONS: usize, const BLOCK_TYPES: 
     }
 }
 
+/// Heightmap used in chunk data packets.
+///
+/// Note: The reason the Array is 36 Longs' long is that a heightmap for a 16x16
+/// block chunk needs 9 bits per height value (to cover heights 0-256, aka
+/// worldheight+1), and 16*16*9/64 = 36. The 9 bits per entry also covers the
+/// current default world height of 384 on vanilla servers.
 #[derive(Debug, Encode, Decode)]
-pub struct Heightmap<const WORLD_HEIGHT: usize> {
-    pub heighmap_type: HeightmapType,
-    pub data: PrefixedArray<Long, WORLD_HEIGHT>,
+pub struct Heightmap {
+    pub heightmap_type: HeightmapType,
+    pub data: PrefixedArray<Long, 36>,
 }
+
 #[derive(Debug, Encode, Decode)]
 #[protocol(value = VarInt)]
 pub enum HeightmapType {
@@ -37,24 +41,29 @@ pub enum HeightmapType {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-pub struct ChunkSection<const BLOCK_TYPES: usize> {
+pub struct ChunkSectionProto<const N: usize, const BLOCK_TYPES: usize> {
     pub block_count: Short,
-    pub block_states: BlockPalettedContainer<1024, BLOCK_TYPES>,
-    pub biomes: BiomePalettedContainer<0, 0>,
+    pub block_states: BlockPalettedContainerProto<N, BLOCK_TYPES>,
+    pub biomes: BiomePalettedContainerProto<0, 0>,
 }
 
 #[derive(Debug, Clone)]
-pub struct BlockPalettedContainer<const N: usize, const ENTRIES: usize> {
+pub struct BlockPalettedContainerProto<const N: usize, const ENTRIES: usize> {
     pub bits_per_entry: UnsignedByte,
     pub palette: Palette<ENTRIES>,
     pub data: Array<Long, N>,
 }
 
-impl<const N: usize, const ENTRIES: usize> Encode for BlockPalettedContainer<N, ENTRIES> {
+impl<const N: usize, const ENTRIES: usize> Encode for BlockPalettedContainerProto<N, ENTRIES> {
     async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError>
     where
         W: embedded_io_async::Write,
     {
+        if !matches!(self.bits_per_entry, 0 | 4..=8 | 15) {
+            log::warn!("Invalid bits_per_entry: {}", self.bits_per_entry);
+            return Err(EncodeError::InvalidBPE);
+        }
+
         self.bits_per_entry.encode(&mut buffer).await?;
 
         match self.bits_per_entry {
@@ -84,15 +93,12 @@ impl<const N: usize, const ENTRIES: usize> Encode for BlockPalettedContainer<N, 
             15 => {
                 todo!()
             }
-            _ => {
-                log::warn!("Invalid bits_per_entry: {}", self.bits_per_entry);
-                Err(EncodeError::Unknown)
-            }
+            _ => unreachable!(),
         }
     }
 }
 
-impl<const N: usize, const ELEMENTS: usize> Decode for BlockPalettedContainer<N, ELEMENTS> {
+impl<const N: usize, const ELEMENTS: usize> Decode for BlockPalettedContainerProto<N, ELEMENTS> {
     async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
         R: embedded_io_async::Read,
@@ -102,13 +108,13 @@ impl<const N: usize, const ELEMENTS: usize> Decode for BlockPalettedContainer<N,
 }
 
 #[derive(Debug, Clone)]
-pub struct BiomePalettedContainer<const N: usize, const ENTRIES: usize> {
+pub struct BiomePalettedContainerProto<const N: usize, const ENTRIES: usize> {
     pub bits_per_entry: UnsignedByte,
     pub palette: Palette<ENTRIES>,
     pub data: Array<Long, N>,
 }
 
-impl<const N: usize, const ENTRIES: usize> Encode for BiomePalettedContainer<N, ENTRIES> {
+impl<const N: usize, const ENTRIES: usize> Encode for BiomePalettedContainerProto<N, ENTRIES> {
     async fn encode<W>(&self, mut buffer: W) -> Result<(), EncodeError>
     where
         W: embedded_io_async::Write,
@@ -147,7 +153,7 @@ impl<const N: usize, const ENTRIES: usize> Encode for BiomePalettedContainer<N, 
     }
 }
 
-impl<const N: usize, const ELEMENTS: usize> Decode for BiomePalettedContainer<N, ELEMENTS> {
+impl<const N: usize, const ELEMENTS: usize> Decode for BiomePalettedContainerProto<N, ELEMENTS> {
     async fn decode<R>(_buffer: R) -> Result<Self, DecodeError>
     where
         R: embedded_io_async::Read,
@@ -165,7 +171,7 @@ pub enum Palette<const ENTRIES: usize> {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-pub struct BlockEntities {
+pub struct BlockEntitiesProto {
     packed_xz: UnsignedByte,
     y: Short,
     block_type: VarInt,

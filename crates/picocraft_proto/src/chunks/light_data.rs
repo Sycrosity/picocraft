@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 #[derive(Debug, Encode, Decode)]
-pub struct LightData<Section: SkyLightSection, const SECTIONS: usize> {
+pub struct LightDataProto<Section: SkyLightSection, const SECTIONS: usize> {
     pub sky_light_mask: BitSet<1>,
     pub block_light_mask: BitSet<1>,
     pub empty_sky_light_mask: BitSet<1>,
@@ -31,6 +31,6 @@ impl Encode for FullSkyLightSection {
 
 impl Decode for FullSkyLightSection {
     async fn decode<R: embedded_io_async::Read>(_buffer: R) -> Result<Self, DecodeError> {
-        todo!()
+        unimplemented!()
     }
 }
