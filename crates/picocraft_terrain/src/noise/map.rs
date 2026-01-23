@@ -1,16 +1,10 @@
-use core::num;
-
 pub struct NoiseMap2D<const SIZE: usize> {
     /// The 2D array representing the noise map, stored as rows of u8 values.
-    pub map: [[u8; SIZE]; SIZE],
+    map: [[u8; SIZE]; SIZE],
 }
 
 impl<const SIZE: usize> NoiseMap2D<SIZE> {
     pub fn new() -> Self {
-        Self::initialise()
-    }
-
-    pub fn initialise() -> Self {
         Self {
             map: [[0; SIZE]; SIZE],
         }
@@ -47,7 +41,7 @@ impl<const SIZE: usize> NoiseMap2D<SIZE> {
     where
         F: FnMut(usize, usize) -> u8,
     {
-        let mut map = Self::initialise();
+        let mut map = Self::new();
         map.apply(&mut generator);
         map
     }
@@ -58,21 +52,6 @@ impl<const SIZE: usize> NoiseMap2D<SIZE> {
         } else {
             None
         }
-    }
-
-    #[cfg(feature = "images")]
-    pub fn write_to_image<P: AsRef<std::path::Path>>(&self, path: P) -> image::ImageResult<()> {
-        use image::{ImageBuffer, Luma};
-
-        let img_buffer = ImageBuffer::<Luma<u8>, &[u8]>::from_raw(
-            SIZE as u32,
-            SIZE as u32,
-            self.map.as_flattened(),
-        )
-        .expect("Should be the right size");
-
-        img_buffer.save(path)?;
-        Ok(())
     }
 }
 

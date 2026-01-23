@@ -1,23 +1,14 @@
-use rand::distr::Uniform;
-use rand::{Rng, SeedableRng};
-
-use crate::noise_map::NoiseMap256;
+use crate::noise::*;
 use crate::prelude::*;
 
 #[non_exhaustive]
 pub struct World {
     seed: u64,
-    terrain_map: NoiseMap256,
+    pub terrain_map: NoiseMap256,
 }
 
 impl World {
     pub fn new(seed: u64) -> Self {
-        let mut world = Self::initialise(seed);
-        world.generate_terrain_map();
-        world
-    }
-
-    pub fn initialise(seed: u64) -> Self {
         Self {
             seed,
             terrain_map: NoiseMap256::new(),
