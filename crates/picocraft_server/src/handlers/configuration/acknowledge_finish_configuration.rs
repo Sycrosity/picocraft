@@ -28,8 +28,6 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .game_mode(1)
             .build();
 
-        // trace!("Packet constructed: {:?}", login_play);
-
         client.encode_packet(&login_play).await?;
 
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
@@ -37,8 +35,6 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .z(0f64)
             .y(156f64)
             .build();
-
-        // trace!("Packet constructed: {:?}", &synchronise_player_position);
 
         client.encode_packet(&synchronise_player_position).await?;
 
@@ -166,9 +162,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                 }
 
                 for y in 0..16 {
-                    let mut palette = PrefixedArray::new();
-                    let _ = palette.push(VarInt(0));
-                    let _ = palette.push(VarInt(1));
+                    let palette =
+                        PrefixedArray::from_vec(Vec::from_array([VarInt(0), VarInt(1)]));
 
                     chunk_data_and_update_light.data.data[y].block_count = 4096;
                     chunk_data_and_update_light.data.data[y]
