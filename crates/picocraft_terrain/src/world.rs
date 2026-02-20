@@ -1,5 +1,7 @@
 pub mod biomes;
 pub mod blocks;
+pub mod coordinates;
+pub mod palettes;
 use crate::noise::*;
 use crate::prelude::*;
 
