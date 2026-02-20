@@ -2,6 +2,8 @@ pub mod biomes;
 pub mod blocks;
 pub mod chunks;
 pub mod coordinates;
+pub mod heightmaps;
+pub mod light;
 pub mod palettes;
 
 use blocks::IndexedBlock;
@@ -9,7 +11,8 @@ use coordinates::*;
 
 use crate::noise::*;
 use crate::prelude::*;
-use crate::world::chunks::{ChunkHeightmaps, ChunkSection};
+use crate::world::chunks::ChunkSection;
+use crate::world::heightmaps::ChunkHeightmaps;
 
 #[non_exhaustive]
 pub struct World {
@@ -46,7 +49,7 @@ impl World {
             chunk_x: chunk_x as Int,
             chunk_z: chunk_z as Int,
             chunk_data: self.get_chunk(chunk_x, chunk_z),
-            light_data: chunks::LightData,
+            light_data: light::LightData,
         }
     }
 

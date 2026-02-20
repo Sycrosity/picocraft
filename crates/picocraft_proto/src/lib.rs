@@ -31,7 +31,6 @@ pub mod prelude {
     pub(crate) use picocraft_core::prelude::*;
     pub(crate) use picocraft_derive::{Decode, Encode, Packet};
 
-    pub(crate) use crate::chunks::{ChunkDataProto, LightDataProto};
     pub use crate::game_profile::*;
     pub use crate::protocol_version::*;
     pub use crate::{clientbound, serverbound};
