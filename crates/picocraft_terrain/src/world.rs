@@ -1,4 +1,5 @@
 pub mod biomes;
+pub mod blocks;
 use crate::noise::*;
 use crate::prelude::*;
 
