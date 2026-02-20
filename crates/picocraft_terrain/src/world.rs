@@ -1,3 +1,4 @@
+pub mod biomes;
 use crate::noise::*;
 use crate::prelude::*;
 
@@ -5,6 +6,9 @@ use crate::prelude::*;
 pub struct World {
     seed: u64,
     pub terrain_map: NoiseMap256,
+    /// The player y level considered to be "sea level", for which air blocks
+    /// below this level are filled with water, before caves are applied.
+    sea_level: u8,
 }
 
 impl World {
@@ -12,7 +16,16 @@ impl World {
         Self {
             seed,
             terrain_map: NoiseMap256::new(),
+            sea_level: 62,
         }
+    }
+
+    pub fn sea_level(&self) -> u8 {
+        self.sea_level
+    }
+
+    pub fn set_sea_level(&mut self, sea_level: u8) {
+        self.sea_level = sea_level;
     }
 
     pub fn seed(&self) -> u64 {
