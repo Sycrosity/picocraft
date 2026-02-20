@@ -1,4 +1,5 @@
 mod array;
+pub mod bitset;
 mod bitsets;
 mod boolean;
 mod core;

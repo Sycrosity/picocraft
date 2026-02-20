@@ -8,6 +8,10 @@ impl<T, const N: usize> PrefixedArray<T, N> {
     pub fn from_vec(vec: heapless::Vec<T, N>) -> Self {
         Self(vec)
     }
+
+    pub fn from_array(array: [T; N]) -> Self {
+        Self(Vec::from_array(array))
+    }
 }
 
 /// This is an anti-pattern, and probably isn't a good idea in the long run,
