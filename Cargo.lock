@@ -585,10 +585,12 @@ dependencies = [
 name = "picocraft_terrain"
 version = "0.0.3"
 dependencies = [
+ "embedded-io-async 0.7.0",
  "heapless 0.9.2",
  "log",
  "noise",
  "picocraft_core",
+ "picocraft_derive",
  "picocraft_proto",
  "rand 0.9.2",
  "rand_xoshiro",

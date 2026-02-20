@@ -20,3 +20,6 @@ noise.workspace = true
 
 picocraft_core.workspace = true
 picocraft_proto.workspace = true
+picocraft_derive.workspace = true
+
+embedded-io-async.workspace = true
