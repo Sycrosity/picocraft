@@ -1,7 +1,6 @@
 use picocraft_proto::chunks::*;
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
 
-use crate::buffer::ByteCountWriter;
 use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {

@@ -3,7 +3,6 @@ pub mod player;
 use embassy_futures::select::{Either, select};
 pub use player::Player;
 
-use crate::buffer::ByteCountWriter;
 use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
 

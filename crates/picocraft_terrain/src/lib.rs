@@ -22,4 +22,6 @@ pub mod prelude {
 
     pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
+    pub(crate) use picocraft_proto::prelude::*;
+    pub(crate) use rand::prelude::*;
 }

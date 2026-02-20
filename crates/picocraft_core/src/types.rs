@@ -77,7 +77,7 @@ pub struct PrefixedOptional<T>(pub Option<T>);
 #[derive(Debug, Clone, Default)]
 pub struct Array<T, const N: usize>(heapless::Vec<T, N>);
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct PrefixedArray<T, const N: usize>(heapless::Vec<T, N>);
 
 #[derive(Debug, Clone, Copy, Default)]
