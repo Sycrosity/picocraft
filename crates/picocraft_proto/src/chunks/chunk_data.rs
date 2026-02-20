@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub struct ChunkDataProto<const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> {
     pub heightmaps: PrefixedArray<Heightmap, 3>,
     pub size: VarInt,
-    // 512 is the number of longs needed to represent a 16x16x16 section with max 8 bits per block.
+    // 512 is the number of longs needed to represent a 16x16x16 section with max 8 bits per block. 960 is the max vanilla can use, however.
     pub data: Array<ChunkSectionProto<512, BLOCK_TYPES>, CHUNK_SECTIONS>,
     pub block_entities: PrefixedArray<BlockEntitiesProto, 0>,
 }
@@ -22,17 +22,44 @@ impl<const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> Decode
 
 /// Heightmap used in chunk data packets.
 ///
-/// Note: The reason the Array is 36 Longs' long is that a heightmap for a 16x16
-/// block chunk needs 9 bits per height value (to cover heights 0-256, aka
-/// worldheight+1), and 16*16*9/64 = 36. The 9 bits per entry also covers the
-/// current default world height of 384 on vanilla servers.
-#[derive(Debug, Encode, Decode)]
+/// Note: The reason the [`PrefixedArray`] is 37 [`u64`]'s long is that a
+/// heightmap for a 16x16 block chunk needs 9 bits per height value (to cover
+/// heights 0-256, aka worldheight+1 as the chunk could have no blocks in it).
+/// Since the Long's have padding at the end of each long, 63 bits per long are
+/// used, which is 7 heightmap values. Therefore, we need ceil(256/7) Long's,
+/// which is 37. The 9 bits per entry also covers the current default world
+/// height of 384 on vanilla servers, so the same logic applies if the world
+/// height is increased in the future.
+#[derive(Debug, Encode, Decode, PartialEq)]
 pub struct Heightmap {
     pub heightmap_type: HeightmapType,
-    pub data: PrefixedArray<Long, 36>,
+    pub data: PrefixedArray<u64, 37>,
 }
 
-#[derive(Debug, Encode, Decode)]
+impl Heightmap {
+    pub fn new(heightmap_type: HeightmapType) -> Self {
+        Self {
+            heightmap_type,
+            data: PrefixedArray::from_array([0; 37]),
+        }
+    }
+
+    #[inline(always)]
+    pub fn set(&mut self, x: u8, z: u8, height: Option<u8>) {
+        let (x, z) = (x as usize, z as usize);
+        let index = ((z * 16 + x) * 9) / 63;
+        let bit_offset = ((z * 16 + x) * 9) % 63;
+
+        let height = height.map(|h| u64::from(h) + 1).unwrap_or(0);
+
+        // Clear value
+        self.data[index] &= !(0x1ff << bit_offset);
+        // Set value
+        self.data[index] |= height << bit_offset;
+    }
+}
+
+#[derive(Debug, Encode, Decode, PartialEq)]
 #[protocol(value = VarInt)]
 pub enum HeightmapType {
     WorldSurface = 1,
@@ -166,7 +193,6 @@ impl<const N: usize, const ELEMENTS: usize> Decode for BiomePalettedContainerPro
 pub enum Palette<const ENTRIES: usize> {
     SingleValued(VarInt),
     Indirect(PrefixedArray<VarInt, ENTRIES>),
-    #[deprecated = "We should only have 8 bits of palette entries, so this variant is unnecessary"]
     Direct,
 }
 
@@ -176,4 +202,55 @@ pub struct BlockEntitiesProto {
     y: Short,
     block_type: VarInt,
     data: NBT,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn heightmap_set() {
+        use super::*;
+
+        let mut heightmap = Heightmap::new(HeightmapType::WorldSurface);
+
+        heightmap.set(0, 0, Some(0));
+        heightmap.set(1, 0, Some(1));
+        heightmap.set(2, 0, Some(254));
+        heightmap.set(3, 0, Some(254));
+        heightmap.set(4, 0, Some(254));
+        heightmap.set(5, 0, Some(254));
+        heightmap.set(6, 0, Some(255));
+
+        heightmap.set(14, 0, Some(254));
+        heightmap.set(15, 0, Some(254));
+        heightmap.set(0, 1, Some(254));
+        heightmap.set(1, 1, Some(254));
+        heightmap.set(2, 1, Some(254));
+        heightmap.set(3, 1, Some(254));
+        heightmap.set(4, 1, Some(254));
+
+        use std::string::String;
+        use std::vec::Vec;
+
+        let collect = heightmap
+            .data
+            .iter()
+            .map(|x| std::format!("{:064b}", x))
+            .collect::<Vec<String>>();
+
+        let tests = vec![
+            String::from("0100000000011111111011111111011111111011111111000000010000000001"),
+            String::from("0000000000000000000000000000000000000000000000000000000000000000"),
+            String::from("0011111111011111111011111111011111111011111111011111111011111111"),
+        ];
+
+        for (i, test) in tests.iter().enumerate() {
+            assert_eq!(
+                &collect[i], test,
+                "Heightmap data does not match expected value at Long #{}",
+                i
+            );
+        }
+    }
 }
