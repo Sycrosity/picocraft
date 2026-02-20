@@ -4,7 +4,8 @@ use crate::prelude::*;
 pub struct ChunkDataProto<const CHUNK_SECTIONS: usize, const BLOCK_TYPES: usize> {
     pub heightmaps: PrefixedArray<Heightmap, 3>,
     pub size: VarInt,
-    // 512 is the number of longs needed to represent a 16x16x16 section with max 8 bits per block. 960 is the max vanilla can use, however.
+    // 512 is the number of longs needed to represent a 16x16x16 section with max 8 bits per block.
+    // 960 is the max vanilla can use, however.
     pub data: Array<ChunkSectionProto<512, BLOCK_TYPES>, CHUNK_SECTIONS>,
     pub block_entities: PrefixedArray<BlockEntitiesProto, 0>,
 }

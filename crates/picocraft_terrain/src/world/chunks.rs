@@ -1,7 +1,5 @@
 use picocraft_derive::{Decode, Encode, Packet};
-use picocraft_proto::chunks::{
-    BlockEntitiesProto, FullSkyLightSection, Heightmap, HeightmapType,
-};
+use picocraft_proto::chunks::{BlockEntitiesProto, FullSkyLightSection, Heightmap, HeightmapType};
 
 use super::palettes::Palette;
 use crate::prelude::*;
