@@ -12,7 +12,7 @@ pub struct LightDataProto<Section: SkyLightSection, const SECTIONS: usize> {
 
 pub trait SkyLightSection: Encode + Decode + core::fmt::Debug {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct FullSkyLightSection;
 
 impl SkyLightSection for FullSkyLightSection {}
