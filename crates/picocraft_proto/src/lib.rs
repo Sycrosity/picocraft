@@ -15,7 +15,6 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod chunks;
 pub mod clientbound;
 pub mod game_profile;
 pub mod protocol_version;
