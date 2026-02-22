@@ -128,11 +128,10 @@ struct BlockEntityData;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn heightmap_set() {
-        use super::*;
+        use crate::world::heightmaps::{Heightmap, HeightmapType};
 
         let mut heightmap = Heightmap::new(HeightmapType::WorldSurface);
 
