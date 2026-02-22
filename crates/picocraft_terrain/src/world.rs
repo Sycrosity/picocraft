@@ -120,7 +120,7 @@ impl World {
             block_count,
             blocks: chunks::BlockContainer {
                 bits_per_entry: 4,
-                palette: palettes::Palette::Plains,
+                palette: self.get_palette(chunk_coords),
                 packed_blocks,
             },
             biomes: chunks::BiomeContainer::default(),
@@ -164,12 +164,41 @@ impl World {
     }
 
     // pub fn get_block_at(&self, x: i16, y: u8, z: i16) -> Block {
-    //     let palette = self.get_biome_at(x, z);
+    //     let palette = self.get_biome(x, z);
     //     let palette_block = self.get_indexed_block_at(x, y, z);
-    //     palette.to_block(&palette_block)
+    //     palette.to_block(palette_block)
     // }
 
-    pub fn get_biome_at(&self, _x: i16, _z: i16) -> palettes::Palette {
-        palettes::Palette::Plains
+    pub fn get_biome(&self, _chunk_column: ChunkColumnCoordinates) -> biomes::Biome {
+        biomes::Biome::Plains
+    }
+
+    pub fn get_palette(&self, chunk_coords: ChunkCoordinates) -> palettes::Palette {
+        let biome = self.get_biome(chunk_coords.into());
+
+        // 0 -> 0..15
+        // 1 -> 16..31
+        // 2 -> 32..47
+        // 3 -> 48..63
+        // 4 -> 64..79
+        // 5 -> 80..95
+        // 6 -> 96..111
+        // 7 -> 112..127
+        // 8 -> 128..143
+        // 9 -> 144..159
+        // 10 -> 160..175
+        // 11 -> 176..191
+        // 12 -> 192..207
+        // 13 -> 208..223
+        // 14 -> 224..239
+        // 15 -> 240..255
+
+        match chunk_coords.y {
+            0..=1 => palettes::Palette::DeepUnderground,
+            2..=3 => palettes::Palette::Underground,
+            4..=11 => biome.into(),
+            // TODO: 197..=255 => palettes::Palette::Air,
+            _ => biome.into(),
+        }
     }
 }

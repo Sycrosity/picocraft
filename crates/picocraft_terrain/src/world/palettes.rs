@@ -26,6 +26,21 @@ impl Encode for Palette {
     }
 }
 
+impl From<Biome> for Palette {
+    fn from(value: Biome) -> Self {
+        match value {
+            Biome::Plains => Self::Plains,
+            Biome::Ocean => Self::Ocean,
+            Biome::Mountains => Self::Mountains,
+            Biome::Desert => Self::Desert,
+            Biome::Taiga => Self::Taiga,
+            Biome::Savanna => Self::Savanna,
+            Biome::Forest => Self::Forest,
+            Biome::River => Self::River,
+        }
+    }
+}
+
 impl Palette {
     #[inline]
     pub fn to_block(&self, indexed_block: IndexedBlock) -> Block {
@@ -145,23 +160,45 @@ impl Palette {
             },
             Self::Savanna => todo!(),
             Self::River => todo!(),
-            Self::Underground => todo!(),
-            Self::DeepUnderground => todo!(),
-        }
-    }
-}
+            Self::Underground => match indexed_block {
+                IndexedBlock::Air => Block::Air,
+                IndexedBlock::SurfaceBlock => Block::Stone,
+                IndexedBlock::SubSurfaceBlock => Block::Stone,
+                IndexedBlock::UndergroundBlock => Block::Stone,
 
-impl From<Biome> for Palette {
-    fn from(biome: Biome) -> Self {
-        match biome {
-            Biome::Plains => Palette::Plains,
-            Biome::Ocean => Palette::Ocean,
-            Biome::Mountains => Palette::Mountains,
-            Biome::Desert => Palette::Desert,
-            Biome::Taiga => Palette::Taiga,
-            Biome::Savanna => Palette::Savanna,
-            Biome::Forest => Palette::Forest,
-            Biome::River => Palette::River,
+                IndexedBlock::DecorationBlock1 => Block::Dandelion,
+                IndexedBlock::DecorationBlock2 => Block::Poppy,
+                IndexedBlock::DecorationBlock3 => Block::ShortGrass,
+                IndexedBlock::DecorationBlock4 => Block::Allium,
+
+                IndexedBlock::FeatureBlock1 => Block::Granite,
+                IndexedBlock::FeatureBlock2 => Block::Diorite,
+                IndexedBlock::FeatureBlock3 => Block::Andesite,
+                IndexedBlock::FeatureBlock4 => Block::Lava,
+                IndexedBlock::Liquid => Block::Water,
+                IndexedBlock::Special => Block::Bedrock,
+                // _ => todo!(),
+            },
+            //TODO
+            Self::DeepUnderground => match indexed_block {
+                IndexedBlock::Air => Block::Air,
+                IndexedBlock::SurfaceBlock => Block::Stone,
+                IndexedBlock::SubSurfaceBlock => Block::Stone,
+                IndexedBlock::UndergroundBlock => Block::Deepslate,
+
+                IndexedBlock::DecorationBlock1 => Block::Dandelion,
+                IndexedBlock::DecorationBlock2 => Block::Poppy,
+                IndexedBlock::DecorationBlock3 => Block::ShortGrass,
+                IndexedBlock::DecorationBlock4 => Block::Allium,
+
+                IndexedBlock::FeatureBlock1 => Block::Granite,
+                IndexedBlock::FeatureBlock2 => Block::Diorite,
+                IndexedBlock::FeatureBlock3 => Block::Andesite,
+                IndexedBlock::FeatureBlock4 => Block::Lava,
+                IndexedBlock::Liquid => Block::Water,
+                IndexedBlock::Special => Block::Bedrock,
+                // _ => todo!(),
+            },
         }
     }
 }

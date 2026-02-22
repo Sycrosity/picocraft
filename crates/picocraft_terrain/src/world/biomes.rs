@@ -27,7 +27,7 @@ impl Biome {
         // Biome::River,
     ];
 
-    pub fn palette_index(&self) -> u8 {
+    pub fn index(&self) -> u8 {
         (*self) as u8
     }
 }
