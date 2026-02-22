@@ -111,7 +111,7 @@ impl Client {
             //TODO really, this should be propogated properly, with text from the source
             // and ideally the path.
             match res {
-                Ok(()) => continue,
+                Ok(()) => (),
                 Err(PacketError::InvalidPacket) => {
                     warn!(
                         "Bad packet for player: {} [{}]",
@@ -122,18 +122,18 @@ impl Client {
                 Err(
                     PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
                 ) => {
-                    if !self.username().is_empty() {
-                        info!(
-                            "Connection closed for player: {} [{}]",
-                            self.username(),
-                            self.uuid()
-                        );
-                    } else {
+                    if self.username().is_empty() {
                         info!(
                             "Connection closed for client: {}",
                             self.socket
                                 .remote_endpoint()
                                 .expect("socket should be open")
+                        );
+                    } else {
+                        info!(
+                            "Connection closed for player: {} [{}]",
+                            self.username(),
+                            self.uuid()
                         );
                     }
 
@@ -214,13 +214,13 @@ impl Client {
                 LoginStartPacket::ID => {
                     let packet = LoginStartPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
-                    LoginStartPacket::handle(packet, self).await?
+                    LoginStartPacket::handle(packet, self).await?;
                 }
                 LoginAcknowledgedPacket::ID => {
                     let packet =
                         LoginAcknowledgedPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
-                    LoginAcknowledgedPacket::handle(packet, self).await?
+                    LoginAcknowledgedPacket::handle(packet, self).await?;
                 }
                 _ => {
                     warn!("Unknown packet ID in Login state: {:x?}", *packet_id);
@@ -233,14 +233,15 @@ impl Client {
                     let packet =
                         ClientInformationPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
-                    ClientInformationPacket::handle(packet, self).await?
+                    ClientInformationPacket::handle(packet, self).await?;
                 }
                 AcknowledgeFinishConfigurationPacket::ID => {
                     let packet =
                         AcknowledgeFinishConfigurationPacket::decode(&mut self.rx_buf.as_slice())
                             .await?;
 
-                    AcknowledgeFinishConfigurationPacket::handle(packet, self).await?
+                    //TODO this async is huge: 104_000 bytes. Look into this
+                    AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
                 _ => {
                     warn!(
@@ -255,7 +256,7 @@ impl Client {
                     let packet =
                         ConfirmTeleportationPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
-                    ConfirmTeleportationPacket::handle(packet, self).await?
+                    ConfirmTeleportationPacket::handle(packet, self).await?;
                 }
                 _ => {
                     warn!("Unknown packet ID in Play state: {:x?}", *packet_id);
@@ -321,7 +322,7 @@ impl Client {
     }
 
     pub(crate) async fn encode_packet<P: Packet>(&mut self, packet: &P) -> Result<(), PacketError> {
-        trace!("Encoding packet: {}", packet);
+        trace!("Encoding packet: {packet}");
 
         let mut counting_writer = ByteCountWriter::new();
 
@@ -335,7 +336,7 @@ impl Client {
 
         self.socket.flush().await?;
 
-        trace!("Packet sent: {}", packet);
+        trace!("Packet sent: {packet}");
 
         Ok(())
     }

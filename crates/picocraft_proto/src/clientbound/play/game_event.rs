@@ -27,7 +27,7 @@ pub enum GameEvent {
     ArrowHitPlayer = 6,
     /// Rain level ranging from 0 to 1.
     RainLevelChange = 7,
-    /// Same as RainLevelChange but doesn't require the client to show rain.
+    /// Same as `RainLevelChange` but doesn't require the client to show rain.
     /// Thunder level ranging from 0 to 1.
     ThunderLevelChange = 8,
     PlayPufferfishStingSound = 9,

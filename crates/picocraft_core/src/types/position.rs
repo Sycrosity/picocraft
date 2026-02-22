@@ -2,8 +2,9 @@ use crate::prelude::*;
 
 impl Position {
     pub fn new(x: i32, z: i32, y: i32) -> Self {
-        let packed =
-            ((x as i64 & 0x3ffffff) << 38) | ((z as i64 & 0x3ffffff) << 12) | (y as i64 & 0xfff);
+        let packed = ((i64::from(x) & 0x3ff_ffff) << 38)
+            | ((i64::from(z) & 0x03ff_ffff) << 12)
+            | (i64::from(y) & 0x0000_0fff);
         Self(packed)
     }
 }

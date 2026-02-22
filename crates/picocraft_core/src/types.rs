@@ -81,8 +81,8 @@ pub struct Array<T, const N: usize>(heapless::Vec<T, N>);
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct PrefixedArray<T, const N: usize>(heapless::Vec<T, N>);
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct EnumSet(pub UnsignedByte);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct EnumSet(u8);
 
 #[derive(Clone, Debug)]
 pub enum IDor<const N: usize, X> {

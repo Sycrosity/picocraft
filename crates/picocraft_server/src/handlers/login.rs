@@ -26,7 +26,7 @@ impl HandlePacket for LoginStartPacket {
             client.player.uuid(),
         ));
 
-        trace!("Packet constructed: {:?}", login_success);
+        trace!("Packet constructed: {login_success:?}");
 
         client.encode_packet(&login_success).await?;
 

@@ -12,6 +12,12 @@ impl<const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<ACTIONS> {
     const STATE: State = State::Play;
 }
 
+impl<const ACTIONS: usize> core::fmt::Display for PlayerInfoUpdatePacket<ACTIONS> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "PlayerInfoUpdatePacket (id: {})", Self::ID)
+    }
+}
+
 impl<const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<ACTIONS> {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         Self::ID.encode(&mut buffer).await?;
@@ -20,17 +26,9 @@ impl<const ACTIONS: usize> Encode for PlayerInfoUpdatePacket<ACTIONS> {
     }
 }
 
-impl<const ACTIONS: usize> core::fmt::Display for PlayerInfoUpdatePacket<ACTIONS> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "PlayerInfoUpdatePacket (id: {})", Self::ID)
-    }
-}
-
 impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
     async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let actions = EnumSet::decode(&mut buffer).await?;
-
-        let mut action_bitset = actions.0;
 
         let array_length = *VarInt::decode(&mut buffer).await?;
 
@@ -42,7 +40,7 @@ impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
             return Err(DecodeError::VarIntTooBig);
         }
 
-        let actions_length = action_bitset.count_ones();
+        let actions_length = actions.bits().count_ones();
 
         if actions_length > ACTIONS as u32 {
             log::warn!(
@@ -55,56 +53,11 @@ impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
         let mut players = PrefixedArray::new();
 
         for _ in 0..array_length {
+            let uuid = UUID::decode(&mut buffer).await?;
+
+            let player_actions = decode_player_actions(&actions, &mut buffer).await?;
             players
-                .push({
-                    let uuid = UUID::decode(&mut buffer).await?;
-
-                    let mut player_actions = Array::<PlayerActions, ACTIONS>::new();
-
-                    for _ in 0..actions_length {
-                        player_actions
-                            .push(if (action_bitset & 0x01) != 0 {
-                                action_bitset -= 0x01;
-                                PlayerActions::AddPlayer {
-                                    name: String::<16>::decode(&mut buffer).await?,
-                                    properties: Properties::decode(&mut buffer).await?,
-                                }
-                            } else if (action_bitset & 0x02) != 0 {
-                                action_bitset -= 0x02;
-                                PlayerActions::InitialiseChat(
-                                    PrefixedOptional::<InitialiseChatData>::decode(&mut buffer)
-                                        .await?,
-                                )
-                            } else if (action_bitset & 0x04) != 0 {
-                                action_bitset -= 0x04;
-                                PlayerActions::UpdateGameMode(VarInt::decode(&mut buffer).await?)
-                            } else if (action_bitset & 0x08) != 0 {
-                                action_bitset -= 0x08;
-                                PlayerActions::UpdateListed(Boolean::decode(&mut buffer).await?)
-                            } else if (action_bitset & 0x10) != 0 {
-                                action_bitset -= 0x10;
-                                PlayerActions::UpdateLatency(VarInt::decode(&mut buffer).await?)
-                            } else if (action_bitset & 0x20) != 0 {
-                                action_bitset -= 0x20;
-                                PlayerActions::UpdateDisplayName(
-                                    PrefixedOptional::<TextComponent>::decode(&mut buffer).await?,
-                                )
-                            } else if (action_bitset & 0x40) != 0 {
-                                action_bitset -= 0x40;
-                                PlayerActions::UpdateListPriority(
-                                    VarInt::decode(&mut buffer).await?,
-                                )
-                            } else if (action_bitset & 0x80) != 0 {
-                                action_bitset -= 0x80;
-                                PlayerActions::UpdateHat(Boolean::decode(&mut buffer).await?)
-                            } else {
-                                return Err(DecodeError::InvalidEnumValue);
-                            })
-                            .expect("already validated this length");
-                    }
-
-                    (uuid, player_actions)
-                })
+                .push((uuid, player_actions))
                 .expect("already validated this length");
         }
 
@@ -112,6 +65,50 @@ impl<const ACTIONS: usize> Decode for PlayerInfoUpdatePacket<ACTIONS> {
 
         // let players = PrefixedArray::decode(&mut buffer).await?;
     }
+}
+
+async fn decode_player_actions<const ACTIONS: usize, R: embedded_io_async::Read>(
+    actions: &EnumSet,
+    mut buffer: R,
+) -> Result<Array<PlayerActions, ACTIONS>, DecodeError> {
+    let mut player_actions = Array::new();
+
+    for flag in actions.iter() {
+        let action = match flag {
+            EnumSet::ADD_PLAYER => PlayerActions::AddPlayer {
+                name: String::<16>::decode(&mut buffer).await?,
+                properties: Properties::decode(&mut buffer).await?,
+            },
+            EnumSet::INITIALISE_CHAT => PlayerActions::InitialiseChat(
+                PrefixedOptional::<InitialiseChatData>::decode(&mut buffer).await?,
+            ),
+            EnumSet::UPDATE_GAME_MODE => {
+                PlayerActions::UpdateGameMode(VarInt::decode(&mut buffer).await?)
+            }
+            EnumSet::UPDATE_LISTED => {
+                PlayerActions::UpdateListed(Boolean::decode(&mut buffer).await?)
+            }
+            EnumSet::UPDATE_LATENCY => {
+                PlayerActions::UpdateLatency(VarInt::decode(&mut buffer).await?)
+            }
+            EnumSet::UPDATE_DISPLAY_NAME => PlayerActions::UpdateDisplayName(
+                PrefixedOptional::<TextComponent>::decode(&mut buffer).await?,
+            ),
+            EnumSet::UPDATE_LIST_PRIORITY => {
+                PlayerActions::UpdateListPriority(VarInt::decode(&mut buffer).await?)
+            }
+            EnumSet::UPDATE_HAT => PlayerActions::UpdateHat(Boolean::decode(&mut buffer).await?),
+            bits => {
+                return Err(DecodeError::InvalidEnumSetBits(bits.bits()));
+            }
+        };
+
+        player_actions
+            .push(action)
+            .expect("already validated this length");
+    }
+
+    Ok(player_actions)
 }
 
 #[derive(Debug)]
@@ -152,7 +149,7 @@ impl Encode for PlayerActions {
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct InitialiseChatData;
 
-/// An empty struct representing a TextComponent, as we cannot yet decode NBT
+/// An empty struct representing a `TextComponent`, as we cannot yet decode NBT
 /// data.
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct TextComponent;

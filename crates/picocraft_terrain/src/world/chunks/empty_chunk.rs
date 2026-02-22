@@ -24,8 +24,8 @@ impl EmptyChunkAndLightPacket {
     #[must_use]
     pub fn new(chunk_x: i8, chunk_z: i8) -> Self {
         Self {
-            chunk_x: chunk_x as Int,
-            chunk_z: chunk_z as Int,
+            chunk_x: Int::from(chunk_x),
+            chunk_z: Int::from(chunk_z),
         }
     }
 }

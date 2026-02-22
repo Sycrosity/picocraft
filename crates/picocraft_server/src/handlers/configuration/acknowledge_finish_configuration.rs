@@ -39,10 +39,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&synchronise_player_position).await?;
 
-        let actions = EnumSet::new()
-            .add_player()
-            .update_listed()
-            .update_game_mode();
+        let actions = EnumSet::ADD_PLAYER | EnumSet::UPDATE_LISTED | EnumSet::UPDATE_GAME_MODE;
 
         let mut players = PrefixedArray::new();
 

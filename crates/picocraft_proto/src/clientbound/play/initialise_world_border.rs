@@ -21,7 +21,8 @@ impl Default for InitialiseWorldBorderPacket {
             old_diameter: 256_f64,
             new_diameter: 256_f64,
             speed: VarLong(0),
-            portal_teleport_boundary: VarInt(29999984),
+            //TODO
+            portal_teleport_boundary: VarInt(29_999_984),
             warning_blocks: VarInt(0),
             warning_time: VarInt(0),
         }

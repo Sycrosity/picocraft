@@ -47,8 +47,8 @@ impl World {
 
     pub fn get_chunk_packet(&mut self, chunk_x: i8, chunk_z: i8) -> chunks::ChunkAndLightPacket {
         chunks::ChunkAndLightPacket {
-            chunk_x: chunk_x as Int,
-            chunk_z: chunk_z as Int,
+            chunk_x: Int::from(chunk_x),
+            chunk_z: Int::from(chunk_z),
             chunk_data: self.get_chunk(chunk_x, chunk_z),
             light_data: light::LightData,
         }
@@ -133,6 +133,7 @@ impl World {
 
         let perlin: FbmPerlin = FbmPerlin::new(self.seed() as u32).set_octaves(4);
 
+        //TODO this function is garbage.
         self.terrain_map.apply(|x, y| {
             (perlin.get([(x as f64 / 128.0 - 128.0), (y as f64 / 128.0 - 128.0)]) * 32.0 + 96.0)
                 as u8

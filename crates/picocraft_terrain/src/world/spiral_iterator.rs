@@ -150,7 +150,7 @@ mod tests {
         use std::prelude::rust_2024::*;
 
         let spawn_chunk = ChunkColumnCoordinates::new(0, 0);
-        let mut iterator = SpiralIterator::new(4, spawn_chunk);
+        let iterator = SpiralIterator::new(4, spawn_chunk);
 
         let expected = vec![
             (0, 0),
@@ -183,7 +183,7 @@ mod tests {
         use std::prelude::rust_2024::*;
 
         let spawn_chunk = ChunkColumnCoordinates::new(0, 0);
-        let mut iterator = SpiralIterator::new(6, spawn_chunk);
+        let iterator = SpiralIterator::new(6, spawn_chunk);
 
         let expected = vec![
             (0, 0),
@@ -236,7 +236,7 @@ mod tests {
         use std::prelude::rust_2024::*;
 
         let spawn_chunk = ChunkColumnCoordinates::new(1, 1);
-        let mut iterator = SpiralIterator::new(4, spawn_chunk);
+        let iterator = SpiralIterator::new(4, spawn_chunk);
 
         let expected = vec![
             (1, 1),

@@ -38,6 +38,9 @@ pub struct ChunkCoordinates {
 }
 
 impl ChunkCoordinates {
+    /// # Panics
+    /// Panics if `y` is greater than or equal to 16, as there are only 16
+    /// vertical chunk sections in a chunk column.
     pub fn new(x: i8, y: u8, z: i8) -> Self {
         assert!(y < 16, "Chunk y coordinate out of bounds: {y}");
 
@@ -45,15 +48,15 @@ impl ChunkCoordinates {
     }
 
     pub fn to_bounds(&self) -> CoordinateBounds {
-        let start_x = (self.x as i16) * 16;
+        let start_x = i16::from(self.x) * 16;
 
         //We probably shouldn't panic here, but I want to ensure there are no
         // overflows.
         let start_y = self.y.strict_mul(16);
-        let start_z = (self.z as i16) * 16;
+        let start_z = i16::from(self.z) * 16;
 
         CoordinateBounds::new(
-            Coordinates::new((self.x as i16) * 16, self.y * 16, (self.z as i16) * 16),
+            Coordinates::new(i16::from(self.x) * 16, self.y * 16, i16::from(self.z) * 16),
             Coordinates::new(start_x + 15, start_y + 15, start_z + 15),
         )
     }
@@ -94,7 +97,7 @@ impl CoordinateBounds {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Coordinates {
     pub x: i16,
     pub y: u8,

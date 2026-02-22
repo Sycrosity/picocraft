@@ -75,7 +75,7 @@ pub trait WriteBytesExt: embedded_io_async::Write {
     /// ```
     #[inline]
     async fn write_i8(&mut self, n: i8) -> Result<(), Self::Error> {
-        self.write_all(&[n as u8]).await
+        self.write_all(&[n.cast_unsigned()]).await
     }
 }
 
@@ -163,7 +163,7 @@ pub trait ReadBytesExt: embedded_io_async::Read {
     async fn read_i8(&mut self) -> Result<i8, embedded_io::ReadExactError<Self::Error>> {
         let mut buf = [0; 1];
         self.read_exact(&mut buf).await?;
-        Ok(buf[0] as i8)
+        Ok(buf[0].cast_signed())
     }
 }
 

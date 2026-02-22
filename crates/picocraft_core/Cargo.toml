@@ -20,6 +20,7 @@ core-json-traits.workspace = true
 
 embedded-io.workspace = true
 embedded-io-async.workspace = true
+bitflags = "2.11.0"
 
 [lib]
 doctest = false

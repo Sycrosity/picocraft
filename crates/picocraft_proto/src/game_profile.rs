@@ -21,7 +21,7 @@ impl GameProfile {
     }
 
     pub fn set_username(&mut self, username: String<16>) {
-        self.username = username
+        self.username = username;
     }
 
     pub fn uuid(&self) -> UUID {
@@ -29,7 +29,7 @@ impl GameProfile {
     }
 
     pub fn set_uuid(&mut self, uuid: UUID) {
-        self.uuid = uuid
+        self.uuid = uuid;
     }
 }
 

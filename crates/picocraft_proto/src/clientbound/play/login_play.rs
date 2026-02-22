@@ -28,7 +28,7 @@ pub struct LoginPlayPacket {
     /// Currently unused by the client.
     #[builder(default = false)]
     do_limited_crafting: Boolean,
-    /// The ID of the type of dimension in the minecraft:dimension_type
+    /// The ID of the type of dimension in the `minecraft:dimension_type`
     /// registry, defined by the Registry Data packet.
     #[builder(default = VarInt(0))]
     dimension_type: VarInt,
