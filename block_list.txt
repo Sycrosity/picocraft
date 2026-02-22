@@ -38,16 +38,16 @@ birch fence gate
 birch door
 birch trapdoor
 birch sign
-stripped cherry log
-cherry log
-cherry planks
-cherry stairs
-cherry slab
-cherry fence
-cherry fence gate
-cherry door
-cherry trapdoor
-cherry sign
+stripped dark oak log
+dark oak log
+dark oak planks
+dark oak stairs
+dark oak slab
+dark oak fence
+dark oak fence gate
+dark oak door
+dark oak trapdoor
+dark oak sign
 cobblestone
 cobblestone stairs
 cobblestone slab
@@ -141,13 +141,13 @@ warped fungus
 oak sapling
 spruce sapling
 birch sapling
-cherry sapling
+dark oak sapling
 dead bush
 fern
 wheat
 carrots
 potatos
-pink petals
+pumpkin stem
 torch
 lantern
 campfire
@@ -157,7 +157,7 @@ glass
 glass pane
 snow block
 snow
-chain
+pumpkin
 sugar cane
 cactus
 sweet berry bush
@@ -181,7 +181,7 @@ deepslate copper ore
 oak leaves
 spruce leaves
 birch leaves
-cherry leaves
+dark oak leaves
 blackstone
 blackstone stairs
 blackstone slab
@@ -196,28 +196,18 @@ kelp
 sea grass
 sea pickle
 vine
-nether wart
-soul campfire
+short grass
+flower pot
 soul sand
 soul soil
-nether wart block
-crimson nylium
 quartz block
+quartz stairs
+quartz slab
 magma block
 shroomlight
 crying obsidian
-soul lantern
-soil torch
-stripped crimson stem
-crimson stem
-crimson planks
-crimson stairs
-crimson slab
-crimson fence
-crimson fence gate
-crimson door
-crimson trapdoor
-crimson sign
+chain
+nether wart
 nether bricks
 nether brick stairs
 nether brick slab
@@ -249,6 +239,10 @@ coarse dirt
 oak_wall_sign
 spruce_wall_sign
 birch_wall_sign
-cherry_wall_sign
-crimson_wall_sign
+dark oak_wall_sign
 warped_wall_sign
+air
+clay
+bricks
+brick stairs
+brick slab

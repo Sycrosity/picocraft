@@ -1,7 +1,8 @@
-use picocraft_proto::chunks::*;
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
+use picocraft_terrain::world::chunks::empty_chunk::EmptyChunkAndLightPacket;
+use picocraft_terrain::world::coordinates::ChunkColumnCoordinates;
+use picocraft_terrain::world::spiral_iterator::ChunkKind;
 
-use crate::buffer::ByteCountWriter;
 use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
@@ -16,9 +17,9 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.set_state(State::Play);
 
-        let vec = PrefixedArray::from_vec(Vec::from_array([Identifier(
+        let vec: PrefixedArray<Identifier<16>, 3> = PrefixedArray::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
-        )]));
+        )]);
 
         let login_play = clientbound::LoginPlayPacket::builder()
             .dimension_names(vec)
@@ -28,8 +29,6 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .game_mode(1)
             .build();
 
-        // trace!("Packet constructed: {:?}", login_play);
-
         client.encode_packet(&login_play).await?;
 
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
@@ -37,8 +36,6 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .z(0f64)
             .y(156f64)
             .build();
-
-        // trace!("Packet constructed: {:?}", &synchronise_player_position);
 
         client.encode_packet(&synchronise_player_position).await?;
 
@@ -82,96 +79,27 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&game_event).await?;
 
-        let mut data = Array::new();
+        let mut world = picocraft_terrain::world::World::new(0);
+        world.generate_terrain_map();
 
-        data.resize(
-            8,
-            ChunkSection {
-                block_count: 4096,
-                block_states: BlockPalettedContainer {
-                    bits_per_entry: 0,
-                    palette: Palette::SingleValued(VarInt(18)),
-                    data: Array::new(),
-                },
-                biomes: BiomePalettedContainer {
-                    bits_per_entry: 0,
-                    palette: Palette::SingleValued(VarInt(0)),
-                    data: Array::new(),
-                },
-            },
-        )
-        .unwrap();
+        let spawn = ChunkColumnCoordinates::new(0, 0);
 
-        let empty_chunk = ChunkSection {
-            block_count: 0,
-            block_states: BlockPalettedContainer {
-                bits_per_entry: 0,
-                palette: Palette::SingleValued(VarInt(0)),
-                data: Array::new(),
-            },
-            biomes: BiomePalettedContainer {
-                bits_per_entry: 0,
-                palette: Palette::SingleValued(VarInt(0)),
-                data: Array::new(),
-            },
-        };
-
-        data.resize(16, empty_chunk.clone()).unwrap();
-
-        let mut counting_writer = ByteCountWriter::new();
-
-        data.encode(&mut counting_writer).await?;
-
-        let data_size = counting_writer.count;
-
-        let mut light_arrays = PrefixedArray::new();
-
-        light_arrays.resize(18, FullSkyLightSection).unwrap();
-
-        let mut chunk_data_and_update_light = clientbound::ChunkDataAndUpdateLightPacket::builder()
-            .chunk_x(0)
-            .chunk_z(0)
-            .data(ChunkData {
-                heightmaps: PrefixedArray::new(),
-                size: VarInt(data_size as i32),
-                data: data.clone(),
-                block_entities: PrefixedArray::new(),
-            })
-            .light(LightData {
-                sky_light_mask: BitSet(PrefixedArray::from_vec(Vec::from_array([0x3ffff]))),
-                block_light_mask: BitSet(PrefixedArray::from_vec(Vec::from_array([0x3ffff]))),
-                empty_sky_light_mask: BitSet(PrefixedArray::new()),
-                empty_block_light_mask: BitSet(PrefixedArray::new()),
-                sky_light_arrays: light_arrays.clone(),
-                block_light_arrays: light_arrays.clone(),
-            })
-            .build();
-
-        for x in -10i32..10 {
-            for z in -10i32..10 {
-                if (2 * x + 1).abs() > 15 || (2 * z + 1).abs() > 15 {
-                    chunk_data_and_update_light
-                        .data
-                        .data
-                        .fill(empty_chunk.clone());
-                } else {
-                    chunk_data_and_update_light.data.data = data.clone();
+        for (x, z, kind) in
+            picocraft_terrain::world::spiral_iterator::BorderedSpiralIterator::new(8, spawn)
+        {
+            match kind {
+                ChunkKind::Terrain => {
+                    let chunk = world.get_chunk_packet(x, z);
+                    client.encode_packet(&chunk).await?;
                 }
-
-                chunk_data_and_update_light.chunk_x = x;
-                chunk_data_and_update_light.chunk_z = z;
-
-                for i in 0..8 {
-                    chunk_data_and_update_light.data.data[i]
-                        .block_states
-                        .palette = Palette::SingleValued(VarInt(
-                        1 + (2 * x + 1).abs().max((2 * z + 1).abs()) / 2,
-                    ));
+                ChunkKind::Air => {
+                    let empty = EmptyChunkAndLightPacket::new(x, z);
+                    client.encode_packet(&empty).await?;
                 }
-
-                client.encode_packet(&chunk_data_and_update_light).await?;
             }
         }
+
+        trace!("Packets sent: ChunkAndLightPacket");
 
         debug!(
             "Finished sending chunks to {} [{}]",

@@ -1,5 +1,3 @@
-#![allow(clippy::too_many_lines)]
-
 mod decode;
 mod encode;
 mod packet;

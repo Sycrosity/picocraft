@@ -1,9 +1,6 @@
 use embassy_futures::select::{Either, select};
-use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-use embassy_sync::rwlock::RwLock;
 use tokio::net::TcpListener;
 
-use crate::config::Config;
 use crate::prelude::*;
 use crate::shutdown::shutdown_signal;
 

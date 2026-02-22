@@ -16,13 +16,10 @@ heapless.workspace = true
 
 rand.workspace = true
 rand_xoshiro.workspace = true
+noise.workspace = true
 
 picocraft_core.workspace = true
 picocraft_proto.workspace = true
-noise.workspace = true
+picocraft_derive.workspace = true
 
-
-[features]
-default = ["std"]
-std = ["alloc"]
-alloc = []
+embedded-io-async.workspace = true

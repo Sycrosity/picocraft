@@ -20,6 +20,8 @@ pub enum EncodeError {
     UnsupportedOperation,
     #[error("unknown")]
     Unknown,
+    #[error("invalid bits per entry value")]
+    InvalidBPE,
 }
 
 impl<E: embedded_io::Error> From<E> for EncodeError {
