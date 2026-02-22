@@ -5,6 +5,7 @@ pub mod coordinates;
 pub mod heightmaps;
 pub mod light;
 pub mod palettes;
+pub mod spiral_iterator;
 
 use blocks::IndexedBlock;
 use coordinates::*;
@@ -17,7 +18,7 @@ use crate::world::heightmaps::ChunkHeightmaps;
 #[non_exhaustive]
 pub struct World {
     seed: u64,
-    pub terrain_map: NoiseMap256,
+    terrain_map: NoiseMap256,
     /// The player y level considered to be "sea level", for which air blocks
     /// below this level are filled with water, before caves are applied.
     sea_level: u8,
