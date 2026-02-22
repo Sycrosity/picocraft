@@ -49,7 +49,7 @@ pub enum DecodeError {
     UnexpectedEof,
     #[error("length of VarInt did not match with the minimum size of the data structure")]
     VarIntTooSmall(VarInt),
-    #[error("length of VarLong did not match with the minimum size of the data structure")]
+    #[error("length of VarLong did not match with the minimum size of the data structure: {0}")]
     VarLongTooSmall(VarLong),
     #[error("cannot decode VarInt! Exceeds maximum capacity of 5 bytes.")]
     VarIntTooBig,
@@ -67,4 +67,6 @@ pub enum DecodeError {
     UnexpectedOptionalRead,
     #[error("namespace part of Identifier is not 'minecraft'")]
     InvalidNamespace,
+    #[error("invalid EnumSet bits: {0:#04x}")]
+    InvalidEnumSetBits(u8),
 }

@@ -20,9 +20,8 @@ impl core_json_traits::JsonDeserialize for VarInt {
     ) -> Result<Self, core_json_traits::JsonError<'read, B, S>> {
         value.to_number().map(|num| {
             VarInt(
-                num.i64()
-                    .expect("json decoding of Varint shouldn't be larger than i32")
-                    as i32,
+                i32::try_from(num.i64().expect("should be a i64 type, not a float."))
+                    .expect("json decoding of Varint shouldn't be larger than i32"),
             )
         })
     }
@@ -54,18 +53,6 @@ impl From<i32> for VarInt {
 
 impl From<&i32> for VarInt {
     fn from(value: &i32) -> Self {
-        Self::from(*value)
-    }
-}
-
-impl From<u32> for VarInt {
-    fn from(value: u32) -> Self {
-        Self(value as i32)
-    }
-}
-
-impl From<&u32> for VarInt {
-    fn from(value: &u32) -> Self {
         Self::from(*value)
     }
 }

@@ -40,6 +40,7 @@ pub enum ChatMode {
     Hidden = 2,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy)]
 pub struct SkinParts {
     pub cape: bool,

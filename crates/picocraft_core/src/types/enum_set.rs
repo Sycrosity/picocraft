@@ -1,54 +1,36 @@
 use crate::prelude::*;
 
-impl EnumSet {
-    #[must_use]
-    pub fn new() -> Self {
-        Self(UnsignedByte::default())
+bitflags::bitflags! {
+    impl EnumSet: u8 {
+        const ADD_PLAYER            = 0x01;
+        const INITIALISE_CHAT       = 0x02;
+        const UPDATE_GAME_MODE      = 0x04;
+        const UPDATE_LISTED         = 0x08;
+        const UPDATE_LATENCY        = 0x10;
+        const UPDATE_DISPLAY_NAME   = 0x20;
+        const UPDATE_LIST_PRIORITY  = 0x40;
+        const UPDATE_HAT            = 0x80;
     }
 }
 
 impl Encode for EnumSet {
     async fn encode<W: Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
-        self.0.encode(&mut buffer).await
+        self.bits().encode(&mut buffer).await
     }
 }
 
 impl Decode for EnumSet {
     async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
-        Ok(Self(UnsignedByte::decode(&mut buffer).await?))
+        let bits = UnsignedByte::decode(&mut buffer).await?;
+        Self::from_bits(bits).ok_or(DecodeError::InvalidEnumSetBits(bits))
     }
 }
 
-impl EnumSet {
-    pub fn add_player(self) -> Self {
-        Self(self.0 | 0x01)
+const _: () = {
+    fn _assert_encode<T: Encode>() {}
+    fn _assert_decode<T: Decode>() {}
+    fn _check() {
+        _assert_encode::<EnumSet>();
+        _assert_decode::<EnumSet>();
     }
-
-    pub fn initialise_chat(self) -> Self {
-        Self(self.0 | 0x02)
-    }
-
-    pub fn update_game_mode(self) -> Self {
-        Self(self.0 | 0x04)
-    }
-
-    pub fn update_listed(self) -> Self {
-        Self(self.0 | 0x08)
-    }
-
-    pub fn update_latency(self) -> Self {
-        Self(self.0 | 0x10)
-    }
-
-    pub fn update_display_name(self) -> Self {
-        Self(self.0 | 0x20)
-    }
-
-    pub fn update_list_priority(self) -> Self {
-        Self(self.0 | 0x40)
-    }
-
-    pub fn update_hat(self) -> Self {
-        Self(self.0 | 0x80)
-    }
-}
+};
