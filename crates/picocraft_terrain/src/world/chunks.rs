@@ -1,3 +1,5 @@
+pub mod empty_chunk;
+
 use picocraft_derive::{Decode, Encode, Packet};
 
 use super::heightmaps::ChunkHeightmaps;
@@ -29,7 +31,7 @@ impl Encode for ChunkData {
         self.data.encode(&mut counter).await?;
 
         VarInt(counter.count as i32).encode(&mut buffer).await?; // should always be 33232 with this current setup
-        log::info!("{}", counter.count);
+        // log::info!("{}", counter.count);
 
         self.data.encode(&mut buffer).await?;
 
@@ -61,11 +63,30 @@ pub struct BlockContainer {
 
 impl Encode for BlockContainer {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
+        if self.bits_per_entry == 0 {
+            // Special case for all air chunks, which have no palette and 0 bits per entry.
+            // In this case, we still need to write a palette (with a single entry of air)
+            // and 1 bit per entry to avoid confusion on the client side.
+            0u8.encode(&mut buffer).await?;
+            0u8.encode(&mut buffer).await?;
+            return Ok(());
+        }
+
         self.bits_per_entry.encode(&mut buffer).await?;
         self.palette.encode(&mut buffer).await?;
         self.packed_blocks.encode(&mut buffer).await?;
 
         Ok(())
+    }
+}
+
+impl Default for BlockContainer {
+    fn default() -> Self {
+        Self {
+            bits_per_entry: 0,
+            palette: Palette::Plains,
+            packed_blocks: Array::new(),
+        }
     }
 }
 

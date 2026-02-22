@@ -3,6 +3,12 @@ use crate::prelude::*;
 #[derive(Debug)]
 pub struct LightData;
 
+impl LightData {
+    pub(crate) fn empty() -> Self {
+        Self
+    }
+}
+
 impl Encode for LightData {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         //sky light mask

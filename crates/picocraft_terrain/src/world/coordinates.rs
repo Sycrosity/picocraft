@@ -1,10 +1,40 @@
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ChunkColumnCoordinates {
+    pub x: i8,
+    pub z: i8,
+}
+
+impl ChunkColumnCoordinates {
+    pub fn new(x: i8, z: i8) -> Self {
+        Self { x, z }
+    }
+}
+
+impl From<ChunkCoordinates> for ChunkColumnCoordinates {
+    fn from(value: ChunkCoordinates) -> Self {
+        Self {
+            x: value.x,
+            z: value.z,
+        }
+    }
+}
+
+impl From<(i8, i8)> for ChunkColumnCoordinates {
+    fn from(value: (i8, i8)) -> Self {
+        Self {
+            x: value.0,
+            z: value.1,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct ChunkCoordinates {
-    x: i8,
-    y: u8,
-    z: i8,
+    pub x: i8,
+    pub y: u8,
+    pub z: i8,
 }
 
 impl ChunkCoordinates {
@@ -26,6 +56,16 @@ impl ChunkCoordinates {
             Coordinates::new((self.x as i16) * 16, self.y * 16, (self.z as i16) * 16),
             Coordinates::new(start_x + 15, start_y + 15, start_z + 15),
         )
+    }
+}
+
+impl From<(i8, u8, i8)> for ChunkCoordinates {
+    fn from(value: (i8, u8, i8)) -> Self {
+        Self {
+            x: value.0,
+            y: value.1,
+            z: value.2,
+        }
     }
 }
 
