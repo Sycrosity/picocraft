@@ -14,9 +14,9 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.set_state(State::Play);
 
-        let vec = PrefixedArray::from_vec(Vec::from_array([Identifier(
+        let vec: PrefixedArray<Identifier<16>, 3> = PrefixedArray::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
-        )]));
+        )]);
 
         let login_play = clientbound::LoginPlayPacket::builder()
             .dimension_names(vec)

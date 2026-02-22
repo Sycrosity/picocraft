@@ -283,7 +283,7 @@ impl Client {
         //SAFETY: length has already been validated in read_packet_length
         self.rx_buf
             .resize_default(*length as usize - 1)
-            .expect("length has already been validated");
+            .expect("length has already been validated in fn read_packet_length()");
 
         if *length as u32 - 1 > 0 {
             self.socket.read(&mut self.rx_buf).await?;

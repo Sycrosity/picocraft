@@ -9,7 +9,7 @@ impl<T, const N: usize> PrefixedArray<T, N> {
         Self(vec)
     }
 
-    pub fn from_array(array: [T; N]) -> Self {
+    pub fn from_array<const M: usize>(array: [T; M]) -> Self {
         Self(Vec::from_array(array))
     }
 }

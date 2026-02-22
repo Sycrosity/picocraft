@@ -20,11 +20,11 @@ impl Encode for LightData {
         BitSet::<1>::new().encode(&mut buffer).await?;
 
         // sky light arrays
-        PrefixedArray::from_array([FullLightSection; 18])
+        PrefixedArray::<_,18>::from_array([FullLightSection; 18])
             .encode(&mut buffer)
             .await?;
         // block light arrays
-        PrefixedArray::from_array([FullLightSection; 18])
+        PrefixedArray::<_,18>::from_array([FullLightSection; 18])
             .encode(&mut buffer)
             .await?;
 
