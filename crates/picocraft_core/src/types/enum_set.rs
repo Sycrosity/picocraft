@@ -25,12 +25,3 @@ impl Decode for EnumSet {
         Self::from_bits(bits).ok_or(DecodeError::InvalidEnumSetBits(bits))
     }
 }
-
-const _: () = {
-    fn _assert_encode<T: Encode>() {}
-    fn _assert_decode<T: Decode>() {}
-    fn _check() {
-        _assert_encode::<EnumSet>();
-        _assert_decode::<EnumSet>();
-    }
-};
