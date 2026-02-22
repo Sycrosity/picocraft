@@ -1,4 +1,7 @@
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
+use picocraft_terrain::world::chunks::empty_chunk::EmptyChunkAndLightPacket;
+use picocraft_terrain::world::coordinates::ChunkColumnCoordinates;
+use picocraft_terrain::world::spiral_iterator::ChunkKind;
 
 use crate::prelude::*;
 
@@ -79,12 +82,23 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         let mut world = picocraft_terrain::world::World::new(0);
         world.generate_terrain_map();
 
-        // do spiral generation in future
-        for x in -8..8 {
-            for z in -8..8 {
-                client.encode_packet(&world.get_chunk_packet(x, z)).await?;
+        let spawn = ChunkColumnCoordinates::new(0, 0);
+
+        for (x, z, kind) in
+            picocraft_terrain::world::spiral_iterator::BorderedSpiralIterator::new(8, spawn)
+        {
+            match kind {
+                ChunkKind::Terrain => {
+                    let chunk = world.get_chunk_packet(x, z);
+                    client.encode_packet(&chunk).await?;
+                }
+                ChunkKind::Air => {
+                    let empty = EmptyChunkAndLightPacket::new(x, z);
+                    client.encode_packet(&empty).await?;
+                }
             }
         }
+
         trace!("Packets sent: ChunkAndLightPacket");
 
         debug!(
