@@ -23,15 +23,17 @@ impl core::fmt::Display for EmptyChunkAndLightPacket {
 impl EmptyChunkAndLightPacket {
     #[must_use]
     pub fn new(chunk_x: i8, chunk_z: i8) -> Self {
-        Self { chunk_x: chunk_x as Int, chunk_z: chunk_z as Int }
+        Self {
+            chunk_x: chunk_x as Int,
+            chunk_z: chunk_z as Int,
+        }
     }
 }
 
 impl Encode for EmptyChunkAndLightPacket {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
-
         Self::ID.encode(&mut buffer).await?;
-        
+
         self.chunk_x.encode(&mut buffer).await?;
         self.chunk_z.encode(&mut buffer).await?;
 
@@ -71,17 +73,18 @@ struct EmptyChunkData;
 
 impl Encode for EmptyChunkData {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
-
         // heightmaps
         VarInt(0).encode(&mut buffer).await?;
 
-        // length of data: 16 * (non-air block count + bits per entry + palette block value + biome bits per entry + biome palette value).
-        // Might possibly change if the plains biome is replaced with another (e.g. void) that has a VarInt ID of over 0x8f 
+        // length of data: 16 * (non-air block count + bits per entry + palette block
+        // value + biome bits per entry + biome palette value). Might possibly
+        // change if the plains biome is replaced with another (e.g. void) that has a
+        // VarInt ID of over 0x8f
 
-        VarInt(16*(2+1+1+1+1)).encode(&mut buffer).await?;
+        VarInt(16 * (2 + 1 + 1 + 1 + 1)).encode(&mut buffer).await?;
 
         // chunk sections - "buffer"
-        Array::<_,16>::from_array([EmptyChunkSection; 16])
+        Array::<_, 16>::from_array([EmptyChunkSection; 16])
             .encode(&mut buffer)
             .await?;
 

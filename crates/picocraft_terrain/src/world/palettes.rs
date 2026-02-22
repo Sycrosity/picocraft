@@ -20,7 +20,9 @@ impl Encode for Palette {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         let map = IndexedBlock::ALL.map(|indexed_block| self.to_block(indexed_block));
 
-        PrefixedArray::<_,14>::from_array(map).encode(&mut buffer).await
+        PrefixedArray::<_, 14>::from_array(map)
+            .encode(&mut buffer)
+            .await
     }
 }
 
