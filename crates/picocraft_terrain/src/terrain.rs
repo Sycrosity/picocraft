@@ -12,11 +12,11 @@ use coordinates::*;
 
 use crate::noise::*;
 use crate::prelude::*;
-use crate::world::chunks::ChunkSection;
-use crate::world::heightmaps::ChunkHeightmaps;
+use crate::terrain::chunks::ChunkSection;
+use crate::terrain::heightmaps::ChunkHeightmaps;
 
 #[non_exhaustive]
-pub struct World {
+pub struct TerrainGenerator {
     seed: u64,
     terrain_map: NoiseMap256,
     /// The player y level considered to be "sea level", for which air blocks
@@ -24,7 +24,7 @@ pub struct World {
     sea_level: u8,
 }
 
-impl World {
+impl TerrainGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
             seed,

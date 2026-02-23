@@ -143,7 +143,7 @@ impl Iterator for SpiralIterator {
 mod tests {
 
     use super::*;
-    use crate::world::coordinates::ChunkColumnCoordinates;
+    use crate::terrain_generator::coordinates::ChunkColumnCoordinates;
 
     #[test]
     fn works_for_4() {

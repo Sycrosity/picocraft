@@ -14,7 +14,7 @@
 
 pub mod dimension;
 pub mod noise;
-pub mod world;
+pub mod terrain;
 
 #[allow(unused)]
 pub mod prelude {

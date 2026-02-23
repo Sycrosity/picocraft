@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn heightmap_set() {
-        use crate::world::heightmaps::{Heightmap, HeightmapType};
+        use crate::terrain_generator::heightmaps::{Heightmap, HeightmapType};
 
         let mut heightmap = Heightmap::new(HeightmapType::WorldSurface);
 

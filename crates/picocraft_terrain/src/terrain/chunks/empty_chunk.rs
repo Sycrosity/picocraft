@@ -1,7 +1,7 @@
 use crate::prelude::*;
-use crate::world::biomes::Biome;
-use crate::world::blocks::Block;
-use crate::world::light::LightData;
+use crate::terrain_generator::biomes::Biome;
+use crate::terrain_generator::blocks::Block;
+use crate::terrain_generator::light::LightData;
 
 #[derive(Debug, Clone, Copy)]
 pub struct EmptyChunkAndLightPacket {
