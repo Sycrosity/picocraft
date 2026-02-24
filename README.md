@@ -7,7 +7,7 @@ picocraft ~~is~~ (hopefully will become) a no_std lightweight minecraft server i
 
 ## Current Project Status
 
-As of right now, `picocraft` can handle status requests and allow the player to join the game with basic single block chunks (Although no player inputs are used or saved) with support for `std` targets - the underlying `picocraft_proto` and `picocraft_core` are fully `no_std`.
+As of right now, `picocraft` generates procedural terrain with a chosen world seed, but no player modifcations are used or saved after disconnect. `picocraft` currently only has support for `std` targets, however everything except networking is `no_std` and `no_alloc` compatible.
 
 ## Usage
 
@@ -19,13 +19,13 @@ To run the server on default port 25565 (std targets only for now), run this com
 $ cargo run --release
 ```
 
-You can also install the server binary from <https://crates.io/crates/picocraft>:
+You can also install the server binary from [crates.io](https://crates.io/crates/picocraft):
 
 ```bash
 $ cargo install picocraft --locked
 ```
 
-Note: this may not be up to date, and installing from this repo's main branch may be more featureful:
+Note: the crates.io release may not be up to date, so installing from this repo's main branch is prefered, but may not be as stable:
 ```bash
 $ cargo install --git https://github.com/Sycrosity/picocraft --locked
 ```
