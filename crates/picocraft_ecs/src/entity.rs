@@ -39,7 +39,9 @@ impl core::fmt::Debug for Entity {
 /// Allocates and recycles entity identifiers.
 ///
 /// `MAX_ENTITIES` is the compile-time upper bound on the number of
-/// simultaneously alive entities.
+/// simultaneously alive entities. Entity indices range from `0` to
+/// `MAX_ENTITIES - 1`; these indices are then used as keys into sparse
+/// sets whose `UNIVERSE` parameter must be `>= MAX_ENTITIES`.
 pub struct EntityAllocator<const MAX_ENTITIES: usize> {
     /// Generations for each entity slot. Incremented on deallocation.
     generations: [u8; MAX_ENTITIES],

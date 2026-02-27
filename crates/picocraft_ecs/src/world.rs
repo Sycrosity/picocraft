@@ -11,7 +11,7 @@ use crate::system::System;
 /// Component sparse sets are stored directly as fields so that the entire
 /// world lives on the stack with compile-time-known size.
 pub struct EcsWorld<const MAX_ENTITIES: usize, const UNIVERSE: usize> {
-    allocator: EntityAllocator<UNIVERSE>,
+    allocator: EntityAllocator<MAX_ENTITIES>,
     pub positions: SparseSet<Position, MAX_ENTITIES, UNIVERSE>,
     pub velocities: SparseSet<Velocity, MAX_ENTITIES, UNIVERSE>,
     pub healths: SparseSet<Health, MAX_ENTITIES, UNIVERSE>,
