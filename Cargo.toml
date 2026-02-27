@@ -44,6 +44,7 @@ picocraft_proto = { path = "crates/picocraft_proto", version = "0.0.3" }
 picocraft_server = { path = "crates/picocraft_server", version = "0.0.3" }
 picocraft_derive = { path = "crates/picocraft_derive", version = "0.0.3" }
 picocraft_terrain = { path = "crates/picocraft_terrain", version = "0.0.3" }
+picocraft_ecs = { path = "crates/picocraft_ecs", version = "0.0.3" }
 
 log = "0.4.29"
 bon = { version = "3.8.2", default-features = false }
