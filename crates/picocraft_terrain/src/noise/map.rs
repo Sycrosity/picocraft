@@ -42,9 +42,9 @@ impl<const SIZE: usize> NoiseMap2D<SIZE> {
     where
         F: FnMut(usize, usize) -> u8,
     {
-        for y in 0..SIZE {
+        for z in 0..SIZE {
             for x in 0..SIZE {
-                self.map[y][x] = generator(x, y);
+                self.map[z][x] = generator(x, z);
             }
         }
     }
@@ -59,12 +59,12 @@ impl<const SIZE: usize> NoiseMap2D<SIZE> {
     }
 
     #[inline]
-    pub fn get(&self, x: i16, y: i16) -> Option<u8> {
-        let y = y as usize;
+    pub fn get(&self, x: i16, z: i16) -> Option<u8> {
+        let z = z as usize;
         let x = x as usize;
 
-        if y < SIZE && x < SIZE {
-            Some(self.map[y][x])
+        if z < SIZE && x < SIZE {
+            Some(self.map[z][x])
         } else {
             None
         }
