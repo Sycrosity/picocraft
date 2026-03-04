@@ -1,8 +1,3 @@
-#![no_std]
-
-#[cfg(feature = "std")]
-extern crate std;
-
 mod logger;
 
 use core::cell::RefCell;

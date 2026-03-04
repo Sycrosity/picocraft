@@ -1,5 +1,4 @@
 use core::str::FromStr;
-#[cfg(feature = "std")]
 use std::println;
 
 use log::LevelFilter;
