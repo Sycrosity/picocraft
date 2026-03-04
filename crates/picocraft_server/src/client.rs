@@ -257,13 +257,11 @@ impl Client {
                         ConfirmTeleportationPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
                     ConfirmTeleportationPacket::handle(packet, self).await?;
-                },
+                }
                 ClientTickEndPacket::ID => {
-
                     let packet = ClientTickEndPacket::decode(&mut self.rx_buf.as_slice()).await?;
 
                     ClientTickEndPacket::handle(packet, self).await?;
-
                 }
                 _ => {
                     warn!("Unknown packet ID in Play state: {:x?}", *packet_id);
