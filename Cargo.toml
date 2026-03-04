@@ -1,32 +1,6 @@
-[package]
-name = "picocraft"
-# description = ""
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
-readme.workspace = true
-keywords.workspace = true
-
-[dependencies]
-picocraft_core.workspace = true
-picocraft_server.workspace = true
-
-log.workspace = true
-static_cell.workspace = true
-
-rand.workspace = true
-rand_xoshiro.workspace = true
-rand_chacha.workspace = true
-
-embassy-sync.workspace = true
-
-
-tokio = { workspace = true, optional = true }
-critical-section = { version = "1", features = ["std"], optional = true }
-
 [workspace]
-members = ["crates/*"]
+members = ["crates/*", "bins/*"]
+default-members = ["crates/*", "bins/desktop"]
 resolver = "2"
 
 [workspace.package]
@@ -72,21 +46,28 @@ embassy-time = { version = "0.5.0", features = ["log"] }
 embassy-net = { version = "0.8.0", features = ["log"] }
 embassy-sync = { version = "0.7.2", features = ["log"] }
 
-tokio = "1.49.0"
+tokio = "1.50.0"
 
-[features]
-default = ["std"]
-std = ["alloc", "picocraft_server/std", "tokio", "critical-section"]
-alloc = []
-tokio = ["dep:tokio"]
-release = ["log/release_max_level_off"]
+# [profile.dev.package."*"]
+# opt-level = 3
 
-[profile.dev.package."*"]
-opt-level = 3
+# [profile.release]
+# # inherits = "release"
+# codegen-units = 1
+# debug = 0
+# lto = true
+# opt-level = "s"
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
 
 [profile.release]
-# inherits = "release"
-codegen-units = 1
-debug = 0
-lto = true
-opt-level = "s"
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

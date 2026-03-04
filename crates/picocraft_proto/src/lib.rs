@@ -12,9 +12,6 @@
     clippy::unwrap_used
 )]
 
-#[cfg(feature = "std")]
-extern crate std;
-
 pub mod clientbound;
 pub mod game_profile;
 pub mod protocol_version;

@@ -37,10 +37,9 @@ embassy-net = { workspace = true, features = [
 tokio = { workspace = true, optional = true }
 
 [features]
-default = ["std"]
+
 std = [
   "alloc",
-  "picocraft_proto/std",
   "tokio",
   "log/std",
   "tokio/full",

@@ -1,0 +1,40 @@
+[package]
+name = "picocraft"
+description = "A desktop binary for the picocraft minecraft server."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[[bin]]
+name = "desktop"
+path = "./src/main.rs"
+
+[dependencies]
+picocraft_core.workspace = true
+picocraft_server = { workspace = true, features = ["std"] }
+picocraft_proto.workspace = true
+
+log.workspace = true
+static_cell.workspace = true
+
+rand.workspace = true
+rand_xoshiro.workspace = true
+rand_chacha.workspace = true
+
+embassy-sync.workspace = true
+
+tokio.workspace = true
+critical-section = { version = "1.1", features = ["std"] }
+
+[features]
+release = ["log/release_max_level_off"]
+
+# [features]
+# default = ["std"]
+# std = ["alloc", "picocraft_server/std", "tokio", "critical-section"]
+# alloc = []
+# tokio = ["dep:tokio"]
+# release = ["log/release_max_level_off"]
