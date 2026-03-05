@@ -242,7 +242,6 @@ impl Client {
                         AcknowledgeFinishConfigurationPacket::decode(&mut self.rx_buf.as_slice())
                             .await?;
 
-                    //TODO this async is huge: 104_000 bytes. Look into this
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
                 _ => {

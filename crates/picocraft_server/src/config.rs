@@ -9,7 +9,6 @@ pub struct ServerConfig {
     pub address: Ipv4Addr,
     pub port: u16,
     pub motd: String<128>,
-    // pub max_players: i32,
 }
 
 impl Default for ServerConfig {
@@ -20,7 +19,6 @@ impl Default for ServerConfig {
             port: 25565,
             motd: heapless::String::from_str("A Picocraft Server!")
                 .expect("String is less than 256 bytes"),
-            // max_players: 8,
         }
     }
 }
