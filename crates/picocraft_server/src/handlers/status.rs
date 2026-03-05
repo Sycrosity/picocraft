@@ -1,4 +1,5 @@
 use heapless::format;
+use picocraft_ecs::world::MAX_PLAYERS;
 use picocraft_proto::serverbound::status::*;
 
 use crate::prelude::*;
@@ -12,9 +13,9 @@ impl HandlePacket for StatusRequestPacket {
         // This should really be built with values from the server config for player
         // count
         let json = clientbound::JsonStatusResponse::builder()
-            .players(client.server_config().read().await.max_players, 0)
+            .players(MAX_PLAYERS as i32, 0)
             //TODO the clone here ideally shouldn't occur
-            .description(client.server_config().read().await.motd.clone())
+            .description(client.server_config.motd.clone())
             .build();
 
         let status_response = clientbound::StatusResponsePacket::<256>::builder()

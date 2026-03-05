@@ -45,7 +45,7 @@ impl GameProfile {
 #[derive(Debug, Default, Clone, Encode, Decode)]
 pub struct Properties(pub PrefixedArray<Textures, 0>);
 
-/// An empty struct which contains the skin and optional cape URLs for a player. As the only part of the request to Mojang's API we care about is the 64 bytes of the URL after ["http://textures.minecraft.net/texture/"](https://textures.minecraft.net/texture/7fd9ba42a7c81eeea22f1524271ae85a8e045ce0af5a6ae16c6406ae917e68b5) so we only store those bytes. The rest can just be serialised as needed.
+/// An empty struct which contains the skin and optional cape URLs for a player. As the only part of the request to Mojang's API we care about is the 64 bytes of the URL after [http://textures.minecraft.net/texture/](http://textures.minecraft.net/texture/7fd9ba42a7c81eeea22f1524271ae85a8e045ce0af5a6ae16c6406ae917e68b5) (http only is fine here) so we only store those bytes. The rest can just be serialised as needed.
 /// Currently we do not query Mojang's API for these textures, so this struct is
 /// never actually used.
 #[derive(Debug, Default, Clone, Encode, Decode)]

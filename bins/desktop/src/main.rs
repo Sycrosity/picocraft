@@ -3,50 +3,37 @@ mod logger;
 use core::cell::RefCell;
 
 use embassy_sync::mutex::Mutex;
-use embassy_sync::rwlock::RwLock;
 use log::{debug, error, info};
 use picocraft_core::prelude::*;
-use picocraft_server::ServerConfig;
 use picocraft_server::prelude::*;
-use rand::prelude::*;
-use rand_chacha::ChaCha8Rng;
 use static_cell::StaticCell;
 
 static SYSTEM_RNG: StaticCell<SystemRng> = StaticCell::new();
 static SERVER_CONFIG: StaticCell<ServerConfig> = StaticCell::new();
 
-const MAX_PLAYERS: i32 = 8;
-
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), PicocraftError> {
     logger::init_logger_from_env();
 
-    let config = picocraft_server::config::Config {
-        address: core::net::Ipv4Addr::UNSPECIFIED,
+    let system_rng = SYSTEM_RNG.init_with(|| Mutex::new(RefCell::new(rand::make_rng())));
+
+    let config = picocraft_server::config::ServerConfig {
+        //world gen seed
+        seed: 0, //system_rng.lock().await.borrow_mut().next_u64()
         port: 25565,
+        address: core::net::Ipv4Addr::UNSPECIFIED,
         motd: String::try_from("A Picocraft Server!").expect("String is less than 256 bytes"),
-        max_players: MAX_PLAYERS,
     };
 
     let listener = tokio::net::TcpListener::bind((config.address, config.port))
         .await
         .unwrap();
 
-    let config_mutex = SERVER_CONFIG.init_with(|| RwLock::new(config));
+    let config = SERVER_CONFIG.init_with(|| config);
 
-    // This should be seeded from a system level CSPRNG.
-    let seed = 0xbeee_eeee_eeee_eee5;
+    let server = Server::new(config, listener, system_rng);
 
-    let system_rng =
-        SYSTEM_RNG.init_with(|| Mutex::new(RefCell::new(ChaCha8Rng::seed_from_u64(seed))));
-
-    let server = Server::new(config_mutex, listener, system_rng);
-
-    info!(
-        "Server listening at: {}:{}",
-        config_mutex.read().await.address,
-        config_mutex.read().await.port
-    );
+    info!("Server listening at: {}:{}", config.address, config.port);
 
     loop {
         match server.next_connection().await {

@@ -6,7 +6,6 @@ pub use player::Player;
 use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
 
-#[derive(Debug)]
 pub struct Client {
     pub player: Player,
     state: State,
@@ -14,7 +13,8 @@ pub struct Client {
     // pub remote_addr: core::net::SocketAddrV4,
     rx_buf: Buffer<1024>,
     system_rng: &'static SystemRng,
-    server_config: &'static ServerConfig,
+    pub server_config: &'static ServerConfig,
+    pub terrain: &'static picocraft_terrain::Terrain,
 }
 
 #[allow(unused)]
@@ -23,6 +23,7 @@ impl Client {
         socket: tokio::net::TcpStream,
         system_rng: &'static SystemRng,
         server_config: &'static ServerConfig,
+        terrain: &'static picocraft_terrain::Terrain,
     ) -> Self {
         Self {
             player: Player::default(),
@@ -31,6 +32,7 @@ impl Client {
             rx_buf: Buffer::new(),
             system_rng,
             server_config,
+            terrain,
         }
     }
 
@@ -240,7 +242,6 @@ impl Client {
                         AcknowledgeFinishConfigurationPacket::decode(&mut self.rx_buf.as_slice())
                             .await?;
 
-                    //TODO this async is huge: 104_000 bytes. Look into this
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
                 _ => {

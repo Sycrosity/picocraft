@@ -1,7 +1,7 @@
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
-use picocraft_terrain::world::chunks::empty_chunk::EmptyChunkAndLightPacket;
-use picocraft_terrain::world::coordinates::ChunkColumnCoordinates;
-use picocraft_terrain::world::spiral_iterator::ChunkKind;
+use picocraft_terrain::terrain::chunks::empty_chunk::EmptyChunkAndLightPacket;
+use picocraft_terrain::terrain::coordinates::ChunkColumnCoordinates;
+use picocraft_terrain::terrain::spiral_iterator::{BorderedSpiralIterator, ChunkKind};
 
 use crate::prelude::*;
 
@@ -30,6 +30,8 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .build();
 
         client.encode_packet(&login_play).await?;
+
+        // let spawn_pos = client.terrain.get_spawn_position();
 
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
             .x(0f64)
@@ -76,17 +78,12 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&game_event).await?;
 
-        let mut world = picocraft_terrain::world::World::new(0);
-        world.generate_terrain_map();
-
         let spawn = ChunkColumnCoordinates::new(0, 0);
 
-        for (x, z, kind) in
-            picocraft_terrain::world::spiral_iterator::BorderedSpiralIterator::new(8, spawn)
-        {
+        for (x, z, kind) in BorderedSpiralIterator::new(16, spawn) {
             match kind {
                 ChunkKind::Terrain => {
-                    let chunk = world.get_chunk_packet(x, z);
+                    let chunk = client.terrain.get_chunk_packet(x, z);
                     client.encode_packet(&chunk).await?;
                 }
                 ChunkKind::Air => {
