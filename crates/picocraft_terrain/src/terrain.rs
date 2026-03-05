@@ -16,36 +16,24 @@ use crate::terrain::chunks::ChunkSection;
 use crate::terrain::heightmaps::ChunkHeightmaps;
 
 #[non_exhaustive]
-pub struct TerrainGenerator {
-    seed: u64,
-    terrain_map: NoiseMap256,
+pub struct Terrain {
+    pub(crate) seed: u64,
+    pub(crate) terrain_map: NoiseMap256,
     /// The player y level considered to be "sea level", for which air blocks
     /// below this level are filled with water, before caves are applied.
-    sea_level: u8,
+    pub(crate) sea_level: u8,
 }
 
-impl TerrainGenerator {
-    pub fn new(seed: u64) -> Self {
-        Self {
-            seed,
-            terrain_map: NoiseMap256::new(),
-            sea_level: 62,
-        }
-    }
-
+impl Terrain {
     pub fn sea_level(&self) -> u8 {
         self.sea_level
-    }
-
-    pub fn set_sea_level(&mut self, sea_level: u8) {
-        self.sea_level = sea_level;
     }
 
     pub fn seed(&self) -> u64 {
         self.seed
     }
 
-    pub fn get_chunk_packet(&mut self, chunk_x: i8, chunk_z: i8) -> chunks::ChunkAndLightPacket {
+    pub fn get_chunk_packet(&self, chunk_x: i8, chunk_z: i8) -> chunks::ChunkAndLightPacket {
         chunks::ChunkAndLightPacket {
             chunk_x: Int::from(chunk_x),
             chunk_z: Int::from(chunk_z),
@@ -54,7 +42,7 @@ impl TerrainGenerator {
         }
     }
 
-    pub fn get_chunk(&mut self, chunk_x: i8, chunk_z: i8) -> chunks::ChunkData {
+    pub fn get_chunk(&self, chunk_x: i8, chunk_z: i8) -> chunks::ChunkData {
         let mut heightmap = ChunkHeightmaps::new();
 
         let chunk_sections = (0..16)
@@ -75,7 +63,7 @@ impl TerrainGenerator {
 
     #[allow(unused_parens)]
     pub fn get_chunk_section(
-        &mut self,
+        &self,
         chunk_coords: ChunkCoordinates,
         heightmap: &mut ChunkHeightmaps,
     ) -> chunks::ChunkSection {
@@ -127,19 +115,6 @@ impl TerrainGenerator {
         }
     }
 
-    pub fn generate_terrain_map(&mut self) {
-        // let mut random =
-        // rand_xoshiro::Xoroshiro128PlusPlus::seed_from_u64(self.seed);
-
-        let perlin: FbmPerlin = FbmPerlin::new(self.seed() as u32).set_octaves(4);
-
-        //TODO this function is garbage.
-        self.terrain_map.apply(|x, y| {
-            (perlin.get([(x as f64 / 128.0 - 128.0), (y as f64 / 128.0 - 128.0)]) * 32.0 + 96.0)
-                as u8
-        });
-    }
-
     #[inline]
     pub fn get_indexed_block_at(&self, x: i16, y: u8, z: i16) -> IndexedBlock {
         let height = self
@@ -162,6 +137,21 @@ impl TerrainGenerator {
         } else {
             IndexedBlock::UndergroundBlock
         }
+    }
+
+    pub fn get_spawn_position(&self) -> (i16, u8, i16) {
+        // this is probably how it should actually look:
+        // [Generate random block within "spawn chunks"]
+        // [check if block can be stood on and isn't obstructed]
+        // [find new block otherwise]
+
+        self.get_height_at(0, 0)
+            .expect("no blocks should be un-spawnable currently")
+    }
+
+    //should return a `Result`
+    pub fn get_height_at(&self, x: i16, z: i16) -> Option<(i16, u8, i16)> {
+        self.terrain_map.get(x, z).map(|y| (x, y, z))
     }
 
     // pub fn get_block_at(&self, x: i16, y: u8, z: i16) -> Block {

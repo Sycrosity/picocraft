@@ -15,9 +15,13 @@
 pub mod dimension;
 pub mod noise;
 pub mod terrain;
+pub mod terrain_builder;
+
+pub use terrain::Terrain;
+pub use terrain_builder::TerrainBuilder;
 
 #[allow(unused)]
-pub mod prelude {
+pub(crate) mod prelude {
 
     pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
