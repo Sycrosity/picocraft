@@ -1,13 +1,19 @@
 use embassy_futures::select::{Either, select};
+use picocraft_terrain::{Terrain, TerrainBuilder};
+use static_cell::StaticCell;
 use tokio::net::TcpListener;
 
 use crate::prelude::*;
 use crate::shutdown::shutdown_signal;
 
+static TERRAIN: StaticCell<Terrain> = StaticCell::new();
+
 #[allow(unused)]
 pub struct Server {
     config: &'static ServerConfig,
     listener: TcpListener,
+    world: picocraft_ecs::World,
+    terrain: &'static Terrain,
     system_rng: &'static SystemRng,
 }
 
@@ -17,9 +23,15 @@ impl Server {
         listener: TcpListener,
         system_rng: &'static SystemRng,
     ) -> Self {
+        let world = picocraft_ecs::World::new();
+
+        let terrain = TERRAIN.init_with(|| TerrainBuilder::new(config.seed).build());
+
         Server {
             config,
             listener,
+            world,
+            terrain,
             system_rng,
         }
     }
@@ -29,7 +41,7 @@ impl Server {
             Either::First(Ok((socket, addr))) => {
                 info!("New connection from: {}", &addr);
 
-                let client = Client::new(socket, self.system_rng, self.config);
+                let client = Client::new(socket, self.system_rng, self.config, self.terrain);
 
                 Ok(Some(client))
             }
