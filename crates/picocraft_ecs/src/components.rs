@@ -43,6 +43,7 @@ pub struct FallDistance(pub f32);
 #[derive(Debug, Clone, Copy)]
 pub struct Uuid(pub UUID);
 
-/// A marker component for mobs that should not naturally despawn, such as pets or bred animals.
+/// A marker component for mobs that should not naturally despawn, such as pets
+/// or bred animals.
 #[derive(Debug, Clone, Copy)]
 pub struct Persistent;

@@ -82,7 +82,6 @@ impl<T, const N: usize> Default for MarkerSet<T, N> {
     }
 }
 
-
 impl<T, const N: usize> ComponentStore for MarkerSet<T, N> {
     type Item = T;
 
