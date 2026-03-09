@@ -1,35 +1,19 @@
-use core::num::NonZeroU16;
+use core::num::NonZeroU8;
 
+use super::entity::EntityId;
+use super::pools::*;
 use crate::prelude::*;
 
 pub const MAX_PLAYERS: usize = 8;
 
+#[derive(Default)]
 pub struct World {
-    pub entities: Vec<Entity, 1024>,
-    pub players: Vec<Entity, MAX_PLAYERS>,
+    pub players: PlayerPool<8>,
+    // pub mobs: MobPool<128>,
 }
 
 impl World {
     pub fn new() -> Self {
-        Self {
-            entities: Vec::new(),
-            players: Vec::new(),
-        }
+        Self::default()
     }
-}
-
-impl Default for World {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[derive(Debug)]
-pub struct Entity {
-    pub id: u16,
-}
-
-pub struct SparseSet<const N: usize> {
-    pub dense: Vec<Entity, N>,
-    pub sparse: Vec<Option<NonZeroU16>, N>,
 }

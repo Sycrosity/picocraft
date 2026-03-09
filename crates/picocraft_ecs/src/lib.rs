@@ -12,6 +12,10 @@
     clippy::unwrap_used
 )]
 
+pub mod component_store;
+pub mod components;
+pub mod entity;
+pub mod pools;
 pub mod world;
 
 pub use world::World;
