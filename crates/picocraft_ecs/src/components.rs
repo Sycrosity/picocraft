@@ -38,6 +38,7 @@ pub struct Rotation {
 }
 
 /// Converted to f64 when serialised.
+#[derive(Debug, Clone, Copy)]
 pub struct FallDistance(pub f32);
 
 #[derive(Debug, Clone, Copy)]

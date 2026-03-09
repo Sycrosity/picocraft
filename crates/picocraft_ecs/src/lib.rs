@@ -15,9 +15,11 @@
 pub mod component_store;
 pub mod components;
 pub mod entity;
+pub mod errors;
 pub mod pools;
 pub mod world;
 
+pub use errors::*;
 pub use world::World;
 
 #[allow(unused)]
@@ -25,5 +27,7 @@ pub mod prelude {
 
     pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
+
+    pub(crate) use crate::errors::*;
     // pub(crate) use picocraft_proto::prelude::*;
 }
