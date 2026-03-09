@@ -59,7 +59,7 @@ pub struct Slot {
 pub struct NBT;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Position(i64);
+pub struct BlockPosition(i64);
 
 pub struct Angle(pub UnsignedByte);
 
