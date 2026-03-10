@@ -1,9 +1,12 @@
-pub mod player;
+mod buffer;
+mod packet_socket;
+mod player;
 
+use buffer::Buffer;
 use embassy_futures::select::{Either, select};
-pub use player::Player;
+use packet_socket::PacketSocket;
+use player::Player;
 
-use crate::packet_socket::PacketSocket;
 use crate::prelude::*;
 
 pub struct Client {
