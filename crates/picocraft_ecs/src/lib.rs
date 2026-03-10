@@ -12,7 +12,7 @@
     clippy::unwrap_used
 )]
 
-pub mod component_store;
+pub mod storage;
 pub mod components;
 pub mod entity;
 pub mod errors;
