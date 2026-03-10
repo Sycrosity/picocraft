@@ -34,6 +34,8 @@ noise = { version = "0.9.0", default-features = false }
 uuid = { version = "1.22.0", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 
+bitflags = "2.11.0"
+
 core-json = { version = "0.4.0" }
 core-json-derive = { version = "0.4.1" }
 core-json-traits = { version = "0.4.1" }
