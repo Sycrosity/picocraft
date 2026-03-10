@@ -92,12 +92,12 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
                         sparse_element.map(|non_zero| non_zero.get() as usize - 1)
                             == Some(last_element_index)
                     })
-                    .ok_or(ComponentStorageError::NotFound { index })?;
+                    .ok_or(ComponentStorageError::NotFound(index))?;
 
                 self.sparse[moved_entity] = NonZeroU8::new(dense_index as u8 + 1);
             }
         } else {
-            return Err(ComponentStorageError::NotFound { index });
+            return Err(ComponentStorageError::NotFound(index));
         }
 
         Ok(())
