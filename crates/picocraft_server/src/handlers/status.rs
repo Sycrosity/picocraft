@@ -1,7 +1,7 @@
 use heapless::format;
-use picocraft_ecs::world::MAX_PLAYERS;
 use picocraft_proto::serverbound::status::*;
 
+use crate::MAX_PLAYERS;
 use crate::prelude::*;
 
 impl HandlePacket for StatusRequestPacket {

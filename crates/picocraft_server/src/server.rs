@@ -10,11 +10,10 @@ static TERRAIN: StaticCell<Terrain> = StaticCell::new();
 
 #[allow(unused)]
 pub struct Server {
-    config: &'static ServerConfig,
+    pub config: &'static ServerConfig,
     listener: TcpListener,
-    world: picocraft_ecs::World,
-    terrain: &'static Terrain,
-    system_rng: &'static SystemRng,
+    pub terrain: &'static Terrain,
+    pub system_rng: &'static SystemRng,
 }
 
 impl Server {
@@ -23,14 +22,11 @@ impl Server {
         listener: TcpListener,
         system_rng: &'static SystemRng,
     ) -> Self {
-        let world = picocraft_ecs::World::new();
-
         let terrain = TERRAIN.init_with(|| TerrainBuilder::new(config.seed).build());
 
         Server {
             config,
             listener,
-            world,
             terrain,
             system_rng,
         }
