@@ -17,6 +17,7 @@ pub mod components;
 pub mod entity;
 pub mod errors;
 pub mod pools;
+pub mod traits;
 pub mod world;
 
 pub use errors::*;
