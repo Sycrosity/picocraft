@@ -1,12 +1,13 @@
-use super::pools::*;
-use crate::prelude::*;
-
-pub const MAX_PLAYERS: usize = 8;
+use crate::pools::*;
 
 #[derive(Default)]
-pub struct World {
-    pub players: PlayerPool<8>,
-    // pub mobs: MobPool<128>,
+pub struct World<
+    const MAX_PLAYERS: usize = 8,
+    const MAX_MOBS: usize = 128,
+    const MAX_PROJECTILES: usize = 128,
+> {
+    pub players: PlayerPool<MAX_PLAYERS>,
+    // pub mobs: MobPool<MAX_MOBS>,
 }
 
 impl World {
