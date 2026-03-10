@@ -14,8 +14,9 @@ pub struct PlayerPool<const N: usize = 8> {
     pub position: SparseSet<Position, N>,
     #[required]
     pub velocity: SparseSet<Velocity, N>,
-    pub on_ground: MarkerSet<OnGround, N>,
+    #[required]
     pub rotation: SparseSet<Rotation, N>,
+    pub on_ground: MarkerSet<OnGround, N>,
     pub fall_distance: SparseSet<FallDistance, N>,
 }
 

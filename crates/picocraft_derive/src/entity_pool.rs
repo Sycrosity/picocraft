@@ -8,6 +8,7 @@ use syn::{
 
 struct PoolField<'a> {
     ident: &'a Ident,
+    storage_ty: &'a Type,
     component_ty: &'a Type,
     is_canonical: bool,
     is_required: bool,
@@ -55,9 +56,10 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 .map(|f| {
                     let is_canonical = has_attribute(f, "canonical");
                     let is_required = is_canonical || has_attribute(f, "required");
-                    let component_ty = extract_inner_type(f)?;
+                    let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
                         ident: f.ident.as_ref().unwrap(),
+                        storage_ty: &f.ty,
                         component_ty,
                         is_canonical,
                         is_required,
@@ -75,6 +77,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 ))?;
 
             let canonical_ident = canonical.ident;
+            let canonical_storage_ty = canonical.storage_ty;
 
             let entity_kind = pool_attr
                 .kind
@@ -152,20 +155,18 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     #(#bundle_fields,)*
                 }
 
-
                 impl #impl_generics #ident #ty_generics #where_clause {
 
                     // Find the first slot not occupied by the canonical component
-                    fn first_free(&self) -> ::core::option::Option<u8> {
+                    pub fn first_free(&self) -> ::core::option::Option<u8> {
                         // we are assuming that the pool has the const generic N, which isn't guaranteed but is probably good enough for this derive macro
                         (0..N as u8).find(|&i| {
                             !crate::storage::ComponentStore::contains(&self.#canonical_ident, i)
                         })
                     }
 
-                    fn spawn(
+                    pub fn spawn(
                         &mut self,
-                        index: u8,
                         bundle: #bundle_name
                     ) -> ::core::result::Result<
                         crate::entity::EntityRef<'_, #ident #ty_generics>,
@@ -183,8 +184,16 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         })
                     }
 
-                    fn despawn(&mut self, index: u8) {
+                    pub fn despawn(&mut self, index: u8) {
                         #(#despawn_removes)*
+                    }
+
+                    pub fn canonical(&self) -> &#canonical_storage_ty {
+                        &self.#canonical_ident
+                    }
+
+                    pub fn canonical_mut(&mut self) -> &mut #canonical_storage_ty {
+                        &mut self.#canonical_ident
                     }
                 }
 
@@ -202,7 +211,7 @@ fn has_attribute(field: &Field, attr_name: &str) -> bool {
         .any(|attr| attr.path().is_ident(attr_name))
 }
 
-fn extract_inner_type(field: &Field) -> Result<&Type> {
+fn extract_component_type(field: &Field) -> Result<&Type> {
     let Type::Path(tp) = &field.ty else {
         return Err(syn::Error::new(
             field.ty.span(),
@@ -226,7 +235,7 @@ fn extract_inner_type(field: &Field) -> Result<&Type> {
         "missing type argument, expected `SparseSet<T, N>` or `MarkerSet<T, N>`",
     ))?;
 
-    let GenericArgument::Type(inner_ty) = first_arg else {
+    let GenericArgument::Type(component_ty) = first_arg else {
         return Err(syn::Error::new(
             segment.ident.span(),
             "first generic argument must be a type, e.g. `SparseSet<Health, N>` where `Health` is \
@@ -234,7 +243,7 @@ fn extract_inner_type(field: &Field) -> Result<&Type> {
         ));
     };
 
-    Ok(inner_ty)
+    Ok(component_ty)
 }
 
 struct PacketAttr {
