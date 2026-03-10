@@ -7,11 +7,17 @@ pub struct Health(pub f32);
 pub struct OnGround;
 
 /// Named "Motion" in Minecraft. Converted to f64 when serialised.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Velocity {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+}
+
+impl Velocity {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
 }
 
 /// Converted to f64 when serialised as minecraft uses f64 for positions, but
@@ -23,7 +29,13 @@ pub struct Position {
     pub z: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Position {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Rotation {
     /// Rotation around the vertical (y) axis, in degrees. From -180 to +180
     /// degrees. Increases when rotating to the right (clockwise), decreases

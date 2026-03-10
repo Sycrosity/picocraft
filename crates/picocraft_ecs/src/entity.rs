@@ -16,6 +16,34 @@ impl EntityId {
     pub fn index(&self) -> NonZeroU8 {
         self.index
     }
+
+    pub fn player(index: u8) -> Self {
+        Self {
+            kind: EntityKind::Player,
+            index: NonZeroU8::new(index).expect("Entity index must be non-zero"),
+        }
+    }
+
+    pub fn mob(index: u8) -> Self {
+        Self {
+            kind: EntityKind::Mob,
+            index: NonZeroU8::new(index).expect("Entity index must be non-zero"),
+        }
+    }
+
+    pub fn item(index: u8) -> Self {
+        Self {
+            kind: EntityKind::Item,
+            index: NonZeroU8::new(index).expect("Entity index must be non-zero"),
+        }
+    }
+
+    pub fn projectile(index: u8) -> Self {
+        Self {
+            kind: EntityKind::Projectile,
+            index: NonZeroU8::new(index).expect("Entity index must be non-zero"),
+        }
+    }
 }
 
 #[repr(u8)]

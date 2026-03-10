@@ -12,9 +12,11 @@
     clippy::unwrap_used
 )]
 
+pub mod commands;
 pub mod components;
 pub mod entity;
 pub mod errors;
+pub mod events;
 pub mod pools;
 pub mod storage;
 pub mod traits;
