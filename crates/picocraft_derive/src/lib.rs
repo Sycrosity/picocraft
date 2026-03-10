@@ -1,5 +1,6 @@
 mod decode;
 mod encode;
+mod entity_pool;
 mod packet;
 
 use proc_macro::TokenStream as StdTokenStream;
@@ -23,6 +24,14 @@ pub fn derive_encode(item: StdTokenStream) -> StdTokenStream {
 #[proc_macro_derive(Decode, attributes(protocol))]
 pub fn derive_decode(item: StdTokenStream) -> StdTokenStream {
     match decode::derive_decode(item.into()) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.into_compile_error().into(),
+    }
+}
+
+#[proc_macro_derive(EntityPool, attributes(pool, canonical, required))]
+pub fn derive_entity_pool(item: StdTokenStream) -> StdTokenStream {
+    match entity_pool::derive_entity_pool(item.into()) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.into_compile_error().into(),
     }

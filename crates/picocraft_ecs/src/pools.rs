@@ -1,16 +1,22 @@
-use super::component_store::{MarkerSet, SparseSet};
-use super::components::*;
-use crate::prelude::*;
+use picocraft_derive::EntityPool;
 
-#[derive(Default)]
+use super::components::*;
+use super::storage::{MarkerSet, SparseSet};
+
+#[derive(Default, EntityPool)]
+#[pool(kind = EntityKind::Player)]
 pub struct PlayerPool<const N: usize = 8> {
+    #[canonical]
+    pub uuid: SparseSet<Uuid, N>,
+    #[required]
     pub health: SparseSet<Health, N>,
-    pub on_ground: MarkerSet<OnGround, N>,
-    pub velocity: SparseSet<Velocity, N>,
+    #[required]
     pub position: SparseSet<Position, N>,
+    #[required]
+    pub velocity: SparseSet<Velocity, N>,
+    pub on_ground: MarkerSet<OnGround, N>,
     pub rotation: SparseSet<Rotation, N>,
     pub fall_distance: SparseSet<FallDistance, N>,
-    pub uuid: SparseSet<Uuid, N>,
 }
 
 impl<const N: usize> PlayerPool<N> {

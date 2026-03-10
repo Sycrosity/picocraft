@@ -4,4 +4,6 @@ pub enum ComponentStorageError {
     IndexOutOfBounds { index: u8, max_index: u8 },
     #[error("entity at index {0} not found")]
     NotFound(u8),
+    #[error("component pool is full")]
+    PoolFull,
 }
