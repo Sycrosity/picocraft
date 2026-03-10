@@ -15,6 +15,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod channels;
 pub mod client;
 pub mod config;
 pub mod errors;
