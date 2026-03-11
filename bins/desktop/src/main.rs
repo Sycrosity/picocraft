@@ -31,9 +31,19 @@ async fn main() -> Result<(), PicocraftError> {
 
     let config = SERVER_CONFIG.init_with(|| config);
 
-    let server = Server::new(config, listener, system_rng);
+    let mut server = Server::new(config, listener, system_rng);
 
     info!("Server listening at: {}:{}", config.address, config.port);
+
+    let mut world = picocraft_ecs::World::new();
+
+    tokio::spawn(async move {
+        let mut ticker = tokio::time::interval(std::time::Duration::from_millis(50)); // 20 ticks/sec
+        loop {
+            ticker.tick().await;
+            picocraft_server::tick::tick(&mut world, server.terrain);
+        }
+    });
 
     loop {
         match server.next_connection().await {
@@ -42,7 +52,11 @@ async fn main() -> Result<(), PicocraftError> {
                     match client.handle_connection().await {
                         Ok(()) => debug!(
                             "Connection with {:?} finished successfully.",
+                            //TODO we should store the remote endpoint in the client struct so we
+                            // can log it here without needing to access the socket, which may have
+                            // been closed by this point.
                             client
+                                .connection
                                 .socket
                                 .remote_endpoint()
                                 .expect("socket should be open")
@@ -50,6 +64,7 @@ async fn main() -> Result<(), PicocraftError> {
                         Err(_) => error!(
                             "Connection with {:?} ended with an error.",
                             client
+                                .connection
                                 .socket
                                 .remote_endpoint()
                                 .expect("socket should be open")

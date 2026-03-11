@@ -15,7 +15,7 @@ path = "./src/main.rs"
 [dependencies]
 picocraft_core.workspace = true
 picocraft_server = { workspace = true, features = ["std"] }
-picocraft_proto.workspace = true
+picocraft_ecs.workspace = true
 
 log.workspace = true
 static_cell.workspace = true

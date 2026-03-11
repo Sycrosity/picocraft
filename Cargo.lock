@@ -607,7 +607,7 @@ dependencies = [
  "embassy-sync",
  "log",
  "picocraft_core",
- "picocraft_proto",
+ "picocraft_ecs",
  "picocraft_server",
  "rand 0.10.0",
  "rand_chacha",
