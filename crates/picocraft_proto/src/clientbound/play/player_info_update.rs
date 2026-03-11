@@ -3,6 +3,7 @@ use crate::prelude::*;
 #[derive(Debug)]
 pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub actions: EnumSet,
+    //TODO link MAX_PLAYERS to the length of this array
     pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), 8>,
 }
 

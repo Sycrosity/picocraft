@@ -32,7 +32,7 @@ impl Server {
         }
     }
 
-    pub async fn next_connection(&self) -> Result<Option<Client>, PicocraftError> {
+    pub async fn next_connection(&mut self) -> Result<Option<Client>, PicocraftError> {
         match select(self.listener.accept(), shutdown_signal()).await {
             Either::First(Ok((socket, addr))) => {
                 info!("New connection from: {}", &addr);

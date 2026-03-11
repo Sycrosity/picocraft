@@ -25,6 +25,8 @@ pub mod world;
 pub use errors::*;
 pub use world::World;
 
+pub const MAX_PLAYERS: usize = 8;
+
 #[allow(unused)]
 pub mod prelude {
 

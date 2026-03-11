@@ -50,6 +50,4 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::mutex::Mutex;
 use rand_chacha::ChaCha8Rng;
 
-pub const MAX_PLAYERS: usize = 8;
-
 pub type SystemRng = Mutex<CriticalSectionRawMutex, RefCell<ChaCha8Rng>>;
