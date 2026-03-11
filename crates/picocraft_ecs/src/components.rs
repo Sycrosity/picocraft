@@ -6,6 +6,9 @@ pub struct Health(pub f32);
 #[derive(Debug, Clone, Copy)]
 pub struct OnGround;
 
+#[derive(Debug, Clone)]
+pub struct Username(pub String<16>);
+
 /// Named "Motion" in Minecraft. Converted to f64 when serialised.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Velocity {

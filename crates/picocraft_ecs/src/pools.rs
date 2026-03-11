@@ -1,13 +1,16 @@
 use picocraft_derive::EntityPool;
 
-use super::components::*;
-use super::storage::{MarkerSet, SparseSet};
+use crate::components::*;
+use crate::entity::EntityKind;
+use crate::storage::{MarkerSet, SparseSet};
 
 #[derive(Default, EntityPool)]
 #[pool(kind = EntityKind::Player)]
 pub struct PlayerPool<const N: usize = 8> {
     #[canonical]
     pub uuid: SparseSet<Uuid, N>,
+    #[required]
+    pub username: SparseSet<Username, N>,
     #[required]
     pub health: SparseSet<Health, N>,
     #[required]
