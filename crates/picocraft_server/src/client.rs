@@ -4,10 +4,13 @@ pub mod player;
 
 use buffer::Buffer;
 use embassy_futures::select::{Either3, select3};
+use embassy_sync::pubsub::WaitResult;
 use packet_socket::PacketSocket;
+use picocraft_ecs::entity::EntityId;
+use picocraft_ecs::events::{Recipient, WorldEvent};
 use player::Player;
 
-use crate::channels::EventsSubscriber;
+use crate::channels::{EventsSubscriber, Late};
 use crate::prelude::*;
 
 pub struct Client {
@@ -19,7 +22,8 @@ pub struct Client {
     system_rng: &'static SystemRng,
     pub server_config: &'static ServerConfig,
     pub terrain: &'static picocraft_terrain::Terrain,
-    pub events: EventsSubscriber,
+    pub events: Late<EventsSubscriber>,
+    pub entity_id: Late<EntityId>,
 }
 
 #[allow(unused)]
@@ -38,7 +42,8 @@ impl Client {
             system_rng,
             server_config,
             terrain,
-            events: EventsSubscriber::uninitialised(),
+            events: Late::uninitialised(),
+            entity_id: Late::uninitialised(),
         }
     }
 

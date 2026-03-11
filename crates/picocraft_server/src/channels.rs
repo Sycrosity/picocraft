@@ -23,7 +23,7 @@ pub static EVENTS: PubSubChannel<CriticalSectionRawMutex, WorldEvent, MAX_EVENTS
     PubSubChannel::new();
 
 pub type EventsSubscriber =
-    Late<Subscriber<'static, CriticalSectionRawMutex, WorldEvent, MAX_EVENTS, MAX_PLAYERS, 1>>;
+    Subscriber<'static, CriticalSectionRawMutex, WorldEvent, MAX_EVENTS, MAX_PLAYERS, 1>;
 
 pub type EventsPublisher =
     Publisher<'static, CriticalSectionRawMutex, WorldEvent, MAX_EVENTS, MAX_PLAYERS, 1>;
@@ -40,7 +40,7 @@ pub type CommandsReceiver = Receiver<'static, CriticalSectionRawMutex, WorldComm
 /// Ngl this is not great, but i don't want to call `expect` every time i want
 /// to use the `EventsSubscriber`, and this is a simple way to avoid that
 /// without adding too much complexity.
-struct Late<T> {
+pub struct Late<T> {
     value: Option<T>,
     initialised: bool,
 }
