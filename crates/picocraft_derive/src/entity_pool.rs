@@ -12,6 +12,7 @@ struct PoolField<'a> {
     component_ty: &'a Type,
     is_canonical: bool,
     is_required: bool,
+    is_persistent: bool,
 }
 
 pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
@@ -56,6 +57,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 .map(|f| {
                     let is_canonical = has_attribute(f, "canonical");
                     let is_required = is_canonical || has_attribute(f, "required");
+                    let is_persistent = is_canonical || has_attribute(f, "persistent");
                     let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
                         ident: f.ident.as_ref().unwrap(),
@@ -63,6 +65,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         component_ty,
                         is_canonical,
                         is_required,
+                        is_persistent,
                     })
                 })
                 .collect::<syn::Result<Vec<PoolField>>>()?;
@@ -90,14 +93,27 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 .ident
                 .clone();
 
+            let pool_attr_kind = pool_attr.kind.clone();
+
             let bundle_name =
                 syn::Ident::new(&format!("{}Bundle", entity_kind), entity_kind.span());
+
+            let save_data_name =
+                syn::Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
 
             let required_fields: Vec<&PoolField> =
                 pool_fields.iter().filter(|f| f.is_required).collect();
             let all_fields: Vec<&PoolField> = pool_fields.iter().collect();
+            let persistent_fields: Vec<&PoolField> =
+                pool_fields.iter().filter(|f| f.is_persistent).collect();
 
             let bundle_fields = required_fields.iter().map(|f| {
+                let ident = f.ident;
+                let component_ty = f.component_ty;
+                quote! { pub #ident: #component_ty }
+            });
+
+            let save_data_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
                 let component_ty = f.component_ty;
                 quote! { pub #ident: #component_ty }
@@ -113,7 +129,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let despawn_removes = all_fields.iter().map(|f| {
                 let ident = &f.ident;
                 quote! {
-                    crate::storage::ComponentStore::remove(&mut self.#ident, index).ok();
+                    crate::storage::ComponentStore::remove(&mut self.#ident, index)?;
                 }
             });
 
@@ -155,19 +171,42 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     #(#bundle_fields,)*
                 }
 
+                #[derive(Debug, Clone)]
+                #visibility struct #save_data_name {
+                    #(#save_data_fields,)*
+                }
+
                 impl #impl_generics #ident #ty_generics #where_clause {
 
                     // Find the first slot not occupied by the canonical component
-                    pub fn first_free(&self) -> ::core::option::Option<u8> {
+                    fn first_free(&self) -> ::core::option::Option<u8> {
                         // we are assuming that the pool has the const generic N, which isn't guaranteed but is probably good enough for this derive macro
                         (0..N as u8).find(|&i| {
                             !crate::storage::ComponentStore::contains(&self.#canonical_ident, i)
                         })
                     }
 
-                    pub fn spawn(
+                    pub fn canonical(&self) -> &#canonical_storage_ty {
+                        &self.#canonical_ident
+                    }
+
+                    pub fn canonical_mut(&mut self) -> &mut #canonical_storage_ty {
+                        &mut self.#canonical_ident
+                    }
+
+                    pub fn count(&self) -> usize {
+                        (0..N as u8).filter(|&i| crate::storage::ComponentStore::contains(&self.#canonical_ident, i)).count()
+                    }
+                }
+
+                impl #impl_generics crate::traits::Pool for #ident #ty_generics #where_clause {
+
+                    type Bundle = #bundle_name;
+                    type SaveData = #save_data_name;
+
+                    fn spawn(
                         &mut self,
-                        bundle: #bundle_name
+                        bundle: Self::Bundle
                     ) -> ::core::result::Result<
                         crate::entity::EntityRef<'_, #ident #ty_generics>,
                         crate::errors::ComponentStorageError
@@ -180,20 +219,17 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         #(#spawn_inserts)*
                         Ok(crate::entity::EntityRef {
                             pool: self,
-                            index,
+                            entity_id: crate::entity::EntityId::new(#pool_attr_kind, index),
                         })
                     }
 
-                    pub fn despawn(&mut self, index: u8) {
+                    fn despawn(&mut self, entity_id: crate::entity::EntityId) -> ::core::result::Result<(), crate::errors::ComponentStorageError> {
+
+                        let index = entity_id.index();
+
                         #(#despawn_removes)*
-                    }
 
-                    pub fn canonical(&self) -> &#canonical_storage_ty {
-                        &self.#canonical_ident
-                    }
-
-                    pub fn canonical_mut(&mut self) -> &mut #canonical_storage_ty {
-                        &mut self.#canonical_ident
+                        Ok(())
                     }
                 }
 
