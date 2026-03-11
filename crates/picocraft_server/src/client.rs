@@ -11,7 +11,7 @@ use picocraft_ecs::events::{Recipient, WorldEvent};
 use picocraft_proto::clientbound::PlayerActions;
 use player::Player;
 
-use crate::channels::{EventsSubscriber, Late};
+use crate::channels::EventsSubscriber;
 use crate::prelude::*;
 
 pub struct Client {
@@ -55,28 +55,104 @@ impl Client {
         self.server_config
     }
 
+    pub async fn next_event(events: &mut Option<EventsSubscriber>) -> WaitResult<WorldEvent> {
+        if let Some(events) = events {
+            events.next_message().await
+        } else {
+            core::future::pending().await
+        }
+    }
+
+    pub async fn handle_event(&mut self, event: WorldEvent) -> Result<(), PacketError> {
+        let should_receive_event = match event.recipient() {
+            Recipient::All => true,
+            Recipient::Player(id) => Some(id) == self.entity_id,
+            Recipient::AllExcept(id) => Some(id) != self.entity_id,
+        };
+        if !should_receive_event {
+            return Ok(());
+        }
+
+        match event {
+            WorldEvent::PlayerJoined {
+                player_id,
+                username,
+                uuid,
+            } => {
+                //TODO very ugly - should be moved into PlayerInfoUpdatePacket's impl fn's.
+                let player_info_update = clientbound::PlayerInfoUpdatePacket::<2> {
+                    actions: EnumSet::ADD_PLAYER | EnumSet::UPDATE_LISTED,
+                    players: PrefixedArray::from_array([(
+                        uuid,
+                        Array::from_array([
+                            PlayerActions::AddPlayer {
+                                name: username,
+                                properties: Properties::default(),
+                            },
+                            PlayerActions::UpdateListed(true),
+                        ]),
+                    )]),
+                };
+
+                self.encode_packet(&player_info_update).await?;
+            }
+            //TODO this would look something like this?
+            // WorldEvent::PlayerLeft { uuid } => {
+            //     self.encode_packet(&PlayerInfoUpdatePacket::remove(uuid)).await?;
+            //     self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
+            //         .await?;
+            // }
+            _ => todo!(),
+        };
+
+        Ok(())
+    }
+
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
         debug!(
             "Handling connection for {}",
-            self.socket.remote_endpoint().expect("Socket is initiated")
+            self.connection
+                .socket
+                .remote_endpoint()
+                .expect("Socket is initiated")
         );
 
         //TODO We need a generic timer implemation that works with either tokio or
         // embassy
         let mut ticker = tokio::time::interval(core::time::Duration::from_secs(10));
         let _ = ticker.tick().await; // advance to next tick
-
         // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
 
         loop {
             // This method may lose packets if both a packet is received and 15 seconds have
             // elapsed since the last keep-alive, but thats a good enough tradeoff for now.
-            let res = match select3(self.read_packet(), ticker.tick(), self.handle_events()).await {
+            let res = match select3(
+                self.connection.read_packet(),
+                Self::next_event(&mut self.events),
+                ticker.tick(),
+            )
+            .await
+            {
                 Either3::First(Ok((packet_length, packet_id))) => {
                     self.process_packet(packet_length, packet_id).await
                 }
                 Either3::First(Err(e)) => Err(e),
-                Either3::Second(_) => {
+
+                Either3::Second(WaitResult::Message(event)) => {
+                    self.handle_event(event).await?;
+
+                    Ok(())
+                }
+                Either3::Second(WaitResult::Lagged(skipped)) => {
+                    error!(
+                        "Client {} [{}] has fallen behind and skipped {} events.",
+                        self.username(),
+                        self.uuid(),
+                        skipped
+                    );
+                    Err(PacketError::ConnectionClosed)
+                }
+                Either3::Third(_) => {
                     if self.state() == State::Play {
                         let keep_alive =
                             clientbound::KeepAlivePacket::new(self.system_random().await);
