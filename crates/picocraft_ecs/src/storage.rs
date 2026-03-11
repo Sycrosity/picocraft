@@ -44,7 +44,6 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
 
     fn insert(&mut self, index: u8, value: Self::Item) -> Result<(), ComponentStorageError> {
         if index > N as u8 {
-            // Don't panic
             return Err(ComponentStorageError::IndexOutOfBounds {
                 index,
                 max_index: N as u8,
@@ -56,7 +55,7 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
             // caller decide what to do?
             self.dense[existing.get() as usize - 1] = value;
         } else {
-            // SAFETY - We have a const assertion that N < 255, so we can
+            // SAFETY - We have an assertion that N < 255, so we can
             // safely cast the length of the dense vector to u8.
             self.sparse[index as usize] = NonZeroU8::new(self.dense.len() as u8 + 1);
 

@@ -14,6 +14,7 @@ pub trait Pool: Sized {
     type Bundle;
     type SaveData;
 
-    fn spawn(&mut self, bundle: Self::Bundle) -> Result<EntityRef<Self>, ComponentStorageError>;
+    fn spawn(&mut self, bundle: Self::Bundle)
+    -> Result<EntityRef<'_, Self>, ComponentStorageError>;
     fn despawn(&mut self, entity_id: EntityId) -> Result<(), ComponentStorageError>;
 }
