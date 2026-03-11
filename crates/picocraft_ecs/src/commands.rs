@@ -2,9 +2,11 @@ use crate::components::*;
 use crate::entity::EntityId;
 use crate::prelude::*;
 
-/// Commands that can be sent to the world from outside systems, e.g. from network handlers. Conveys intent for the actions.
+/// Commands that can be sent to the world from outside systems, e.g. from
+/// network handlers. Conveys intent for the actions.
 pub enum WorldCommand {
-    /// Doesn't include EntityId because the player hasn't been spawned yet - the ECS world will assign one when the player is spawned.
+    /// Doesn't include EntityId because the player hasn't been spawned yet -
+    /// the ECS world will assign one when the player is spawned.
     PlayerJoined {
         username: String<16>,
         uuid: UUID,

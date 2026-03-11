@@ -1,7 +1,6 @@
 use crate::entity::EntityId;
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone)]
 pub enum WorldEvent {
     PlayerJoined {
