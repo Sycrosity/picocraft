@@ -67,7 +67,7 @@ impl<T> Late<T> {
 
         Ok(())
     }
-    pub fn initialised(&self) -> bool {
+    pub fn is_initialised(&self) -> bool {
         self.initialised
     }
 }

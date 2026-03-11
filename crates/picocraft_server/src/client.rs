@@ -1,29 +1,27 @@
 pub mod buffer;
+pub mod connection;
 pub mod packet_socket;
 pub mod player;
 
-use buffer::Buffer;
+use connection::Connection;
 use embassy_futures::select::{Either3, select3};
 use embassy_sync::pubsub::WaitResult;
-use packet_socket::PacketSocket;
 use picocraft_ecs::entity::EntityId;
 use picocraft_ecs::events::{Recipient, WorldEvent};
+use picocraft_proto::clientbound::PlayerActions;
 use player::Player;
 
 use crate::channels::{EventsSubscriber, Late};
 use crate::prelude::*;
 
 pub struct Client {
+    pub connection: Connection,
     pub player: Player,
-    state: State,
-    pub socket: PacketSocket,
-    // pub remote_addr: core::net::SocketAddrV4,
-    rx_buf: Buffer<1024>,
     system_rng: &'static SystemRng,
     pub server_config: &'static ServerConfig,
     pub terrain: &'static picocraft_terrain::Terrain,
-    pub events: Late<EventsSubscriber>,
-    pub entity_id: Late<EntityId>,
+    pub events: Option<EventsSubscriber>,
+    pub entity_id: Option<EntityId>,
 }
 
 #[allow(unused)]
@@ -36,46 +34,14 @@ impl Client {
     ) -> Self {
         Self {
             player: Player::default(),
-            state: State::default(),
-            socket: PacketSocket::new(socket),
-            rx_buf: Buffer::new(),
+            // state: State::default(),
+            connection: Connection::new(socket),
             system_rng,
             server_config,
             terrain,
-            events: Late::uninitialised(),
-            entity_id: Late::uninitialised(),
+            events: None,
+            entity_id: None,
         }
-    }
-
-    //TODO This isn't a very elegant way to do this - having a "raw packet" type or
-    // similar would be better.
-    pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
-        self.rx_buf.clear();
-
-        trace!(
-            "Reading packet for {} in {:?} state.",
-            self.socket.remote_endpoint().expect("Socket is initiated"),
-            &self.state
-        );
-
-        // if self.state != State::Play && self.is_legacy_ping().await? {
-        //     LegacyPingPacket::handle(LegacyPingPacket, self).await?;
-        //     self.socket.shutdown().await?;
-        //     return Ok(());
-        // }
-
-        let packet_length = self.read_packet_length().await?;
-
-        let packet_id = VarInt::decode(&mut self.socket).await?;
-
-        trace!(
-            "Packet Length: {packet_length} - Packet ID: {:02x?}",
-            *packet_id
-        );
-
-        self.read_packet_body(packet_length).await?;
-
-        Ok((packet_length, packet_id))
     }
 
     pub async fn system_random<T>(&self) -> T
@@ -123,11 +89,10 @@ impl Client {
                             self.username(),
                             self.uuid()
                         );
-                        self.socket.shutdown().await?;
+                        self.connection.socket.shutdown().await?;
                         return Ok(());
                     }
                 }
-                Either3::Third(Ok(())) => Ok(()),
             };
 
             //TODO really, this should be propogated properly, with text from the source
@@ -144,12 +109,13 @@ impl Client {
                 Err(
                     PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
                 ) => {
-                    self.socket.shutdown().await?;
+                    self.connection.socket.shutdown().await?;
 
                     if self.username().is_empty() {
                         info!(
                             "Connection closed for client: {}",
-                            self.socket
+                            self.connection
+                                .socket
                                 .remote_endpoint()
                                 .expect("socket should be open")
                         );
@@ -177,7 +143,7 @@ impl Client {
                         self.uuid(),
                     );
 
-                    self.socket.shutdown().await?;
+                    self.connection.socket.shutdown().await?;
                     return Err(PacketError::ConnectionClosed);
                 }
                 Err(PacketError::Encode(e)) => {
@@ -205,10 +171,11 @@ impl Client {
     ) -> Result<(), PacketError> {
         use serverbound::*;
 
-        match self.state {
+        match self.state() {
             State::Handshake => match packet_id {
                 HandshakePacket::ID => {
-                    let packet = HandshakePacket::decode(&mut self.rx_buf.as_slice()).await?;
+                    let packet =
+                        HandshakePacket::decode(&mut self.connection.rx_buf.as_slice()).await?;
 
                     HandshakePacket::handle(packet, self).await?;
                 }
@@ -219,12 +186,14 @@ impl Client {
             },
             State::Status => match packet_id {
                 StatusRequestPacket::ID => {
-                    let packet = StatusRequestPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                    let packet =
+                        StatusRequestPacket::decode(&mut self.connection.rx_buf.as_slice()).await?;
 
                     StatusRequestPacket::handle(packet, self).await?;
                 }
                 PingRequestPacket::ID => {
-                    let packet = PingRequestPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                    let packet =
+                        PingRequestPacket::decode(&mut self.connection.rx_buf.as_slice()).await?;
 
                     PingRequestPacket::handle(packet, self).await?;
                 }
@@ -235,13 +204,15 @@ impl Client {
             },
             State::Login => match packet_id {
                 LoginStartPacket::ID => {
-                    let packet = LoginStartPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                    let packet =
+                        LoginStartPacket::decode(&mut self.connection.rx_buf.as_slice()).await?;
 
                     LoginStartPacket::handle(packet, self).await?;
                 }
                 LoginAcknowledgedPacket::ID => {
                     let packet =
-                        LoginAcknowledgedPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                        LoginAcknowledgedPacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
 
                     LoginAcknowledgedPacket::handle(packet, self).await?;
                 }
@@ -254,14 +225,16 @@ impl Client {
             State::Configuration => match packet_id {
                 ClientInformationPacket::ID => {
                     let packet =
-                        ClientInformationPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                        ClientInformationPacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
 
                     ClientInformationPacket::handle(packet, self).await?;
                 }
                 AcknowledgeFinishConfigurationPacket::ID => {
-                    let packet =
-                        AcknowledgeFinishConfigurationPacket::decode(&mut self.rx_buf.as_slice())
-                            .await?;
+                    let packet = AcknowledgeFinishConfigurationPacket::decode(
+                        &mut self.connection.rx_buf.as_slice(),
+                    )
+                    .await?;
 
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
@@ -276,12 +249,14 @@ impl Client {
             State::Play => match packet_id {
                 ConfirmTeleportationPacket::ID => {
                     let packet =
-                        ConfirmTeleportationPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                        ConfirmTeleportationPacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
 
                     ConfirmTeleportationPacket::handle(packet, self).await?;
                 }
                 ClientTickEndPacket::ID => {
-                    let packet = ClientTickEndPacket::decode(&mut self.rx_buf.as_slice()).await?;
+                    let packet =
+                        ClientTickEndPacket::decode(&mut self.connection.rx_buf.as_slice()).await?;
 
                     ClientTickEndPacket::handle(packet, self).await?;
                 }
@@ -292,80 +267,13 @@ impl Client {
             },
         }
 
-        self.socket.flush().await?;
+        self.connection.socket.flush().await?;
 
         Ok(())
-    }
-
-    async fn read_packet_length(&mut self) -> Result<VarInt, PacketError> {
-        let packet_length = VarInt::decode(&mut self.socket).await?;
-
-        if packet_length > MAX_PACKET_SIZE || *packet_length > self.rx_buf.capacity() as i32 {
-            return Err(PacketError::Decode(DecodeError::VarIntTooBig));
-        }
-
-        Ok(packet_length)
-    }
-
-    async fn read_packet_body(&mut self, length: VarInt) -> Result<(), PacketError> {
-        //SAFETY: length has already been validated in read_packet_length
-        self.rx_buf
-            .resize_default(*length as usize - 1)
-            .expect("length has already been validated in fn read_packet_length()");
-
-        if *length as u32 - 1 > 0 {
-            self.socket.read(&mut self.rx_buf).await?;
-        }
-
-        Ok(())
-    }
-
-    /// Handle legacy ping packets (0xFE) sent by old Minecraft clients (pre
-    /// 1.7, before the netty rewrite). Returns true if a legacy ping was
-    /// handled, false otherwise.
-    async fn is_legacy_ping(&mut self) -> Result<bool, PacketError> {
-        use picocraft_core::byteorder::ReadBytesExt;
-
-        let mut first_byte = [0u8; 1];
-
-        // Peek at the first byte without consuming it incase it's not a legacy ping.
-        self.socket.peek(&mut first_byte).await?;
-
-        // Legacy ping packets are prefixed with 0xFE - modern clients should not send
-        // this.
-        if first_byte[0] != 0xfe {
-            return Ok(false);
-        }
-
-        // Consume the first byte (0xFE), consistent with the format of handling other
-        // packets.
-        let _ = self.socket.read_u8().await?;
-
-        let _ = serverbound::LegacyPingPacket::decode(&mut self.socket)
-            .await
-            .inspect_err(|e| warn!("couldn't decode legacy ping packet: {e:?}"))?;
-
-        Ok(true)
     }
 
     pub(crate) async fn encode_packet<P: Packet>(&mut self, packet: &P) -> Result<(), PacketError> {
-        trace!("Encoding packet: {packet}");
-
-        let mut counting_writer = ByteCountWriter::new();
-
-        packet.encode(&mut counting_writer).await?;
-
-        let len = counting_writer.count;
-
-        VarInt(len as i32).encode(&mut self.socket).await?;
-
-        packet.encode(&mut self.socket).await?;
-
-        self.socket.flush().await?;
-
-        trace!("Packet sent: {packet}");
-
-        Ok(())
+        self.connection.encode_packet(packet).await
     }
 
     pub(crate) fn username(&self) -> &heapless::String<16> {
@@ -377,10 +285,10 @@ impl Client {
     }
 
     pub(crate) fn state(&self) -> State {
-        self.state
+        self.connection.state()
     }
 
     pub(crate) fn set_state(&mut self, state: State) {
-        self.state = state;
+        self.connection.set_state(state);
     }
 }
