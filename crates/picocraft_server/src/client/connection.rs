@@ -102,7 +102,7 @@ impl Connection {
     /// Handle legacy ping packets (0xFE) sent by old Minecraft clients (pre
     /// 1.7, before the netty rewrite). Returns true if a legacy ping was
     /// handled, false otherwise.
-    async fn is_legacy_ping(&mut self) -> Result<bool, PacketError> {
+    pub async fn is_legacy_ping(&mut self) -> Result<bool, PacketError> {
         use picocraft_core::byteorder::ReadBytesExt;
 
         let mut first_byte = [0u8; 1];

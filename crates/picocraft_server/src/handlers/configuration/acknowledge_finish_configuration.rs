@@ -1,8 +1,12 @@
+use embassy_sync::pubsub::WaitResult;
+use picocraft_ecs::commands::WorldCommand;
+use picocraft_ecs::events::WorldEvent;
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
 use picocraft_terrain::terrain::chunks::empty_chunk::EmptyChunkAndLightPacket;
 use picocraft_terrain::terrain::coordinates::ChunkColumnCoordinates;
 use picocraft_terrain::terrain::spiral_iterator::{BorderedSpiralIterator, ChunkKind};
 
+use crate::channels::COMMANDS;
 use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
@@ -11,17 +15,39 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         info!(
             "Client {} [{}] has finished configuration.",
-            client.player.username(),
-            client.player.uuid()
+            client.username().clone(),
+            client.uuid()
         );
 
         client.set_state(State::Play);
+
+        COMMANDS
+            .send(WorldCommand::PlayerJoined {
+                username: client.username().clone(),
+                uuid: client.uuid(),
+            })
+            .await;
+
+        let entity_id = loop {
+            match client.events.as_mut().unwrap().next_message().await {
+                WaitResult::Message(WorldEvent::PlayerJoined {
+                    player_id, uuid, ..
+                }) if uuid == client.uuid() => {
+                    break player_id;
+                }
+                // Drain any other events that arrived first
+                _ => continue,
+            }
+        };
+
+        client.entity_id = Some(entity_id);
 
         let vec: PrefixedArray<Identifier<16>, 3> = PrefixedArray::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
         )]);
 
         let login_play = clientbound::LoginPlayPacket::builder()
+            .entity_id(i32::from(entity_id.index()))
             .dimension_names(vec)
             .is_hardcore(false)
             .view_distance(VarInt(16))

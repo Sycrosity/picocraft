@@ -1,7 +1,6 @@
-use picocraft_ecs::commands::WorldCommand;
 use picocraft_proto::serverbound::login::*;
 
-use crate::channels::{COMMANDS, EVENTS};
+use crate::channels::EVENTS;
 use crate::prelude::*;
 
 const CAT_VARIANT: &[u8] = include_bytes!("login/cat_variant.bin");
@@ -31,10 +30,7 @@ impl HandlePacket for LoginStartPacket {
             return Err(PacketError::ConnectionClosed);
         };
 
-        client
-            .events
-            .init(subscriber)
-            .map_err(|_| PacketError::ConnectionClosed)?;
+        client.events = Some(subscriber);
 
         let login_success = clientbound::LoginSuccess(GameProfile::new(
             client.player.username().clone(),
@@ -47,13 +43,6 @@ impl HandlePacket for LoginStartPacket {
         client.player.set_uuid(self.uuid);
 
         client.encode_packet(&login_success).await?;
-
-        COMMANDS
-            .send(WorldCommand::PlayerJoined {
-                username: self.username,
-                uuid: self.uuid,
-            })
-            .await;
 
         Ok(())
     }
@@ -98,10 +87,10 @@ async fn encode_registry_data(
     client: &mut Client,
 ) -> Result<(), PacketError> {
     VarInt(bytes.len() as i32)
-        .encode(&mut client.socket)
+        .encode(&mut client.connection.socket)
         .await?;
 
-    bytes.encode(&mut client.socket).await?;
+    bytes.encode(&mut client.connection.socket).await?;
 
     Ok(())
 }
