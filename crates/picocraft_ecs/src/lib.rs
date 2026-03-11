@@ -31,6 +31,11 @@ pub mod prelude {
     pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
 
-    pub(crate) use crate::errors::*;
+    pub use crate::components::*;
+    pub use crate::entity::*;
+    pub use crate::errors::*;
+    pub(crate) use crate::traits::*;
+    pub use crate::world::World;
+
     // pub(crate) use picocraft_proto::prelude::*;
 }
