@@ -40,18 +40,26 @@ pub type CommandsReceiver = Receiver<'static, CriticalSectionRawMutex, WorldComm
 /// Ngl this is not great, but i don't want to call `expect` every time i want
 /// to use the `EventsSubscriber`, and this is a simple way to avoid that
 /// without adding too much complexity.
-pub struct Late<T> {
+struct Late<T> {
     value: Option<T>,
     initialised: bool,
 }
 
 impl<T> Late<T> {
-    pub const fn new() -> Self {
+    pub const fn uninitialised() -> Self {
         Self {
             value: None,
             initialised: false,
         }
     }
+
+    pub const fn new(val: T) -> Self {
+        Self {
+            value: Some(val),
+            initialised: true,
+        }
+    }
+
     pub fn init(&mut self, val: T) -> Result<(), T> {
         if self.initialised {
             return Err(val);

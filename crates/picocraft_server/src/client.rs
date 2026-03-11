@@ -1,12 +1,13 @@
-mod buffer;
-mod packet_socket;
-mod player;
+pub mod buffer;
+pub mod packet_socket;
+pub mod player;
 
 use buffer::Buffer;
-use embassy_futures::select::{Either, select};
+use embassy_futures::select::{Either3, select3};
 use packet_socket::PacketSocket;
 use player::Player;
 
+use crate::channels::EventsSubscriber;
 use crate::prelude::*;
 
 pub struct Client {
@@ -18,6 +19,7 @@ pub struct Client {
     system_rng: &'static SystemRng,
     pub server_config: &'static ServerConfig,
     pub terrain: &'static picocraft_terrain::Terrain,
+    pub events: EventsSubscriber,
 }
 
 #[allow(unused)]
@@ -36,6 +38,7 @@ impl Client {
             system_rng,
             server_config,
             terrain,
+            events: EventsSubscriber::uninitialised(),
         }
     }
 
@@ -97,20 +100,29 @@ impl Client {
         loop {
             // This method may lose packets if both a packet is received and 15 seconds have
             // elapsed since the last keep-alive, but thats a good enough tradeoff for now.
-            let res = match select(self.read_packet(), ticker.tick()).await {
-                Either::First(Ok((packet_length, packet_id))) => {
+            let res = match select3(self.read_packet(), ticker.tick(), self.handle_events()).await {
+                Either3::First(Ok((packet_length, packet_id))) => {
                     self.process_packet(packet_length, packet_id).await
                 }
-                Either::First(Err(e)) => Err(e),
-                Either::Second(_) => {
+                Either3::First(Err(e)) => Err(e),
+                Either3::Second(_) => {
                     if self.state() == State::Play {
                         let keep_alive =
                             clientbound::KeepAlivePacket::new(self.system_random().await);
                         self.encode_packet(&keep_alive).await
                     } else {
-                        panic!("The client has timed out.");
+                        // panic!("The client has timed out.");
+                        warn!(
+                            "Client timed out in state {:?}: {} [{}]",
+                            self.state(),
+                            self.username(),
+                            self.uuid()
+                        );
+                        self.socket.shutdown().await?;
+                        return Ok(());
                     }
                 }
+                Either3::Third(Ok(())) => Ok(()),
             };
 
             //TODO really, this should be propogated properly, with text from the source
@@ -127,6 +139,8 @@ impl Client {
                 Err(
                     PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
                 ) => {
+                    self.socket.shutdown().await?;
+
                     if self.username().is_empty() {
                         info!(
                             "Connection closed for client: {}",
@@ -142,7 +156,6 @@ impl Client {
                         );
                     }
 
-                    self.socket.shutdown().await?;
                     return Ok(());
                 }
                 Err(PacketError::Unknown) => {
