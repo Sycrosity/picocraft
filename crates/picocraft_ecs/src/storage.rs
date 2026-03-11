@@ -17,6 +17,8 @@ pub trait GetComponent: ComponentStore {
 
 pub struct SparseSet<T: Debug, const N: usize> {
     sparse: [Option<NonZeroU8>; N],
+    // dense position -> sparse index (entity id)
+    indices: Vec<u8, N>,
     dense: Vec<T, N>,
 }
 
@@ -34,8 +36,29 @@ impl<T: Debug, const N: usize> SparseSet<T, N> {
 
         Self {
             sparse: [None; N],
+            indices: Vec::new(),
             dense: Vec::new(),
         }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (u8, &T)> {
+        self.indices.iter().copied().zip(self.dense.iter())
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (u8, &mut T)> {
+        self.indices.iter().copied().zip(self.dense.iter_mut())
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &T> {
+        self.dense.iter()
+    }
+
+    pub fn len(&self) -> usize {
+        self.dense.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.dense.is_empty()
     }
 }
 
@@ -62,6 +85,7 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
             self.dense
                 .push(value)
                 .expect("index should never be larger than N");
+            self.indices.push(index).expect("indices full");
         }
 
         Ok(())
@@ -76,27 +100,30 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
         }
 
         //.take() removes the value if it exists, replacing it with `None`
-        if let Some(dense_index) = self.sparse[index as usize].take() {
-            // subtract 1 to get the actual index in the dense vector
-            let dense_index = dense_index.get() as usize - 1;
-            let last_element_index = self.dense.len() - 1;
-
-            self.dense.swap_remove(dense_index);
-
-            if dense_index != last_element_index {
-                let moved_entity = self
-                    .sparse
-                    .iter()
-                    .position(|sparse_element| {
-                        sparse_element.map(|non_zero| non_zero.get() as usize - 1)
-                            == Some(last_element_index)
-                    })
-                    .ok_or(ComponentStorageError::NotFound(index))?;
-
-                self.sparse[moved_entity] = NonZeroU8::new(dense_index as u8 + 1);
-            }
-        } else {
+        let Some(dense_index) = self.sparse[index as usize].take() else {
             return Err(ComponentStorageError::NotFound(index));
+        };
+
+        // subtract 1 to get the actual index in the dense vector
+        let dense_index = dense_index.get() as usize - 1;
+        let last_element_index = self.dense.len() - 1;
+
+        self.dense.swap_remove(dense_index);
+        self.indices.swap_remove(dense_index);
+
+        if dense_index != last_element_index {
+            // let moved_entity = self
+            //     .sparse
+            //     .iter()
+            //     .position(|sparse_element| {
+            //         sparse_element.map(|non_zero| non_zero.get() as usize - 1)
+            //             == Some(last_element_index)
+            //     })
+            //     .ok_or(ComponentStorageError::NotFound(index))?;
+
+            let moved_sparse = self.indices[dense_index];
+
+            self.sparse[usize::from(moved_sparse)] = NonZeroU8::new(dense_index as u8 + 1);
         }
 
         Ok(())
