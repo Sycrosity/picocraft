@@ -6,12 +6,13 @@ pub mod player;
 use connection::Connection;
 use embassy_futures::select::{Either3, select3};
 use embassy_sync::pubsub::WaitResult;
+use picocraft_ecs::commands::WorldCommand;
 use picocraft_ecs::entity::EntityId;
 use picocraft_ecs::events::{Recipient, WorldEvent};
 use picocraft_proto::clientbound::PlayerActions;
 use player::Player;
 
-use crate::channels::EventsSubscriber;
+use crate::channels::{COMMANDS, EventsSubscriber};
 use crate::prelude::*;
 
 pub struct Client {
@@ -97,11 +98,12 @@ impl Client {
                 self.encode_packet(&player_info_update).await?;
             }
             //TODO this would look something like this?
-            // WorldEvent::PlayerLeft { uuid } => {
-            //     self.encode_packet(&PlayerInfoUpdatePacket::remove(uuid)).await?;
-            //     self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
-            //         .await?;
-            // }
+            WorldEvent::PlayerLeft { player_id, uuid } => {
+                self.encode_packet(&clientbound::PlayerInfoUpdatePacket::<1>::remove(uuid))
+                    .await?;
+                // self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
+                //     .await?;
+            }
             _ => todo!(),
         };
 
@@ -185,7 +187,7 @@ impl Client {
                 Err(
                     PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
                 ) => {
-                    self.connection.socket.shutdown().await?;
+                    self.shutdown().await?;
 
                     if self.username().is_empty() {
                         info!(
@@ -219,7 +221,7 @@ impl Client {
                         self.uuid(),
                     );
 
-                    self.connection.socket.shutdown().await?;
+                    self.shutdown().await?;
                     return Err(PacketError::ConnectionClosed);
                 }
                 Err(PacketError::Encode(e)) => {
@@ -238,6 +240,18 @@ impl Client {
                 }
             }
         }
+    }
+
+    async fn shutdown(&mut self) -> Result<(), PacketError> {
+        drop(self.events.take());
+
+        if let Some(player_id) = self.entity_id.take() {
+            COMMANDS.send(WorldCommand::PlayerLeft { player_id }).await;
+        }
+
+        self.connection.socket.shutdown().await?;
+
+        Ok(())
     }
 
     async fn process_packet(
@@ -297,7 +311,6 @@ impl Client {
                     return Err(PacketError::InvalidPacket);
                 }
             },
-
             State::Configuration => match packet_id {
                 ClientInformationPacket::ID => {
                     let packet =

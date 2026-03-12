@@ -129,7 +129,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let despawn_removes = all_fields.iter().map(|f| {
                 let ident = &f.ident;
                 quote! {
-                    crate::storage::ComponentStore::remove(&mut self.#ident, index)?;
+                    crate::storage::ComponentStore::remove(&mut self.#ident, index).ok();
                 }
             });
 

@@ -11,6 +11,11 @@ pub enum WorldEvent {
     },
     PlayerLeft {
         player_id: EntityId,
+        uuid: UUID,
+    },
+    ExistingPlayers {
+        recipient: EntityId,
+        players: Vec<(EntityId, String<16>, Uuid), MAX_PLAYERS>,
     },
     // BlockBroken {
     //     player: EntityId,
@@ -36,13 +41,14 @@ pub enum Recipient {
 impl WorldEvent {
     pub fn recipient(&self) -> Recipient {
         match self {
-            Self::PlayerJoined { player_id, .. } => Recipient::All,
-            Self::PlayerLeft { player_id, .. } => Recipient::All,
+            Self::PlayerJoined { .. } => Recipient::All,
+            Self::PlayerLeft { .. } => Recipient::All,
+            Self::ExistingPlayers { recipient, .. } => Recipient::Player(*recipient),
             // Self::PlayerMoved  { player_id, .. }  => Recipient::AllExcept(*player_id),
             // Self::BlockBroken  { player_id, .. }  => Recipient::AllExcept(*player_id),
             // Self::BlockPlaced  { player_id, .. }  => Recipient::AllExcept(*player_id),
-            // Self::PlayerDamaged { player_id, .. } => Recipient::All,
-            // Self::PlayerDied   { player_id, .. }  => Recipient::All,
+            // Self::PlayerDamaged { .. } => Recipient::All,
+            // Self::PlayerDied   { .. }  => Recipient::All,
             Self::ChatMessage { player_id, .. } => Recipient::AllExcept(*player_id),
         }
     }

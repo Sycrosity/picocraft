@@ -7,6 +7,18 @@ pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), 8>,
 }
 
+impl<const ACTIONS: usize> PlayerInfoUpdatePacket<ACTIONS> {
+    pub fn remove(uuid: UUID) -> Self {
+        Self {
+            actions: EnumSet::UPDATE_LISTED,
+            players: PrefixedArray::from_array([(
+                uuid,
+                Array::from_array([PlayerActions::UpdateListed(false)]),
+            )]),
+        }
+    }
+}
+
 impl<const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<ACTIONS> {
     const ID: VarInt = VarInt(0x44);
 

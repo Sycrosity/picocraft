@@ -57,7 +57,6 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
     player.insert(OnGround).unwrap();
 }
 
-//doesn't work correctly yet for some reason
 pub fn system_player_left(world: &mut World, player_id: EntityId) {
     let index = player_id.index();
 
@@ -69,10 +68,17 @@ pub fn system_player_left(world: &mut World, player_id: EntityId) {
         return;
     }
 
+    let uuid = world
+        .players
+        .uuid
+        .get(player_id.index())
+        .expect("UUID should be the canonical component")
+        .0;
+
     //TODO don't unwrap
     world.players.despawn(player_id).unwrap();
 
     EVENTS
         .immediate_publisher()
-        .publish_immediate(WorldEvent::PlayerLeft { player_id });
+        .publish_immediate(WorldEvent::PlayerLeft { player_id, uuid });
 }
