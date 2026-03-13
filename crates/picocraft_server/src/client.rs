@@ -99,8 +99,11 @@ impl Client {
             }
             //TODO this would look something like this?
             WorldEvent::PlayerLeft { player_id, uuid } => {
-                self.encode_packet(&clientbound::PlayerInfoUpdatePacket::<1>::remove(uuid))
-                    .await?;
+                self.encode_packet(&clientbound::PlayerInfoRemovePacket {
+                    uuids: PrefixedArray::from_array([uuid]),
+                })
+                .await?;
+
                 // self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
                 //     .await?;
             }
