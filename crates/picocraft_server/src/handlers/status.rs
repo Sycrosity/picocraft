@@ -1,5 +1,4 @@
 use heapless::format;
-use picocraft_ecs::MAX_PLAYERS;
 use picocraft_proto::serverbound::status::*;
 
 use crate::prelude::*;

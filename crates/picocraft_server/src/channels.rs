@@ -4,7 +4,7 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::{Channel, Receiver, Sender};
 use embassy_sync::mutex::Mutex;
 use embassy_sync::pubsub::{PubSubChannel, Publisher, Subscriber};
-use picocraft_ecs::MAX_PLAYERS;
+use picocraft_core::consts::MAX_PLAYERS;
 use picocraft_ecs::commands::WorldCommand;
 use picocraft_ecs::events::WorldEvent;
 use rand_chacha::ChaCha8Rng;

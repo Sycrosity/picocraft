@@ -1,4 +1,3 @@
-use crate::MAX_PLAYERS;
 use crate::entity::EntityId;
 use crate::prelude::*;
 
