@@ -12,19 +12,30 @@
     clippy::unwrap_used
 )]
 
-pub mod dimension;
-pub mod noise;
-pub mod terrain;
-pub mod terrain_builder;
+pub mod commands;
+pub mod components;
+pub mod entity;
+pub mod errors;
+pub mod events;
+pub mod pools;
+pub mod storage;
+pub mod traits;
+pub mod world;
 
-pub use terrain::Terrain;
-pub use terrain_builder::TerrainBuilder;
+pub use errors::*;
+pub use world::World;
 
 #[allow(unused)]
-pub(crate) mod prelude {
+pub mod prelude {
 
     pub(crate) use heapless::Vec;
     pub(crate) use picocraft_core::prelude::*;
-    pub(crate) use picocraft_proto::prelude::*;
-    pub(crate) use rand::prelude::*;
+
+    pub use crate::components::*;
+    pub use crate::entity::*;
+    pub use crate::errors::*;
+    pub(crate) use crate::traits::*;
+    pub use crate::world::World;
+
+    // pub(crate) use picocraft_proto::prelude::*;
 }

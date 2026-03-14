@@ -1,3 +1,4 @@
+pub mod angle;
 mod array;
 pub mod bitset;
 mod bitsets;
@@ -6,6 +7,7 @@ mod core;
 mod cow;
 mod enum_set;
 mod identifier;
+mod lpvec3;
 mod nbt;
 mod optional;
 mod position;
@@ -58,9 +60,10 @@ pub struct Slot {
 #[derive(Debug, Clone)]
 pub struct NBT;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Position(i64);
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BlockPosition(i64);
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Angle(pub UnsignedByte);
 
 #[allow(clippy::upper_case_acronyms)]
@@ -115,4 +118,33 @@ pub enum PicoCow<'a, T: Clone + 'a> {
 
     /// Owned data.
     Owned(T),
+}
+
+/// Not fully implemented, only worked for Zeroed values, and will error on any other value. [Minecraft.wiki link to actual implementation](https://minecraft.wiki/w/Java_Edition_protocol/Data_types#LpVec3).
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub struct LpVec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl LpVec3 {
+    pub const ZERO: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        let vec = Self { x, y, z };
+
+        assert_eq!(
+            vec,
+            Self::ZERO,
+            "LpVec3 is currently only implemented for zeroed values, got {:?}",
+            vec
+        );
+
+        vec
+    }
 }

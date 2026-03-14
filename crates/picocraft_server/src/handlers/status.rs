@@ -12,9 +12,9 @@ impl HandlePacket for StatusRequestPacket {
         // This should really be built with values from the server config for player
         // count
         let json = clientbound::JsonStatusResponse::builder()
-            .players(client.server_config().read().await.max_players, 0)
+            .players(MAX_PLAYERS as i32, 0)
             //TODO the clone here ideally shouldn't occur
-            .description(client.server_config().read().await.motd.clone())
+            .description(client.server_config.motd.clone())
             .build();
 
         let status_response = clientbound::StatusResponsePacket::<256>::builder()
@@ -56,10 +56,7 @@ impl HandlePacket for PingRequestPacket {
 
         debug!(
             "Handled status request for client: {}",
-            client
-                .socket
-                .remote_endpoint()
-                .expect("socket should be open")
+            client.connection.remote_endpoint()
         );
 
         Err(PacketError::ConnectionClosed)

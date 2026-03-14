@@ -28,7 +28,7 @@ pub mod prelude {
     pub(crate) use heapless::Vec;
 
     pub(crate) use crate::byteorder::{ReadBytesExt, WriteBytesExt};
-    pub use crate::consts::WORLD_HEIGHT;
+    pub use crate::consts::{MAX_PLAYERS, WORLD_HEIGHT};
     pub use crate::errors::*;
     pub use crate::packet::*;
     pub use crate::state::*;
@@ -38,4 +38,5 @@ pub mod prelude {
 pub mod consts {
     // Height of the Minecraft world in blocks.
     pub const WORLD_HEIGHT: usize = 256;
+    pub const MAX_PLAYERS: usize = 8;
 }

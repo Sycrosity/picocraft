@@ -1,5 +1,6 @@
 use picocraft_proto::serverbound::login::*;
 
+use crate::channels::EVENTS;
 use crate::prelude::*;
 
 const CAT_VARIANT: &[u8] = include_bytes!("login/cat_variant.bin");
@@ -18,8 +19,18 @@ impl HandlePacket for LoginStartPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
         trace!("Packet received: {:?}", &self);
 
-        client.player.set_username(self.username);
-        client.player.set_uuid(self.uuid);
+        let login_disconnect = clientbound::LoginDisconnectPacket {
+            reason: heapless::format!("{{ text: \"Server is full.\" }}")
+                .expect("should be less than 64 chars"),
+        };
+
+        let Ok(subscriber) = EVENTS.subscriber() else {
+            client.encode_packet(&login_disconnect).await?;
+
+            return Err(PacketError::ConnectionClosed);
+        };
+
+        client.events = Some(subscriber);
 
         let login_success = clientbound::LoginSuccess(GameProfile::new(
             client.player.username().clone(),
@@ -27,6 +38,9 @@ impl HandlePacket for LoginStartPacket {
         ));
 
         trace!("Packet constructed: {login_success:?}");
+
+        client.player.set_username(self.username.clone());
+        client.player.set_uuid(self.uuid);
 
         client.encode_packet(&login_success).await?;
 
@@ -73,10 +87,10 @@ async fn encode_registry_data(
     client: &mut Client,
 ) -> Result<(), PacketError> {
     VarInt(bytes.len() as i32)
-        .encode(&mut client.socket)
+        .encode(&mut client.connection.socket)
         .await?;
 
-    bytes.encode(&mut client.socket).await?;
+    bytes.encode(&mut client.connection.socket).await?;
 
     Ok(())
 }

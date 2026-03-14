@@ -8,6 +8,8 @@ pub enum PicocraftError {
     Unknown,
     #[error("client couldn't connect")]
     CouldntGetClient,
+    #[error("Server is full")]
+    ServerFull,
 }
 
 #[derive(Debug, Error)]
