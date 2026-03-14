@@ -208,9 +208,7 @@ impl Client {
             match res {
                 Ok(()) => (),
                 Err(PacketError::InvalidPacket(VarInt(id), state)) => {
-
-                    warn!("{} from player: {}", res.unwrap_err(),
-                    self.username());
+                    warn!("{} from player: {}", res.unwrap_err(), self.username());
 
                     // warn!(
                     //     "Bad packet for player: {} [{}]",
