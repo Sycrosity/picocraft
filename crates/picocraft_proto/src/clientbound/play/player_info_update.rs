@@ -89,7 +89,7 @@ async fn decode_player_actions<const ACTIONS: usize, R: embedded_io_async::Read>
     for flag in actions.iter() {
         let action = match flag {
             EnumSet::ADD_PLAYER => PlayerActions::AddPlayer {
-                name: String::<16>::decode(&mut buffer).await?,
+                username: String::<16>::decode(&mut buffer).await?,
                 properties: Properties::decode(&mut buffer).await?,
             },
             EnumSet::INITIALISE_CHAT => PlayerActions::InitialiseChat(
@@ -127,7 +127,7 @@ async fn decode_player_actions<const ACTIONS: usize, R: embedded_io_async::Read>
 #[derive(Debug)]
 pub enum PlayerActions {
     AddPlayer {
-        name: String<16>,
+        username: String<16>,
         properties: Properties,
     },
     InitialiseChat(PrefixedOptional<InitialiseChatData>),
@@ -142,8 +142,11 @@ pub enum PlayerActions {
 impl Encode for PlayerActions {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         match self {
-            PlayerActions::AddPlayer { name, properties } => {
-                name.encode(&mut buffer).await?;
+            PlayerActions::AddPlayer {
+                username,
+                properties,
+            } => {
+                username.encode(&mut buffer).await?;
                 properties.encode(&mut buffer).await
             }
             PlayerActions::InitialiseChat(data) => data.encode(&mut buffer).await,

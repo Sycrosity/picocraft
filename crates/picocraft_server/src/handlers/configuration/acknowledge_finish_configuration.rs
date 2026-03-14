@@ -74,7 +74,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         let mut action_array = Array::new();
 
         let _ = action_array.push(clientbound::PlayerActions::AddPlayer {
-            name: client.username().clone(),
+            username: client.username().clone(),
             properties: Properties::default(),
         });
 
