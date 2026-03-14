@@ -13,10 +13,9 @@ pub struct Connection {
 
 impl Connection {
     pub fn new(socket: tokio::net::TcpStream) -> Self {
-
         let remote_endpoint = socket
-                .peer_addr()
-                .expect("should be able to get peer address of socket as it is already connected");
+            .peer_addr()
+            .expect("should be able to get peer address of socket as it is already connected");
 
         Self {
             socket: PacketSocket::new(socket),
