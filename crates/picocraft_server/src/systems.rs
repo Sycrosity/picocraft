@@ -40,6 +40,8 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
                     player_id: entity_ref.entity_id,
                     username,
                     uuid,
+                    position: bundle.position,
+                    rotation: bundle.rotation,
                 });
 
             entity_ref

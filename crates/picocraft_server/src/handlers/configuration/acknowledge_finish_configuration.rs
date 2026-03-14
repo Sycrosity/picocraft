@@ -28,15 +28,28 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             })
             .await;
 
-        let entity_id = loop {
+        let (entity_id, position, rotation) = loop {
             match client.events.as_mut().unwrap().next_message().await {
                 WaitResult::Message(WorldEvent::PlayerJoined {
-                    player_id, uuid, ..
+                    player_id,
+                    uuid,
+                    position,
+                    rotation,
+                    ..
                 }) if uuid == client.uuid() => {
-                    break player_id;
+                    break (player_id, position, rotation);
                 }
-                // Drain any other events that arrived first
-                _ => continue,
+                WaitResult::Message(_) => {
+                    // ignore other messages until we get the PlayerJoined event for this client
+                    // since we need to know our entity id before doing anything else.
+                    continue;
+                }
+                WaitResult::Lagged(skipped) => {
+                    // in theory this should be unreachable
+                    warn!(
+                        "Lagged while waiting for PlayerJoined event, skipped {skipped} messages."
+                    );
+                }
             }
         };
 
@@ -57,12 +70,12 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&login_play).await?;
 
-        // let spawn_pos = client.terrain.get_spawn_position();
-
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
-            .x(0f64)
-            .z(0f64)
-            .y(156f64)
+            .x(position.x())
+            .z(position.z())
+            .y(position.y())
+            .pitch(rotation.pitch)
+            .yaw(rotation.yaw)
             .build();
 
         client.encode_packet(&synchronise_player_position).await?;

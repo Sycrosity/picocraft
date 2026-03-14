@@ -17,6 +17,12 @@ impl EntityId {
         self.index.get() - 1
     }
 
+    pub fn protocol_id(&self) -> VarInt {
+        // in case I change how EntityId works in the future
+        let size_of_index = size_of_val(&self.index());
+        VarInt(((self.kind.id() as i32) << size_of_index) | i32::from(self.index()))
+    }
+
     pub fn new(kind: EntityKind, index: u8) -> Self {
         assert!(index < u8::MAX, "Entity index must be less than 255");
 

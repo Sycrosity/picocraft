@@ -74,27 +74,43 @@ impl Client {
         }
 
         match event {
+            // This Event should only be possible to be recieved by clients other than the one who
+            // just joined, so in theory don't need to check the uuid here.
             WorldEvent::PlayerJoined {
                 player_id,
                 username,
                 uuid,
+                position,
+                rotation,
             } => {
-                //TODO very ugly - should be moved into PlayerInfoUpdatePacket's impl fn's.
-                let player_info_update = clientbound::PlayerInfoUpdatePacket::<2> {
-                    actions: EnumSet::ADD_PLAYER | EnumSet::UPDATE_LISTED,
-                    players: PrefixedArray::from_array([(
-                        uuid,
-                        Array::from_array([
-                            PlayerActions::AddPlayer {
-                                name: username,
-                                properties: Properties::default(),
-                            },
-                            PlayerActions::UpdateListed(true),
-                        ]),
-                    )]),
-                };
+                assert!(
+                    self.uuid() != uuid,
+                    "Client should not receive PlayerJoined event for itself."
+                );
+
+                error!(
+                    "Spawning entity for player {} [{}] with entity ID {:?}",
+                    &username, uuid, player_id
+                );
+
+                error!("Client entity ID: {:?}", self.entity_id);
+
+                let player_info_update =
+                    clientbound::PlayerInfoUpdatePacket::<2>::add_player(uuid, username);
 
                 self.encode_packet(&player_info_update).await?;
+
+                let spawn_entity = clientbound::SpawnEntityPacket::player(
+                    player_id.protocol_id(),
+                    uuid,
+                    position.x(),
+                    position.y(),
+                    position.z(),
+                );
+
+                error!("got this far");
+
+                self.encode_packet(&spawn_entity).await?;
             }
             //TODO this would look something like this?
             WorldEvent::PlayerLeft { player_id, uuid } => {
@@ -102,6 +118,18 @@ impl Client {
                     uuids: PrefixedArray::from_array([uuid]),
                 })
                 .await?;
+
+                let remove_entity =
+                    clientbound::RemoveEntitiesPacket::single(player_id.protocol_id());
+
+                error!(
+                    "Despawning entity for player with uuid: {} and entity ID {:?}",
+                    uuid, player_id
+                );
+
+                error!("Client entity ID: {:?}", self.entity_id);
+
+                self.encode_packet(&remove_entity).await?;
 
                 // self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
                 //     .await?;

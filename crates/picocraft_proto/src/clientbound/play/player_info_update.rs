@@ -1,21 +1,29 @@
 use crate::prelude::*;
 
+/// Limited to one player update per packet to reduce memory size from ~2kb to
+/// 360Bytes
 #[derive(Debug)]
 pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub actions: EnumSet,
-    //TODO link MAX_PLAYERS to the length of this array
-    pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), 8>,
+    //TODO should probably have something like a `PlayerActionsArray` instead of just having 8
+    // repeated PlayerActions, as the array should have at maximum one of each type of action - so
+    // this just wastes memory.
+    pub players: PrefixedArray<(UUID, Array<PlayerActions, 8>), 1>,
 }
 
 impl<const ACTIONS: usize> PlayerInfoUpdatePacket<ACTIONS> {
-    pub fn remove(uuid: UUID) -> Self {
-        Self {
-            actions: EnumSet::UPDATE_LISTED,
-            players: PrefixedArray::from_array([(
-                uuid,
-                Array::from_array([PlayerActions::UpdateListed(false)]),
-            )]),
-        }
+    pub fn add_player(uuid: UUID, username: String<16>) -> Self {
+        let actions = EnumSet::ADD_PLAYER | EnumSet::UPDATE_LISTED;
+        let player_actions = Array::from_array([
+            PlayerActions::AddPlayer {
+                username,
+                properties: Properties::default(),
+            },
+            PlayerActions::UpdateListed(true),
+        ]);
+        let players = PrefixedArray::from_array([(uuid, player_actions)]);
+
+        Self { actions, players }
     }
 }
 
