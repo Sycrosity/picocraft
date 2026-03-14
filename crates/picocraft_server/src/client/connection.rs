@@ -1,21 +1,33 @@
+use core::net::SocketAddr;
+
 use super::buffer::Buffer;
 use super::packet_socket::PacketSocket;
 use crate::prelude::*;
 
 pub struct Connection {
     pub socket: PacketSocket,
-    // pub remote_addr: core::net::SocketAddrV4,
+    remote_endpoint: SocketAddr,
     pub rx_buf: Buffer<1024>,
     state: State,
 }
 
 impl Connection {
     pub fn new(socket: tokio::net::TcpStream) -> Self {
+
+        let remote_endpoint = socket
+                .peer_addr()
+                .expect("should be able to get peer address of socket as it is already connected");
+
         Self {
             socket: PacketSocket::new(socket),
             rx_buf: Buffer::new(),
+            remote_endpoint,
             state: State::default(),
         }
+    }
+
+    pub fn remote_endpoint(&self) -> SocketAddr {
+        self.remote_endpoint
     }
 
     pub fn state(&self) -> State {
@@ -33,7 +45,7 @@ impl Connection {
 
         trace!(
             "Reading packet for {} in {:?} state.",
-            self.socket.remote_endpoint().expect("Socket is initiated"),
+            self.remote_endpoint(),
             &self.state
         );
 

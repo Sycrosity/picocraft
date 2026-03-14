@@ -143,10 +143,7 @@ impl Client {
     pub async fn handle_connection(&mut self) -> Result<(), PacketError> {
         debug!(
             "Handling connection for {}",
-            self.connection
-                .socket
-                .remote_endpoint()
-                .expect("Socket is initiated")
+            self.connection.remote_endpoint()
         );
 
         //TODO We need a generic timer implemation that works with either tokio or
@@ -224,10 +221,7 @@ impl Client {
                     if self.username().is_empty() {
                         info!(
                             "Connection closed for client: {}",
-                            self.connection
-                                .socket
-                                .remote_endpoint()
-                                .expect("socket should be open")
+                            self.connection.remote_endpoint()
                         );
                     } else {
                         info!(
@@ -277,14 +271,14 @@ impl Client {
     async fn shutdown(&mut self) -> Result<(), PacketError> {
         drop(self.events.take());
 
-        info!(
+        debug!(
             "Shutting down connection for player: {} [{}]",
             &self.username(),
             self.uuid()
         );
 
         if let Some(player_id) = self.entity_id.take() {
-            error!(
+            debug!(
                 "Despawning entity for player {} [{}] with entity ID {:?}",
                 &self.username(),
                 self.uuid(),

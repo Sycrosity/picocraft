@@ -52,22 +52,11 @@ async fn main() -> Result<(), PicocraftError> {
                     match client.handle_connection().await {
                         Ok(()) => debug!(
                             "Connection with {:?} finished successfully.",
-                            //TODO we should store the remote endpoint in the client struct so we
-                            // can log it here without needing to access the socket, which may have
-                            // been closed by this point.
-                            client
-                                .connection
-                                .socket
-                                .remote_endpoint()
-                                .expect("socket should be open")
+                            client.connection.remote_endpoint()
                         ),
                         Err(_) => error!(
                             "Connection with {:?} ended with an error.",
-                            client
-                                .connection
-                                .socket
-                                .remote_endpoint()
-                                .expect("socket should be open")
+                            client.connection.remote_endpoint()
                         ),
                     }
                 });

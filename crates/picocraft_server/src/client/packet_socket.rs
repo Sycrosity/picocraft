@@ -40,10 +40,6 @@ impl PacketSocket {
             .inspect_err(|e| warn!("socket not readable: {e}"))
             .map_err(|_| SocketError::NotReadable)
     }
-
-    pub fn remote_endpoint(&self) -> Option<core::net::SocketAddr> {
-        self.inner.get_ref().peer_addr().ok()
-    }
 }
 
 impl embedded_io_async::Read for PacketSocket {

@@ -56,11 +56,7 @@ impl HandlePacket for PingRequestPacket {
 
         debug!(
             "Handled status request for client: {}",
-            client
-                .connection
-                .socket
-                .remote_endpoint()
-                .expect("socket should be open")
+            client.connection.remote_endpoint()
         );
 
         Err(PacketError::ConnectionClosed)
