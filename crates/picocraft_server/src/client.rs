@@ -9,7 +9,6 @@ use embassy_sync::pubsub::WaitResult;
 use picocraft_ecs::commands::WorldCommand;
 use picocraft_ecs::entity::EntityId;
 use picocraft_ecs::events::{Recipient, WorldEvent};
-use picocraft_proto::clientbound::PlayerActions;
 use player::Player;
 
 use crate::channels::{COMMANDS, EventsSubscriber};
@@ -180,12 +179,16 @@ impl Client {
             // and ideally the path.
             match res {
                 Ok(()) => (),
-                Err(PacketError::InvalidPacket) => {
-                    warn!(
-                        "Bad packet for player: {} [{}]",
-                        self.username(),
-                        self.uuid()
-                    );
+                Err(PacketError::InvalidPacket(VarInt(id), state)) => {
+
+                    warn!("{} from player: {}", res.unwrap_err(),
+                    self.username());
+
+                    // warn!(
+                    //     "Bad packet for player: {} [{}]",
+                    //     self.username(),
+                    //     self.uuid()
+                    // );
                 }
                 Err(
                     PacketError::ConnectionClosed | PacketError::Decode(DecodeError::UnexpectedEof),
@@ -248,7 +251,19 @@ impl Client {
     async fn shutdown(&mut self) -> Result<(), PacketError> {
         drop(self.events.take());
 
+        info!(
+            "Shutting down connection for player: {} [{}]",
+            &self.username(),
+            self.uuid()
+        );
+
         if let Some(player_id) = self.entity_id.take() {
+            error!(
+                "Despawning entity for player {} [{}] with entity ID {:?}",
+                &self.username(),
+                self.uuid(),
+                player_id
+            );
             COMMANDS.send(WorldCommand::PlayerLeft { player_id }).await;
         }
 
@@ -273,8 +288,7 @@ impl Client {
                     HandshakePacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Handshake state: {:x?}", *packet_id);
-                    return Err(PacketError::InvalidPacket);
+                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
             State::Status => match packet_id {
@@ -291,8 +305,7 @@ impl Client {
                     PingRequestPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Status state: {:x?}", *packet_id);
-                    return Err(PacketError::InvalidPacket);
+                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
             State::Login => match packet_id {
@@ -310,8 +323,7 @@ impl Client {
                     LoginAcknowledgedPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Login state: {:x?}", *packet_id);
-                    return Err(PacketError::InvalidPacket);
+                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
             State::Configuration => match packet_id {
@@ -331,11 +343,7 @@ impl Client {
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!(
-                        "Unknown packet ID in Configuration state: {:x?}",
-                        *packet_id
-                    );
-                    return Err(PacketError::InvalidPacket);
+                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
             State::Play => match packet_id {
@@ -353,8 +361,7 @@ impl Client {
                     ClientTickEndPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    warn!("Unknown packet ID in Play state: {:x?}", *packet_id);
-                    return Err(PacketError::InvalidPacket);
+                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
         }

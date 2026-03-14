@@ -21,7 +21,7 @@ picocraft_terrain = { path = "crates/picocraft_terrain", version = "0.0.3" }
 picocraft_server = { path = "crates/picocraft_server", version = "0.0.3" }
 
 log = "0.4.29"
-bon = { version = "3.9.0", default-features = false }
+bon = { version = "3.9.1", default-features = false }
 heapless = "0.9"
 thiserror = { version = "2", default-features = false }
 static_cell = "2.1.1"
