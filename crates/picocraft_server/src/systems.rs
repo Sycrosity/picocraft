@@ -32,7 +32,7 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         velocity: Velocity::default(),
     };
 
-    let mut player = match world.players.spawn(bundle) {
+    let mut player = match world.players.spawn(bundle.clone()) {
         Ok(entity_ref) => {
             EVENTS
                 .immediate_publisher()
@@ -54,7 +54,9 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         }
     };
 
-    player.insert(OnGround).unwrap();
+    player
+        .insert(Dimension::Overworld)
+        .expect("EntityId should be valid");
 }
 
 pub fn system_player_left(world: &mut World, player_id: EntityId) {

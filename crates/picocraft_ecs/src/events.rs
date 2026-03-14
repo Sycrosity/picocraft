@@ -7,6 +7,8 @@ pub enum WorldEvent {
         player_id: EntityId,
         username: String<16>,
         uuid: UUID,
+        position: Position,
+        rotation: Rotation,
     },
     PlayerLeft {
         player_id: EntityId,

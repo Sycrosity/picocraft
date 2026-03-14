@@ -166,7 +166,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
 
             Ok(quote! {
 
-                #[derive(Debug)]
+                #[derive(Debug, Clone)]
                 #visibility struct #bundle_name {
                     #(#bundle_fields,)*
                 }

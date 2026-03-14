@@ -75,3 +75,11 @@ pub struct Uuid(pub UUID);
 /// or bred animals.
 #[derive(Debug, Clone, Copy)]
 pub struct Persistent;
+
+/// Realistically shouldn't be anything but the Overworld for now
+#[derive(Debug, Clone, Copy)]
+pub enum Dimension {
+    Overworld,
+    Nether,
+    End,
+}

@@ -23,6 +23,8 @@ pub struct PlayerPool<const N: usize = 8> {
     #[required]
     #[persistent]
     pub rotation: SparseSet<Rotation, N>,
+    #[persistent]
+    pub dimension: SparseSet<Dimension, N>,
     pub on_ground: MarkerSet<OnGround, N>,
     pub fall_distance: SparseSet<FallDistance, N>,
 }
