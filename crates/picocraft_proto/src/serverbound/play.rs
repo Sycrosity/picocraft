@@ -1,3 +1,7 @@
+mod player;
+
+pub use player::*;
+
 use crate::prelude::*;
 
 #[derive(Debug, Packet)]
@@ -9,14 +13,7 @@ pub struct ConfirmTeleportationPacket(pub VarInt);
 pub struct ClientTickEndPacket;
 
 #[derive(Debug, Packet)]
-#[packet(id = 0x1d)]
-pub struct SetPlayerPositionPacket {
-    x: Double,
-    feet_y: Double,
-    z: Double,
-    // use bitflags here
-    /// 0x00 - nothing
-    /// 0x01 - touching the ground
-    /// 0x02 - touching a wall
-    flags: Byte,
+#[packet(id = 0x1b)]
+pub struct ServerboundKeepAlivePacket {
+    pub id: Long,
 }
