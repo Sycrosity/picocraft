@@ -380,12 +380,39 @@ impl Client {
 
                     ClientTickEndPacket::handle(packet, self).await?;
                 }
+                SetPlayerPositionPacket::ID => {
+                    let packet =
+                        SetPlayerPositionPacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
+                    SetPlayerPositionPacket::handle(packet, self).await?;
+                }
+                SetPlayerRotationPacket::ID => {
+                    let packet =
+                        SetPlayerRotationPacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
+                    SetPlayerRotationPacket::handle(packet, self).await?;
+                }
+                SetPlayerPositionAndRotationPacket::ID => {
+                    let packet = SetPlayerPositionAndRotationPacket::decode(
+                        &mut self.connection.rx_buf.as_slice(),
+                    )
+                    .await?;
+                    SetPlayerPositionAndRotationPacket::handle(packet, self).await?;
+                }
+                ServerboundKeepAlivePacket::ID => {
+                    let packet =
+                        ServerboundKeepAlivePacket::decode(&mut self.connection.rx_buf.as_slice())
+                            .await?;
+
+                    ServerboundKeepAlivePacket::handle(packet, self).await?;
+                }
                 _ => {
                     return Err(PacketError::InvalidPacket(packet_id, self.state()));
                 }
             },
         }
 
+        // should maybe be self.connection.flush()
         self.connection.socket.flush().await?;
 
         Ok(())

@@ -4,8 +4,6 @@ use crate::prelude::*;
 
 impl HandlePacket for ConfirmTeleportationPacket {
     async fn handle(self, _client: &mut Client) -> Result<(), PacketError> {
-        trace!("Packet received: {:?}", &self);
-
         if *self.0 == 0 {
             Ok(())
         } else {
