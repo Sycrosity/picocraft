@@ -103,9 +103,9 @@ impl Client {
                 let spawn_entity = clientbound::SpawnEntityPacket::player(
                     player_id.protocol_id(),
                     uuid,
-                    position.x(),
-                    position.y(),
-                    position.z(),
+                    position.protocol_x(),
+                    position.protocol_y(),
+                    position.protocol_z(),
                 );
 
                 error!("got this far");
@@ -130,9 +130,74 @@ impl Client {
                 error!("Client entity ID: {:?}", self.entity_id);
 
                 self.encode_packet(&remove_entity).await?;
+            }
+            WorldEvent::PlayerMoved {
+                player_id,
+                delta_position,
+                rotation,
+                on_ground,
+                against_wall,
+            } => {
+                let update_entity_positon = clientbound::UpdateEntityPosPacket {
+                    entity_id: player_id.protocol_id(),
+                    delta_x: delta_position.dx,
+                    delta_y: delta_position.dy,
+                    delta_z: delta_position.dz,
+                    on_ground,
+                };
 
-                // self.encode_packet(&RemoveEntitiesPacket { uuid: ... })
-                //     .await?;
+                self.encode_packet(&update_entity_positon).await?;
+            }
+
+            WorldEvent::PlayerRotated {
+                player_id,
+                rotation,
+                on_ground,
+                against_wall,
+            } => {
+                let update_entity_rotation = clientbound::UpdateEntityRotationPacket {
+                    entity_id: player_id.protocol_id(),
+                    yaw: rotation.protocol_yaw(),
+                    pitch: rotation.protocol_pitch(),
+                    on_ground,
+                };
+
+                self.encode_packet(&update_entity_rotation).await?;
+
+                let head_rotation = clientbound::SetHeadRotationPacket {
+                    entity_id: player_id.protocol_id(),
+                    head_yaw: rotation.protocol_yaw(),
+                };
+
+                self.encode_packet(&head_rotation).await?;
+            }
+            WorldEvent::PlayerMovedAndRotated {
+                player_id,
+                delta_position,
+                rotation,
+                on_ground,
+                against_wall,
+            } => {
+                let update_entity_positon_and_rotation =
+                    clientbound::UpdateEntityPositionandRotationPacket {
+                        entity_id: player_id.protocol_id(),
+                        delta_x: delta_position.dx,
+                        delta_y: delta_position.dy,
+                        delta_z: delta_position.dz,
+                        yaw: rotation.protocol_yaw(),
+                        pitch: rotation.protocol_pitch(),
+                        on_ground,
+                    };
+
+                self.encode_packet(&update_entity_positon_and_rotation)
+                    .await?;
+
+                let head_rotation = clientbound::SetHeadRotationPacket {
+                    entity_id: player_id.protocol_id(),
+                    head_yaw: rotation.protocol_yaw(),
+                };
+
+                self.encode_packet(&head_rotation).await?;
             }
             _ => todo!(),
         };

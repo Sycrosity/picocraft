@@ -34,13 +34,52 @@ pub fn tick(world: &mut World, _terrain: &Terrain) {
 #[allow(unreachable_patterns)]
 fn handle_command(world: &mut World, cmd: WorldCommand) {
     match cmd {
+        //TODO too verbose
         WorldCommand::PlayerMoved {
+            player_id,
+            position,
+            on_ground,
+            against_wall,
+        } => {
+            system_player_moved(
+                world,
+                player_id,
+                Some(position),
+                None,
+                on_ground,
+                against_wall,
+            );
+        }
+        WorldCommand::PlayerMovedAndRotated {
             player_id,
             position,
             rotation,
             on_ground,
+            against_wall,
         } => {
-            system_player_moved(world, player_id, position, rotation, on_ground);
+            system_player_moved(
+                world,
+                player_id,
+                Some(position),
+                Some(rotation),
+                on_ground,
+                against_wall,
+            );
+        }
+        WorldCommand::PlayerRotated {
+            player_id,
+            rotation,
+            on_ground,
+            against_wall,
+        } => {
+            system_player_moved(
+                world,
+                player_id,
+                None,
+                Some(rotation),
+                on_ground,
+                against_wall,
+            );
         }
         WorldCommand::PlayerJoined { username, uuid } => {
             system_player_joined(world, username, uuid);
