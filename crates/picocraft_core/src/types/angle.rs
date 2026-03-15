@@ -1,5 +1,21 @@
 use crate::prelude::*;
 
+impl Angle {
+    pub fn from_degrees(degrees: f32) -> Self {
+        let normalized = degrees % 360.0;
+        let normalized = if normalized < 0.0 {
+            normalized + 360.0
+        } else {
+            normalized
+        };
+        Angle((normalized / 360.0 * 256.0 + 0.5) as u8)
+    }
+
+    pub fn to_degrees(&self) -> f32 {
+        (self.0 as f32 / 256f32) * 360f32
+    }
+}
+
 impl Encode for Angle {
     async fn encode<W>(&self, mut buffer: W) -> ::core::result::Result<(), EncodeError>
     where

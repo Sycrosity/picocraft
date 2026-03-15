@@ -20,3 +20,4 @@ core-json-traits.workspace = true
 
 embedded-io-async.workspace = true
 heapless.workspace = true
+bitflags.workspace = true

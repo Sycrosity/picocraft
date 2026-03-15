@@ -108,18 +108,6 @@ pub struct SoundEvent {
     pub fixed_range: Optional<Float>,
 }
 
-// Below are types which aren't part of the protocol but are useful to have
-// here.
-
-#[derive(Debug)]
-pub enum PicoCow<'a, T: Clone + 'a> {
-    /// Borrowed data.
-    Borrowed(&'a T),
-
-    /// Owned data.
-    Owned(T),
-}
-
 /// Not fully implemented, only worked for Zeroed values, and will error on any other value. [Minecraft.wiki link to actual implementation](https://minecraft.wiki/w/Java_Edition_protocol/Data_types#LpVec3).
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct LpVec3 {
@@ -147,4 +135,27 @@ impl LpVec3 {
 
         vec
     }
+}
+
+// Below are types which aren't part of the protocol but are useful to have
+// here.
+
+#[derive(Debug)]
+pub enum PicoCow<'a, T: Clone + 'a> {
+    /// Borrowed data.
+    Borrowed(&'a T),
+
+    /// Owned data.
+    Owned(T),
+}
+
+/// Minecraft uses fixed-point numbers for updating entity positions, rather
+/// than floating points numbers, so we have this type to represent when
+/// minecraft needs to recieve a delta position rather than an absolute
+/// position.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DeltaPosition {
+    pub dx: Short,
+    pub dy: Short,
+    pub dz: Short,
 }

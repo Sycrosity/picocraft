@@ -71,9 +71,9 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         client.encode_packet(&login_play).await?;
 
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
-            .x(position.x())
-            .z(position.z())
-            .y(position.y())
+            .x(position.protocol_x())
+            .z(position.protocol_z())
+            .y(position.protocol_y())
             .pitch(rotation.pitch)
             .yaw(rotation.yaw)
             .build();

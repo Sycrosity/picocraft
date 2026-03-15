@@ -649,6 +649,7 @@ dependencies = [
  "heapless 0.9.2",
  "picocraft_core",
  "picocraft_derive",
+ "picocraft_proto",
  "thiserror",
 ]
 
@@ -656,6 +657,7 @@ dependencies = [
 name = "picocraft_proto"
 version = "0.0.3"
 dependencies = [
+ "bitflags 2.11.0",
  "bon",
  "core-json-derive",
  "core-json-traits",

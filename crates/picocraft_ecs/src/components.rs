@@ -1,3 +1,5 @@
+use picocraft_proto::serverbound::ProtocolPosition;
+
 use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -27,9 +29,9 @@ impl Velocity {
 /// f32 is more than enough for internal use and allows FPU use on ESP32s3.
 #[derive(Debug, Clone, Copy)]
 pub struct Position {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Position {
@@ -37,16 +39,38 @@ impl Position {
         Self { x, y, z }
     }
 
-    pub fn x(&self) -> f64 {
+    pub fn protocol_x(&self) -> f64 {
         f64::from(self.x)
     }
 
-    pub fn y(&self) -> f64 {
+    pub fn protocol_y(&self) -> f64 {
         f64::from(self.y)
     }
 
-    pub fn z(&self) -> f64 {
+    pub fn protocol_z(&self) -> f64 {
         f64::from(self.z)
+    }
+
+    pub fn from_protocol(x: f64, y: f64, z: f64) -> Self {
+        Self {
+            x: x as f32,
+            y: y as f32,
+            z: z as f32,
+        }
+    }
+
+    pub fn to_protocol(self) -> ProtocolPosition {
+        ProtocolPosition {
+            x: f64::from(self.x),
+            y: f64::from(self.y),
+            z: f64::from(self.z),
+        }
+    }
+}
+
+impl From<Position> for ProtocolPosition {
+    fn from(value: Position) -> Self {
+        value.to_protocol()
     }
 }
 
@@ -62,6 +86,20 @@ pub struct Rotation {
     /// means looking straight ahead, parallel to the ground. 80 degrees means
     /// looking straight down, -90 degrees means looking straight up.
     pub pitch: f32,
+}
+
+impl Rotation {
+    pub fn new(yaw: f32, pitch: f32) -> Self {
+        Self { yaw, pitch }
+    }
+
+    pub fn protocol_yaw(&self) -> Angle {
+        Angle::from_degrees(self.yaw)
+    }
+
+    pub fn protocol_pitch(&self) -> Angle {
+        Angle::from_degrees(self.pitch)
+    }
 }
 
 /// Converted to f64 when serialised.

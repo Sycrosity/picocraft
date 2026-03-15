@@ -17,8 +17,21 @@ pub enum WorldCommand {
     PlayerMoved {
         player_id: EntityId,
         position: Position,
+        on_ground: bool,
+        against_wall: bool,
+    },
+    PlayerRotated {
+        player_id: EntityId,
         rotation: Rotation,
         on_ground: bool,
+        against_wall: bool,
+    },
+    PlayerMovedAndRotated {
+        player_id: EntityId,
+        position: Position,
+        rotation: Rotation,
+        on_ground: bool,
+        against_wall: bool,
     },
     // BlockBroken {
     //     player: EntityId,
