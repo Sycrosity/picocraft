@@ -29,7 +29,13 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .await;
 
         let (entity_id, position, rotation) = loop {
-            match client.events.as_mut().unwrap().next_message().await {
+            match client
+                .events
+                .as_mut()
+                .expect("client should have a valid Subscriber by this point")
+                .next_message()
+                .await
+            {
                 WaitResult::Message(WorldEvent::PlayerJoined {
                     player_id,
                     uuid,

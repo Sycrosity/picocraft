@@ -134,7 +134,6 @@ impl Client {
             WorldEvent::PlayerMoved {
                 player_id,
                 delta_position,
-                rotation,
                 on_ground,
                 against_wall,
             } => {

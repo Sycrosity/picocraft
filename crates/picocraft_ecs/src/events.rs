@@ -21,7 +21,6 @@ pub enum WorldEvent {
     PlayerMoved {
         player_id: EntityId,
         delta_position: DeltaPosition,
-        rotation: Rotation,
         on_ground: bool,
         against_wall: bool,
     },

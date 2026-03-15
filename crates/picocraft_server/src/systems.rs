@@ -57,15 +57,10 @@ pub fn system_player_moved(
         .get_mut(player_id.index())
         .expect("rotation should be a required field");
 
-    // Either we have a new rotation to set, or we keep the existing rotation (e.g.
-    // if this was just a position update). This is because `TeleportEntity` packets
-    // still require a rotation value, even if it doesn't change.
-    let rotation_to_send = if let Some(new_rotation) = rotation {
-        *current_rotation = new_rotation;
+    let old_rotation = *current_rotation;
 
-        new_rotation
-    } else {
-        *current_rotation
+    if let Some(new_rotation) = rotation {
+        *current_rotation = new_rotation;
     };
 
     let event = match (movement_update, rotation) {
@@ -73,27 +68,26 @@ pub fn system_player_moved(
             Some(rotation) => WorldEvent::PlayerMovedAndRotated {
                 player_id,
                 delta_position,
-                rotation: rotation_to_send,
+                rotation,
                 on_ground,
                 against_wall,
             },
             None => WorldEvent::PlayerMoved {
                 player_id,
                 delta_position,
-                rotation: rotation_to_send,
                 on_ground,
                 against_wall,
             },
         },
-        (Some(MovementUpdate::Teleport(position)), _) => WorldEvent::PlayerTeleported {
+        (Some(MovementUpdate::Teleport(position)), opt_rotation) => WorldEvent::PlayerTeleported {
             player_id,
             position,
-            rotation: rotation_to_send,
+            rotation: opt_rotation.unwrap_or(old_rotation),
             on_ground,
         },
         (None, Some(rotation)) => WorldEvent::PlayerRotated {
             player_id,
-            rotation: rotation_to_send,
+            rotation,
             on_ground,
             against_wall,
         },
