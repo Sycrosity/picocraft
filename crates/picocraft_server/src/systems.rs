@@ -106,10 +106,21 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         .iter()
         .map(|(index, uuid)| {
             // these are all required fields, so we know they exist for every player
-            let username = world.players.username.get(index).unwrap();
-            let position = world.players.position.get(index).unwrap();
-            let rotation = world.players.rotation.get(index).unwrap();
-
+            let username = world
+                .players
+                .username
+                .get(index)
+                .expect("username should be a required field");
+            let position = world
+                .players
+                .position
+                .get(index)
+                .expect("position should be a required field");
+            let rotation = world
+                .players
+                .rotation
+                .get(index)
+                .expect("rotation should be a required field");
             (
                 EntityId::player(index),
                 username.0.clone(),
@@ -195,8 +206,10 @@ pub fn system_player_left(world: &mut World, player_id: EntityId) {
         .expect("UUID should be the canonical component")
         .0;
 
-    //TODO don't unwrap
-    world.players.despawn(player_id).unwrap();
+    if let Err(e) = world.players.despawn(player_id) {
+        error!("Failed to despawn player entity: {e}");
+        return;
+    }
 
     EVENTS
         .immediate_publisher()

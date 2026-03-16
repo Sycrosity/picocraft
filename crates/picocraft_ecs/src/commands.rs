@@ -44,10 +44,10 @@ pub enum WorldCommand {
     // },
     ChatMessage {
         player_id: EntityId,
-        message: String<256>,
+        message: String<128>,
     },
     ChatCommand {
         player_id: EntityId,
-        command: String<256>,
+        command: String<128>,
     },
 }

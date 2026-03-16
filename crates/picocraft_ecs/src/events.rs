@@ -61,7 +61,7 @@ pub enum WorldEvent {
     // },
     ChatMessage {
         player_id: EntityId,
-        message: String<256>,
+        message: String<128>,
     },
 }
 

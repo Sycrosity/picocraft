@@ -1,6 +1,6 @@
-pub mod angle;
+mod angle;
 mod array;
-pub mod bitset;
+mod bitset;
 mod bitsets;
 mod boolean;
 mod core;
