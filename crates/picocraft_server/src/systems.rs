@@ -157,7 +157,7 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         .insert(Dimension::Overworld)
         .expect("EntityId should be valid");
 
-    for (player_id, username, uuid, position, rotation) in existing_players {
+    for (player_id, username, uuid, pos, rot) in existing_players {
         EVENTS
             .immediate_publisher()
             .publish_immediate(WorldEvent::ExistingPlayer {
@@ -165,10 +165,16 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
                 player_id,
                 username,
                 uuid,
-                position,
-                rotation,
+                position: pos,
+                rotation: rot,
             });
     }
+
+    EVENTS
+        .immediate_publisher()
+        .publish_immediate(WorldEvent::WorldReady {
+            recipient: player.entity_id,
+        });
 }
 
 pub fn system_player_left(world: &mut World, player_id: EntityId) {

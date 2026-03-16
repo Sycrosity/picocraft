@@ -83,10 +83,20 @@ impl Client {
                 position,
                 rotation,
             } => {
-                assert!(
-                    self.uuid() != uuid,
-                    "Client should not receive PlayerJoined event for itself."
-                );
+                // assert!(
+                //     self.uuid() != uuid,
+                //     "Client should not receive PlayerJoined event for itself."
+                // );
+
+                //TODO this occasionally happens when leaving and rejoining very quickly
+                if self.uuid() == uuid {
+                    error!(
+                        "Received PlayerJoined event for self. Player: {} [{}]",
+                        username, uuid
+                    );
+
+                    return Err(PacketError::Unknown);
+                }
 
                 let player_info_update =
                     clientbound::PlayerInfoUpdatePacket::<2>::add_player(uuid, username);
@@ -99,6 +109,8 @@ impl Client {
                     position.protocol_x(),
                     position.protocol_y(),
                     position.protocol_z(),
+                    rotation.protocol_pitch(),
+                    rotation.protocol_yaw(),
                 );
 
                 self.encode_packet(&spawn_entity).await?;
@@ -201,6 +213,8 @@ impl Client {
                     position.protocol_x(),
                     position.protocol_y(),
                     position.protocol_z(),
+                    rotation.protocol_pitch(),
+                    rotation.protocol_yaw(),
                 );
 
                 self.encode_packet(&spawn_entity).await?;
@@ -258,7 +272,6 @@ impl Client {
                             clientbound::KeepAlivePacket::new(self.system_random().await);
                         self.encode_packet(&keep_alive).await
                     } else {
-                        // panic!("The client has timed out.");
                         warn!(
                             "Client timed out in state {:?}: {} [{}]",
                             self.state(),
@@ -275,7 +288,7 @@ impl Client {
             // and ideally the path.
             match res {
                 Ok(()) => (),
-                Err(PacketError::InvalidPacket(VarInt(id), state)) => {
+                Err(PacketError::InvalidPacket(id, state)) => {
                     warn!(
                         "{} from player: {}",
                         res.expect_err("should be only on an Err match"),
@@ -383,7 +396,7 @@ impl Client {
                     HandshakePacket::handle(packet, self).await?;
                 }
                 _ => {
-                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
+                    return Err(PacketError::InvalidPacket(*packet_id, self.state()));
                 }
             },
             State::Status => match packet_id {
@@ -400,7 +413,7 @@ impl Client {
                     PingRequestPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
+                    return Err(PacketError::InvalidPacket(*packet_id, self.state()));
                 }
             },
             State::Login => match packet_id {
@@ -418,7 +431,7 @@ impl Client {
                     LoginAcknowledgedPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
+                    return Err(PacketError::InvalidPacket(*packet_id, self.state()));
                 }
             },
             State::Configuration => match packet_id {
@@ -438,7 +451,7 @@ impl Client {
                     AcknowledgeFinishConfigurationPacket::handle(packet, self).await?;
                 }
                 _ => {
-                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
+                    return Err(PacketError::InvalidPacket(*packet_id, self.state()));
                 }
             },
             State::Play => match packet_id {
@@ -482,7 +495,7 @@ impl Client {
                     ServerboundKeepAlivePacket::handle(packet, self).await?;
                 }
                 _ => {
-                    return Err(PacketError::InvalidPacket(packet_id, self.state()));
+                    return Err(PacketError::InvalidPacket(*packet_id, self.state()));
                 }
             },
         }

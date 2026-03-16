@@ -8,7 +8,7 @@ impl HandlePacket for ConfirmTeleportationPacket {
             Ok(())
         } else {
             warn!("Received invalid teleportation confirmation ID: {}", self.0);
-            Err(PacketError::InvalidPacket(Self::ID, Self::STATE))
+            Err(PacketError::InvalidPacket(*Self::ID, Self::STATE))
         }
     }
 }

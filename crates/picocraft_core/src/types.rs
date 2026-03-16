@@ -63,7 +63,7 @@ pub struct NBT;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BlockPosition(i64);
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Angle(pub UnsignedByte);
 
 #[allow(clippy::upper_case_acronyms)]

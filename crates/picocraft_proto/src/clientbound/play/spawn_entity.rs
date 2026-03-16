@@ -18,7 +18,15 @@ pub struct SpawnEntityPacket {
 }
 
 impl SpawnEntityPacket {
-    pub fn player(id: VarInt, uuid: UUID, x: Double, y: Double, z: Double) -> Self {
+    pub fn player(
+        id: VarInt,
+        uuid: UUID,
+        x: Double,
+        y: Double,
+        z: Double,
+        pitch: Angle,
+        yaw: Angle,
+    ) -> Self {
         Self {
             entity_id: id,
             entity_uuid: uuid,
@@ -27,9 +35,9 @@ impl SpawnEntityPacket {
             y,
             z,
             velocity: LpVec3::default(),
-            pitch: Angle(0),
-            yaw: Angle(0),
-            head_yaw: Angle(0),
+            pitch,
+            yaw,
+            head_yaw: yaw,
             data: VarInt(0),
         }
     }

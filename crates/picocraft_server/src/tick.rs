@@ -13,7 +13,7 @@ pub fn tick(world: &mut World, _terrain: &Terrain) {
         handle_command(world, cmd);
     }
 
-    debug::print_players_every_second(world);
+    // debug::print_players_every_second(world);
 
     // // systems
     // physics::apply_velocity_players(&mut world.players);

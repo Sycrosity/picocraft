@@ -47,6 +47,9 @@ pub enum WorldEvent {
         rotation: Rotation,
         on_ground: bool,
     },
+    WorldReady {
+        recipient: EntityId,
+    },
     // BlockBroken {
     //     player: EntityId,
     //     pos: BlockPosition,
@@ -78,6 +81,7 @@ impl WorldEvent {
             Self::PlayerRotated { player_id, .. } => Recipient::AllExcept(*player_id),
             Self::PlayerTeleported { player_id, .. } => Recipient::AllExcept(*player_id),
             Self::PlayerMovedAndRotated { player_id, .. } => Recipient::AllExcept(*player_id),
+            Self::WorldReady { recipient } => Recipient::Player(*recipient),
             // Self::BlockBroken  { player_id, .. }  => Recipient::AllExcept(*player_id),
             // Self::BlockPlaced  { player_id, .. }  => Recipient::AllExcept(*player_id),
             // Self::PlayerDamaged { .. } => Recipient::All,

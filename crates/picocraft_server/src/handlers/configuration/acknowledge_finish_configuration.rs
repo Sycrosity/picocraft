@@ -28,6 +28,11 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             })
             .await;
 
+        let mut opt_position = None;
+        let mut opt_rotation = None;
+
+        let mut buffered_events: heapless::Vec<WorldEvent, MAX_PLAYERS> = heapless::Vec::new();
+
         let (entity_id, position, rotation) = loop {
             match client
                 .events
@@ -43,23 +48,35 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                     rotation,
                     ..
                 }) if uuid == client.uuid() => {
-                    break (player_id, position, rotation);
+                    client.entity_id = Some(player_id);
+                    opt_position.replace(position);
+                    opt_rotation.replace(rotation);
                 }
-                WaitResult::Message(_) => {
-                    // ignore other messages until we get the PlayerJoined event for this client
-                    // since we need to know our entity id before doing anything else.
-                    continue;
+                WaitResult::Message(WorldEvent::WorldReady { recipient })
+                    if Some(recipient) == client.entity_id =>
+                {
+                    break (
+                        recipient,
+                        opt_position.expect("we set this"),
+                        opt_rotation.expect("we set this"),
+                    );
                 }
+                WaitResult::Message(event @ WorldEvent::ExistingPlayer { .. }) => {
+                    // ignore other messages until we get the PlayerJoined event and any
+                    // ExistingPlayer events for this client since we need to
+                    // know our entity id before doing anything else.
+
+                    let _ = buffered_events.push(event);
+                }
+                WaitResult::Message(_) => {}
                 WaitResult::Lagged(skipped) => {
-                    // in theory this should be unreachable
+                    // in theory this should be unreachable or very close to impossible
                     warn!(
                         "Lagged while waiting for PlayerJoined event, skipped {skipped} messages."
                     );
                 }
             }
         };
-
-        client.entity_id = Some(entity_id);
 
         let vec: PrefixedArray<Identifier<16>, 3> = PrefixedArray::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
@@ -145,6 +162,10 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             client.player.username(),
             client.player.uuid()
         );
+
+        for event in buffered_events {
+            client.handle_event(event).await?;
+        }
 
         Ok(())
     }
