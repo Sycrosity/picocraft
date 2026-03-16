@@ -88,13 +88,6 @@ impl Client {
                     "Client should not receive PlayerJoined event for itself."
                 );
 
-                error!(
-                    "Spawning entity for player {} [{}] with entity ID {:?}",
-                    &username, uuid, player_id
-                );
-
-                error!("Client entity ID: {:?}", self.entity_id);
-
                 let player_info_update =
                     clientbound::PlayerInfoUpdatePacket::<2>::add_player(uuid, username);
 
@@ -108,8 +101,6 @@ impl Client {
                     position.protocol_z(),
                 );
 
-                error!("got this far");
-
                 self.encode_packet(&spawn_entity).await?;
             }
             //TODO this would look something like this?
@@ -121,13 +112,6 @@ impl Client {
 
                 let remove_entity =
                     clientbound::RemoveEntitiesPacket::single(player_id.protocol_id());
-
-                error!(
-                    "Despawning entity for player with uuid: {} and entity ID {:?}",
-                    uuid, player_id
-                );
-
-                error!("Client entity ID: {:?}", self.entity_id);
 
                 self.encode_packet(&remove_entity).await?;
             }
@@ -197,6 +181,29 @@ impl Client {
                 };
 
                 self.encode_packet(&head_rotation).await?;
+            }
+            WorldEvent::ExistingPlayer {
+                recipient,
+                player_id,
+                username,
+                uuid,
+                position,
+                rotation,
+            } => {
+                let player_info_update =
+                    clientbound::PlayerInfoUpdatePacket::<2>::add_player(uuid, username);
+
+                self.encode_packet(&player_info_update).await?;
+
+                let spawn_entity = clientbound::SpawnEntityPacket::player(
+                    player_id.protocol_id(),
+                    uuid,
+                    position.protocol_x(),
+                    position.protocol_y(),
+                    position.protocol_z(),
+                );
+
+                self.encode_packet(&spawn_entity).await?;
             }
             _ => todo!(),
         };
@@ -269,7 +276,11 @@ impl Client {
             match res {
                 Ok(()) => (),
                 Err(PacketError::InvalidPacket(VarInt(id), state)) => {
-                    warn!("{} from player: {}", res.unwrap_err(), self.username());
+                    warn!(
+                        "{} from player: {}",
+                        res.expect_err("should be only on an Err match"),
+                        self.username()
+                    );
 
                     // warn!(
                     //     "Bad packet for player: {} [{}]",

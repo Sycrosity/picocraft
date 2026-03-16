@@ -14,9 +14,13 @@ pub enum WorldEvent {
         player_id: EntityId,
         uuid: UUID,
     },
-    ExistingPlayers {
+    ExistingPlayer {
         recipient: EntityId,
-        players: Vec<(EntityId, String<16>, Uuid), MAX_PLAYERS>,
+        player_id: EntityId,
+        username: String<16>,
+        uuid: UUID,
+        position: Position,
+        rotation: Rotation,
     },
     PlayerMoved {
         player_id: EntityId,
@@ -59,9 +63,9 @@ pub enum WorldEvent {
 }
 
 pub enum Recipient {
-    Player(EntityId),    // health, inventory, ack
-    AllExcept(EntityId), // movement
-    All,                 // joins, deaths, chat, block mutations
+    Player(EntityId),
+    AllExcept(EntityId),
+    All,
 }
 
 impl WorldEvent {
@@ -69,7 +73,7 @@ impl WorldEvent {
         match self {
             Self::PlayerJoined { .. } => Recipient::All,
             Self::PlayerLeft { .. } => Recipient::All,
-            Self::ExistingPlayers { recipient, .. } => Recipient::Player(*recipient),
+            Self::ExistingPlayer { recipient, .. } => Recipient::Player(*recipient),
             Self::PlayerMoved { player_id, .. } => Recipient::AllExcept(*player_id),
             Self::PlayerRotated { player_id, .. } => Recipient::AllExcept(*player_id),
             Self::PlayerTeleported { player_id, .. } => Recipient::AllExcept(*player_id),

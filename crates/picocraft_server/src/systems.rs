@@ -100,6 +100,26 @@ pub fn system_player_moved(
 }
 
 pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID) {
+    let existing_players: Vec<_, MAX_PLAYERS> = world
+        .players
+        .uuid
+        .iter()
+        .map(|(index, uuid)| {
+            // these are all required fields, so we know they exist for every player
+            let username = world.players.username.get(index).unwrap();
+            let position = world.players.position.get(index).unwrap();
+            let rotation = world.players.rotation.get(index).unwrap();
+
+            (
+                EntityId::player(index),
+                username.0.clone(),
+                uuid.0,
+                *position,
+                *rotation,
+            )
+        })
+        .collect();
+
     let bundle = PlayerBundle {
         uuid: Uuid(uuid),
         username: Username(username.clone()),
@@ -125,7 +145,7 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         }
         // This shouldn't be a possible outcome? I don't think?
         Err(ComponentStorageError::PoolFull) => {
-            panic!("Player pool is full");
+            unreachable!("Player pool is full");
         }
         Err(e) => {
             error!("Failed to spawn player entity: {e}");
@@ -136,6 +156,19 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
     player
         .insert(Dimension::Overworld)
         .expect("EntityId should be valid");
+
+    for (player_id, username, uuid, position, rotation) in existing_players {
+        EVENTS
+            .immediate_publisher()
+            .publish_immediate(WorldEvent::ExistingPlayer {
+                recipient: player.entity_id,
+                player_id,
+                username,
+                uuid,
+                position,
+                rotation,
+            });
+    }
 }
 
 pub fn system_player_left(world: &mut World, player_id: EntityId) {
