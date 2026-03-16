@@ -116,8 +116,48 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let save_data_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
                 let component_ty = f.component_ty;
-                quote! { pub #ident: #component_ty }
+                if f.is_required {
+                    quote! { pub #ident: #component_ty }
+                } else {
+                    quote! { pub #ident: ::core::option::Option<#component_ty> }
+                }
             });
+
+            let snapshot_fields = persistent_fields.iter().map(|f| {
+                let ident = f.ident;
+                if f.is_required {
+                    quote! {
+                        #ident: crate::storage::GetComponent::get(&self.#ident, index)?.clone()
+                    }
+                } else {
+                    quote! {
+                        #ident: crate::storage::GetComponent::get(&self.#ident, index).copied()
+                    }
+                }
+            });
+
+            let restore_bundle_fields = required_fields.iter().map(|f| {
+                let ident = f.ident;
+                quote! { #ident: save.#ident }
+            });
+
+            let restore_bundle_inserts = required_fields.iter().map(|f| {
+                let ident = f.ident;
+                quote! {
+                    crate::storage::ComponentStore::insert(&mut self.#ident, index, bundle.#ident)?;
+                }
+            });
+
+            let restore_optional_inserts = persistent_fields.iter().filter(|f| !f.is_required).map(
+                |f| {
+                    let ident = f.ident;
+                    quote! {
+                        if let Some(val) = save.#ident {
+                            crate::storage::ComponentStore::insert(&mut self.#ident, index, val)?;
+                        }
+                    }
+                },
+            );
 
             let spawn_inserts = required_fields.iter().map(|f| {
                 let ident = &f.ident;
@@ -197,6 +237,40 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     pub fn count(&self) -> usize {
                         (0..N as u8).filter(|&i| crate::storage::ComponentStore::contains(&self.#canonical_ident, i)).count()
                     }
+
+                    pub fn snapshot(
+                        &self,
+                        entity_id: crate::entity::EntityId,
+                    ) -> ::core::option::Option<#save_data_name> {
+                        let index = entity_id.index();
+                        Some(#save_data_name {
+                            #(#snapshot_fields,)*
+                        })
+                    }
+
+                    pub fn restore(
+                        &mut self,
+                        save: #save_data_name,
+                    ) -> ::core::result::Result<
+                        crate::entity::EntityRef<'_, #ident #ty_generics>,
+                        crate::errors::ComponentStorageError,
+                    > {
+                        let index = self
+                            .first_free()
+                            .ok_or(crate::errors::ComponentStorageError::PoolFull)?;
+
+                        let bundle = #bundle_name {
+                            #(#restore_bundle_fields,)*
+                        };
+
+                        #(#restore_bundle_inserts)*
+                        #(#restore_optional_inserts)*
+
+                        Ok(crate::entity::EntityRef {
+                            pool: self,
+                            entity_id: crate::entity::EntityId::new(#pool_attr_kind, index),
+                        })
+                    }
                 }
 
                 impl #impl_generics crate::traits::Pool for #ident #ty_generics #where_clause {
@@ -217,6 +291,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         .ok_or(crate::errors::ComponentStorageError::PoolFull)?;
 
                         #(#spawn_inserts)*
+
                         Ok(crate::entity::EntityRef {
                             pool: self,
                             entity_id: crate::entity::EntityId::new(#pool_attr_kind, index),

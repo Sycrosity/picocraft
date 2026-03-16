@@ -18,7 +18,6 @@ pub struct PlayerPool<const N: usize = 8> {
     #[required]
     #[persistent]
     pub position: SparseSet<Position, N>,
-    #[required]
     pub velocity: SparseSet<Velocity, N>,
     #[required]
     #[persistent]

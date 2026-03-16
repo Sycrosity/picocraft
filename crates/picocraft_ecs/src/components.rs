@@ -106,7 +106,7 @@ impl Rotation {
 #[derive(Debug, Clone, Copy)]
 pub struct FallDistance(pub f32);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Uuid(pub UUID);
 
 /// A marker component for mobs that should not naturally despawn, such as pets

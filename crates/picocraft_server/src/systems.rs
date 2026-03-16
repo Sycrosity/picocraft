@@ -131,16 +131,29 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
         })
         .collect();
 
-    let bundle = PlayerBundle {
-        uuid: Uuid(uuid),
-        username: Username(username.clone()),
-        health: Health(20f32),
-        position: Position::new(0f32, 96f32, 0f32),
-        rotation: Rotation::default(),
-        velocity: Velocity::default(),
+    let save = world
+        .player_save_data
+        .iter()
+        .find_map(|slot| slot.as_ref().filter(|s| s.uuid == Uuid(uuid)).cloned());
+
+    let (position, rotation) = match &save {
+        Some(save) => (save.position, save.rotation),
+        None => (Position::new(0.0, 96.0, 0.0), Rotation::default()),
     };
 
-    let mut player = match world.players.spawn(bundle.clone()) {
+    let entity_ref = match save {
+        Some(save) => world.players.restore(save),
+        None => world.players.spawn(PlayerBundle {
+            uuid: Uuid(uuid),
+            username: Username(username.clone()),
+            health: Health(20.0),
+            //TODO new player spawn pos should come from terrain and random number gen
+            position,
+            rotation,
+        }),
+    };
+
+    let mut player = match entity_ref {
         Ok(entity_ref) => {
             EVENTS
                 .immediate_publisher()
@@ -148,8 +161,8 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
                     player_id: entity_ref.entity_id,
                     username,
                     uuid,
-                    position: bundle.position,
-                    rotation: bundle.rotation,
+                    position,
+                    rotation,
                 });
 
             entity_ref
@@ -205,6 +218,19 @@ pub fn system_player_left(world: &mut World, player_id: EntityId) {
         .get(player_id.index())
         .expect("UUID should be the canonical component")
         .0;
+
+    if let Some(save) = world.players.snapshot(player_id) {
+        // find the slot by UUID and store it
+        if let Some(slot) = world
+            .player_save_data
+            .iter_mut()
+            .find(|s| s.as_ref().map(|s| s.uuid == save.uuid).unwrap_or(false))
+        {
+            *slot = Some(save);
+        } else if let Some(slot) = world.player_save_data.iter_mut().find(|s| s.is_none()) {
+            *slot = Some(save);
+        }
+    }
 
     if let Err(e) = world.players.despawn(player_id) {
         error!("Failed to despawn player entity: {e}");

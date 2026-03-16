@@ -2,20 +2,23 @@ use crate::pools::*;
 
 pub struct World<
     const MAX_PLAYERS: usize = 8,
+    const MAX_SAVED_PLAYERS: usize = 16,
     const MAX_MOBS: usize = 128,
     const MAX_PROJECTILES: usize = 128,
 > {
     pub players: PlayerPool<MAX_PLAYERS>,
     // pub mobs: MobPool<MAX_MOBS>,
-    pub player_save_data: [Option<PlayerSaveData>; MAX_PLAYERS],
+    pub player_save_data: [Option<PlayerSaveData>; MAX_SAVED_PLAYERS],
     tick_count: u64,
 }
 
-impl<const MAX_PLAYERS: usize> World<MAX_PLAYERS> {
+impl<const MAX_PLAYERS: usize, const MAX_SAVED_PLAYERS: usize>
+    World<MAX_PLAYERS, MAX_SAVED_PLAYERS>
+{
     pub fn new() -> Self {
         Self {
             players: PlayerPool::new(),
-            player_save_data: [const { None }; MAX_PLAYERS],
+            player_save_data: [const { None }; MAX_SAVED_PLAYERS],
             tick_count: 0,
         }
     }
