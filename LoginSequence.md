@@ -30,7 +30,7 @@
 - [x] C → S: Confirm Teleportation
 - [ ] C → S: Set Player Position and Rotation (Optional, to confirm the spawn position)
 - [ ] S → C: Server Data (Optional)
-- [ ] S → C: Player Info Update (Add Player action, all players except the one joining (the vanilla server separates these, you don't need to))
+- [x] S → C: Player Info Update (Add Player action, all players except the one joining (the vanilla server separates these, you don't need to))
 - [x] S → C: Player Info Update (Add Player action, joining player)
 - [x] S → C: Initialize World Border (Optional)
 - [ ] S → C: Update Time (Optional)
@@ -40,5 +40,5 @@
 - [ ] S → C: Step Tick (Optional, the vanilla server sends this regardless of ticking state)
 - [x] S → C: Set Center Chunk
 - [x] S → C: Chunk Data and Update Light (One sent for each chunk in a circular area centered on the player's position)
-- [ ] C → S: Player Loaded (After the "Loading terrain..." screen has closed (see below), or skipped if 60 ticks pass before then)
+- [x] C → S: Player Loaded (After the "Loading terrain..." screen has closed (see below), or skipped if 60 ticks pass before then)
 - [ ] S → C: inventory, entities, etc

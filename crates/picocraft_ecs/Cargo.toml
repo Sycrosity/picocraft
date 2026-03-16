@@ -1,0 +1,19 @@
+[package]
+name = "picocraft_ecs"
+description = "A custom, no_std & no_alloc ECS for the picocraft minecraft server."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+keywords.workspace = true
+repository.workspace = true
+
+[dependencies]
+
+heapless.workspace = true
+
+picocraft_core.workspace = true
+picocraft_derive.workspace = true
+picocraft_proto.workspace = true
+
+thiserror.workspace = true

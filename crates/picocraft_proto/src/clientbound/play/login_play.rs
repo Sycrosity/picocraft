@@ -63,7 +63,7 @@ pub struct LoginPlayPacket {
     death_dimension_name: Optional<Identifier<16>>,
     #[builder(default = None)]
     ///The location that the player died at.
-    death_location: Optional<Position>,
+    death_location: Optional<BlockPosition>,
     /// The number of ticks until the player can use the last used portal again.
     /// Looks like it's an attempt to fix MC-180.
     #[builder(default = VarInt(20))]

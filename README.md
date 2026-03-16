@@ -7,7 +7,7 @@ picocraft ~~is~~ (hopefully will become) a no_std lightweight minecraft server i
 
 ## Current Project Status
 
-As of right now, `picocraft` generates procedural terrain with a chosen world seed, but no player modifcations are used or saved after disconnect. `picocraft` currently only has support for `std` targets, however everything except networking is `no_std` and `no_alloc` compatible.
+As of right now, `picocraft` generates procedural terrain with a chosen world seed, and multiple players can move around and see eachother, but no player block modifcations are used or saved after disconnect. `picocraft` currently only has support for `std` targets, however everything except networking is `no_std` and `no_alloc` compatible.
 
 ## Usage
 

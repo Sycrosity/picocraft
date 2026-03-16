@@ -15,14 +15,15 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod buffer;
+pub mod channels;
 pub mod client;
 pub mod config;
 pub mod errors;
 pub mod handlers;
-pub mod packet_socket;
 pub mod server;
 pub mod shutdown;
+pub mod systems;
+pub mod tick;
 
 pub use client::Client;
 pub use server::Server;
@@ -37,20 +38,18 @@ pub mod prelude {
     pub(crate) use picocraft_proto::prelude::*;
     pub(crate) use rand::prelude::*;
 
-    pub(crate) use crate::buffer::Buffer;
-    pub use crate::client::{Client, Player};
+    pub use crate::SystemRng;
+    pub use crate::client::Client;
+    pub use crate::config::ServerConfig;
     pub(crate) use crate::errors::*;
     pub(crate) use crate::handlers::HandlePacket;
     pub use crate::server::Server;
-    pub use crate::{ServerConfig, SystemRng};
 }
 
-pub type SystemRng = embassy_sync::mutex::Mutex<
-    embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex,
-    core::cell::RefCell<rand_chacha::ChaCha8Rng>,
->;
+use core::cell::RefCell;
 
-pub type ServerConfig = embassy_sync::rwlock::RwLock<
-    embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex,
-    crate::config::Config,
->;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::mutex::Mutex;
+use rand_chacha::ChaCha8Rng;
+
+pub type SystemRng = Mutex<CriticalSectionRawMutex, RefCell<ChaCha8Rng>>;

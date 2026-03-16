@@ -86,8 +86,8 @@ impl From<ProtocolVersion> for Version {
 pub struct Players {
     pub max: i32,
     pub online: i32,
-    //TODO consider never using this field
-    pub sample: Vec<PlayerSample, 2>,
+    //TODO actually send a sample to the client
+    pub sample: Vec<PlayerSample, 0>,
 }
 
 impl Players {

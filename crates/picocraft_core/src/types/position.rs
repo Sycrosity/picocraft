@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-impl Position {
+impl BlockPosition {
     pub fn new(x: i32, z: i32, y: i32) -> Self {
         let packed = ((i64::from(x) & 0x3ff_ffff) << 38)
             | ((i64::from(z) & 0x03ff_ffff) << 12)
@@ -9,14 +9,14 @@ impl Position {
     }
 }
 
-impl Encode for Position {
+impl Encode for BlockPosition {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         buffer.write_all(&self.0.to_be_bytes()).await?;
         Ok(())
     }
 }
 
-impl Decode for Position {
+impl Decode for BlockPosition {
     async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
         let mut bytes = [0u8; 8];
         buffer.read_exact(&mut bytes).await?;

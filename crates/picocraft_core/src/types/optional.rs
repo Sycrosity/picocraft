@@ -33,6 +33,7 @@ impl<T: Encode> Encode for PrefixedOptional<T> {
     }
 }
 
+#[allow(clippy::match_bool)]
 impl<T: Decode> Decode for PrefixedOptional<T> {
     async fn decode<R: Read>(mut buffer: R) -> Result<Self, DecodeError> {
         Ok(PrefixedOptional(match bool::decode(&mut buffer).await? {

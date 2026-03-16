@@ -1,8 +1,12 @@
+use embassy_sync::pubsub::WaitResult;
+use picocraft_ecs::commands::WorldCommand;
+use picocraft_ecs::events::WorldEvent;
 use picocraft_proto::serverbound::configuration::AcknowledgeFinishConfigurationPacket;
-use picocraft_terrain::world::chunks::empty_chunk::EmptyChunkAndLightPacket;
-use picocraft_terrain::world::coordinates::ChunkColumnCoordinates;
-use picocraft_terrain::world::spiral_iterator::ChunkKind;
+use picocraft_terrain::terrain::chunks::empty_chunk::EmptyChunkAndLightPacket;
+use picocraft_terrain::terrain::coordinates::ChunkColumnCoordinates;
+use picocraft_terrain::terrain::spiral_iterator::{BorderedSpiralIterator, ChunkKind};
 
+use crate::channels::COMMANDS;
 use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
@@ -11,17 +15,75 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         info!(
             "Client {} [{}] has finished configuration.",
-            client.player.username(),
-            client.player.uuid()
+            client.username().clone(),
+            client.uuid()
         );
 
         client.set_state(State::Play);
+
+        COMMANDS
+            .send(WorldCommand::PlayerJoined {
+                username: client.username().clone(),
+                uuid: client.uuid(),
+            })
+            .await;
+
+        let mut opt_position = None;
+        let mut opt_rotation = None;
+
+        let mut buffered_events: heapless::Vec<WorldEvent, MAX_PLAYERS> = heapless::Vec::new();
+
+        let (entity_id, position, rotation) = loop {
+            match client
+                .events
+                .as_mut()
+                .expect("client should have a valid Subscriber by this point")
+                .next_message()
+                .await
+            {
+                WaitResult::Message(WorldEvent::PlayerJoined {
+                    player_id,
+                    uuid,
+                    position,
+                    rotation,
+                    ..
+                }) if uuid == client.uuid() => {
+                    client.entity_id = Some(player_id);
+                    opt_position.replace(position);
+                    opt_rotation.replace(rotation);
+                }
+                WaitResult::Message(WorldEvent::WorldReady { recipient })
+                    if Some(recipient) == client.entity_id =>
+                {
+                    break (
+                        recipient,
+                        opt_position.expect("we set this"),
+                        opt_rotation.expect("we set this"),
+                    );
+                }
+                WaitResult::Message(event @ WorldEvent::ExistingPlayer { .. }) => {
+                    // ignore other messages until we get the PlayerJoined event and any
+                    // ExistingPlayer events for this client since we need to
+                    // know our entity id before doing anything else.
+
+                    let _ = buffered_events.push(event);
+                }
+                WaitResult::Message(_) => {}
+                WaitResult::Lagged(skipped) => {
+                    // in theory this should be unreachable or very close to impossible
+                    warn!(
+                        "Lagged while waiting for PlayerJoined event, skipped {skipped} messages."
+                    );
+                }
+            }
+        };
 
         let vec: PrefixedArray<Identifier<16>, 3> = PrefixedArray::from_array([Identifier(
             String::try_from("overworld").expect("max 16 bytes"),
         )]);
 
         let login_play = clientbound::LoginPlayPacket::builder()
+            .entity_id(i32::from(entity_id.index()))
             .dimension_names(vec)
             .is_hardcore(false)
             .view_distance(VarInt(16))
@@ -32,9 +94,11 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         client.encode_packet(&login_play).await?;
 
         let synchronise_player_position = clientbound::SynchronisePlayerPositionPacket::builder()
-            .x(0f64)
-            .z(0f64)
-            .y(156f64)
+            .x(position.protocol_x())
+            .z(position.protocol_z())
+            .y(position.protocol_y())
+            .pitch(rotation.pitch)
+            .yaw(rotation.yaw)
             .build();
 
         client.encode_packet(&synchronise_player_position).await?;
@@ -46,7 +110,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
         let mut action_array = Array::new();
 
         let _ = action_array.push(clientbound::PlayerActions::AddPlayer {
-            name: client.username().clone(),
+            username: client.username().clone(),
             properties: Properties::default(),
         });
 
@@ -76,17 +140,12 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         client.encode_packet(&game_event).await?;
 
-        let mut world = picocraft_terrain::world::World::new(0);
-        world.generate_terrain_map();
-
         let spawn = ChunkColumnCoordinates::new(0, 0);
 
-        for (x, z, kind) in
-            picocraft_terrain::world::spiral_iterator::BorderedSpiralIterator::new(8, spawn)
-        {
+        for (x, z, kind) in BorderedSpiralIterator::new(16, spawn) {
             match kind {
                 ChunkKind::Terrain => {
-                    let chunk = world.get_chunk_packet(x, z);
+                    let chunk = client.terrain.get_chunk_packet(x, z);
                     client.encode_packet(&chunk).await?;
                 }
                 ChunkKind::Air => {
@@ -103,6 +162,10 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             client.player.username(),
             client.player.uuid()
         );
+
+        for event in buffered_events {
+            client.handle_event(event).await?;
+        }
 
         Ok(())
     }

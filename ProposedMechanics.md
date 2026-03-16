@@ -1,9 +1,9 @@
 - player movement
   - [ ] placing blocks [high]
   - [ ] breaking blocks [high]
-  - [ ] walking/running [high]
-  - [ ] jumping [high]
-  - [ ] collision with blocks [high]
+  - [x] walking/running [high]
+  - [x] jumping [high]
+  - [x] collision with blocks [high]
 
 - player interaction with blocks:
   - [ ] tilling (shovel) [med]
@@ -33,7 +33,7 @@
   - [ ] fence auto connect [low]
 - world gen
   - [ ] biomes [low]
-  - [ ] terrain [med]
+  - [x] terrain [med]
   - [ ] tree generation [med]
 - [ ] block properties [e.g. facing, half, shape] [med]
 - [ ] connected blocks (beds, doors) [med]
@@ -42,4 +42,4 @@
 - [ ] button pressing [v low]
 - [ ] mutliple items from one block destroy (like coal) [med]
 
----- got to crafting table in list ----
+---- got to crafting table in block list while looking for interactions ----

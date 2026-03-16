@@ -4,8 +4,8 @@ use crate::prelude::*;
 
 #[derive(Debug, Error)]
 pub enum PacketError {
-    #[error("Invalid packet")]
-    InvalidPacket,
+    #[error("Invalid packet with ID {0:x?} in state {1:?}")]
+    InvalidPacket(i32, State),
     #[error("Connection closed")]
     ConnectionClosed,
     #[error("Unknown error")]

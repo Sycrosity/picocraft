@@ -1,9 +1,30 @@
 use crate::prelude::*;
 
+/// Limited to one player update per packet to reduce memory size from ~2kb to
+/// 360Bytes
 #[derive(Debug)]
 pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub actions: EnumSet,
-    pub players: PrefixedArray<(UUID, Array<PlayerActions, ACTIONS>), 8>,
+    //TODO should probably have something like a `PlayerActionsArray` instead of just having 8
+    // repeated PlayerActions, as the array should have at maximum one of each type of action - so
+    // this just wastes memory.
+    pub players: PrefixedArray<(UUID, Array<PlayerActions, 8>), 1>,
+}
+
+impl<const ACTIONS: usize> PlayerInfoUpdatePacket<ACTIONS> {
+    pub fn add_player(uuid: UUID, username: String<16>) -> Self {
+        let actions = EnumSet::ADD_PLAYER | EnumSet::UPDATE_LISTED;
+        let player_actions = Array::from_array([
+            PlayerActions::AddPlayer {
+                username,
+                properties: Properties::default(),
+            },
+            PlayerActions::UpdateListed(true),
+        ]);
+        let players = PrefixedArray::from_array([(uuid, player_actions)]);
+
+        Self { actions, players }
+    }
 }
 
 impl<const ACTIONS: usize> Packet for PlayerInfoUpdatePacket<ACTIONS> {
@@ -76,7 +97,7 @@ async fn decode_player_actions<const ACTIONS: usize, R: embedded_io_async::Read>
     for flag in actions.iter() {
         let action = match flag {
             EnumSet::ADD_PLAYER => PlayerActions::AddPlayer {
-                name: String::<16>::decode(&mut buffer).await?,
+                username: String::<16>::decode(&mut buffer).await?,
                 properties: Properties::decode(&mut buffer).await?,
             },
             EnumSet::INITIALISE_CHAT => PlayerActions::InitialiseChat(
@@ -114,7 +135,7 @@ async fn decode_player_actions<const ACTIONS: usize, R: embedded_io_async::Read>
 #[derive(Debug)]
 pub enum PlayerActions {
     AddPlayer {
-        name: String<16>,
+        username: String<16>,
         properties: Properties,
     },
     InitialiseChat(PrefixedOptional<InitialiseChatData>),
@@ -129,8 +150,11 @@ pub enum PlayerActions {
 impl Encode for PlayerActions {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         match self {
-            PlayerActions::AddPlayer { name, properties } => {
-                name.encode(&mut buffer).await?;
+            PlayerActions::AddPlayer {
+                username,
+                properties,
+            } => {
+                username.encode(&mut buffer).await?;
                 properties.encode(&mut buffer).await
             }
             PlayerActions::InitialiseChat(data) => data.encode(&mut buffer).await,
