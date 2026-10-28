@@ -1,13 +1,11 @@
 use crate::prelude::*;
 
-/// Limited to one player update per packet to reduce memory size from ~2kb to
-/// 360Bytes
+/// Limited to one player update per packet to reduce memory size from ~2kb to 360Bytes
 #[derive(Debug)]
 pub struct PlayerInfoUpdatePacket<const ACTIONS: usize> {
     pub actions: EnumSet,
     //TODO should probably have something like a `PlayerActionsArray` instead of just having 8
-    // repeated PlayerActions, as the array should have at maximum one of each type of action - so
-    // this just wastes memory.
+    // repeated PlayerActions, as the array should have at maximum one of each type of action - so this just wastes memory.
     pub players: PrefixedArray<(UUID, Array<PlayerActions, 8>), 1>,
 }
 
@@ -168,12 +166,10 @@ impl Encode for PlayerActions {
     }
 }
 
-/// An empty struct representing data to initialise secure chat, as they use up
-/// a lot of memory.
+/// An empty struct representing data to initialise secure chat, as they use up a lot of memory.
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct InitialiseChatData;
 
-/// An empty struct representing a `TextComponent`, as we cannot yet decode NBT
-/// data.
+/// An empty struct representing a `TextComponent`, as we cannot yet decode NBT data.
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct TextComponent;

@@ -62,9 +62,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                     );
                 }
                 WaitResult::Message(event @ WorldEvent::ExistingPlayer { .. }) => {
-                    // ignore other messages until we get the PlayerJoined event and any
-                    // ExistingPlayer events for this client since we need to
-                    // know our entity id before doing anything else.
+                    // ignore other messages until we get the PlayerJoined event and any ExistingPlayer events for this client since we need to know our entity id before doing anything else.
 
                     let _ = buffered_events.push(event);
                 }

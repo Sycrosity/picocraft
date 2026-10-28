@@ -25,8 +25,7 @@ impl Velocity {
     }
 }
 
-/// Converted to f64 when serialised as minecraft uses f64 for positions, but
-/// f32 is more than enough for internal use and allows FPU use on ESP32s3.
+/// Converted to f64 when serialised as minecraft uses f64 for positions, but f32 is more than enough for internal use and allows FPU use on ESP32s3.
 #[derive(Debug, Clone, Copy)]
 pub struct Position {
     pub x: f32,
@@ -76,15 +75,9 @@ impl From<Position> for ProtocolPosition {
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Rotation {
-    /// Rotation around the vertical (y) axis, in degrees. From -180 to +180
-    /// degrees. Increases when rotating to the right (clockwise), decreases
-    /// when rotating to the left (counter-clockwise). 0 degrees means facing
-    /// south.
+    /// Rotation around the vertical (y) axis, in degrees. From -180 to +180 degrees. Increases when rotating to the right (clockwise), decreases when rotating to the left (counter-clockwise). 0 degrees means facing south.
     pub yaw: f32,
-    /// Rotation around the local x axis, in degrees. From -90 to +90 degrees.
-    /// Increases when looking downwards, decreases when looking up. 0 degrees
-    /// means looking straight ahead, parallel to the ground. 80 degrees means
-    /// looking straight down, -90 degrees means looking straight up.
+    /// Rotation around the local x axis, in degrees. From -90 to +90 degrees. Increases when looking downwards, decreases when looking up. 0 degrees means looking straight ahead, parallel to the ground. 80 degrees means looking straight down, -90 degrees means looking straight up.
     pub pitch: f32,
 }
 
@@ -109,8 +102,7 @@ pub struct FallDistance(pub f32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Uuid(pub UUID);
 
-/// A marker component for mobs that should not naturally despawn, such as pets
-/// or bred animals.
+/// A marker component for mobs that should not naturally despawn, such as pets or bred animals.
 #[derive(Debug, Clone, Copy)]
 pub struct Persistent;
 

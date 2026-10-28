@@ -30,8 +30,8 @@ impl Encode for ChunkData {
         let mut counter = ByteCountWriter::new();
         self.data.encode(&mut counter).await?;
 
-        VarInt(counter.count as i32).encode(&mut buffer).await?; // should always be 33232 with this current setup
-        // log::info!("{}", counter.count);
+        // should always be 33232 with this current setup
+        VarInt(counter.count as i32).encode(&mut buffer).await?;
 
         self.data.encode(&mut buffer).await?;
 
@@ -64,9 +64,7 @@ pub struct BlockContainer {
 impl Encode for BlockContainer {
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         if self.bits_per_entry == 0 {
-            // Special case for all air chunks, which have no palette and 0 bits per entry.
-            // In this case, we still need to write a palette (with a single entry of air)
-            // and 1 bit per entry to avoid confusion on the client side.
+            // Special case for all air chunks, which have no palette and 0 bits per entry. In this case, we still need to write a palette (with a single entry of air) and 1 bit per entry to avoid confusion on the client side.
             0u8.encode(&mut buffer).await?;
             0u8.encode(&mut buffer).await?;
             return Ok(());
@@ -92,8 +90,7 @@ impl Default for BlockContainer {
 
 #[derive(Debug)]
 pub struct BiomeContainer {
-    // 3 bits per biome, so 21 biomes can fit in a single long. 4 longs are needed to represent all
-    // 64 biomes in a chunk section.
+    // 3 bits per biome, so 21 biomes can fit in a single long. 4 longs are needed to represent all 64 biomes in a chunk section.
     pub data: Array<u64, 4>,
 }
 

@@ -6,11 +6,9 @@ use picocraft_derive::{Decode, Encode};
 pub struct ChunkHeightmaps {
     /// Heightest non-air block/fluid in each column
     pub world_surface: Heightmap,
-    /// Heightest block/fluid in each column that blocks motion ('solid' blocks,
-    /// excl. bamboo saplings and cactuses) for displaying rain and snow
+    /// Heightest block/fluid in each column that blocks motion ('solid' blocks, excl. bamboo saplings and cactuses) for displaying rain and snow
     pub motion_blocking: Heightmap,
-    /// Same as motion_blocking, but also excludes leaves, used for mob spawning
-    /// and pathfinding.
+    /// Same as motion_blocking, but also excludes leaves, used for mob spawning and pathfinding.
     pub motion_blocking_no_leaves: Heightmap,
 }
 
@@ -80,14 +78,11 @@ impl Default for ChunkHeightmaps {
 
 /// Heightmap used in chunk data packets.
 ///
-/// Note: The reason the [`PrefixedArray`] is 37 [`u64`]'s long is that a
-/// heightmap for a 16x16 block chunk needs 9 bits per height value (to cover
-/// heights 0-256, aka worldheight+1 as the chunk could have no blocks in it).
-/// Since the Long's have padding at the end of each long, 63 bits per long are
-/// used, which is 7 heightmap values. Therefore, we need ceil(256/7) Long's,
-/// which is 37. The 9 bits per entry also covers the current default world
-/// height of 384 on vanilla servers, so the same logic applies if the world
-/// height is increased in the future.
+/// Note: The reason the [`PrefixedArray`] is 37 [`u64`]'s long is that a heightmap for a 16x16 block chunk needs 9 bits per height value (to cover heights 0-256, aka worldheight+1 as the chunk could have no blocks in it).
+/// 
+/// Since the Long's have padding at the end of each long, 63 bits per long are used, which is 7 heightmap values. Therefore, we need ceil(256/7) Long's, which is 37. 
+/// 
+/// The 9 bits per entry also covers the current default world height of 384 on vanilla servers, so the same logic applies if the world height is increased in the future.
 #[derive(Debug, Clone, Encode, Decode, PartialEq)]
 pub struct Heightmap {
     pub heightmap_type: HeightmapType,

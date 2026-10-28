@@ -5,9 +5,7 @@ use crate::prelude::*;
 #[derive(Debug, Default)]
 pub struct Buffer<const N: usize>(Vec<u8, N>);
 
-/// This is an anti-pattern, and probably isn't a good idea in the long run,
-/// however it greatly simplifies deriving [`Write`](embedded_io_async::Write)
-/// and [`Read`](embedded_io_async::Read) for [`Vec`](heapless::Vec).
+/// This is an anti-pattern, and probably isn't a good idea in the long run, however it greatly simplifies deriving [`Write`](embedded_io_async::Write) and [`Read`](embedded_io_async::Read) for [`Vec`](heapless::Vec).
 impl<const N: usize> DerefMut for Buffer<N> {
     fn deref_mut(&mut self) -> &mut Vec<u8, N> {
         &mut self.0

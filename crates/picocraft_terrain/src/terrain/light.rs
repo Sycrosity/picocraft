@@ -48,8 +48,7 @@ impl Decode for LightData {
 struct FullLightSection;
 
 impl Encode for FullLightSection {
-    // Equivelent to encoding a `PrefixedArray` of 2048 0xff values, aka all blocks
-    // fully lit.
+    // Equivelent to encoding a `PrefixedArray` of 2048 0xff values, aka all blocks fully lit.
     async fn encode<W: embedded_io_async::Write>(&self, mut buffer: W) -> Result<(), EncodeError> {
         use picocraft_core::byteorder::WriteBytesExt;
 

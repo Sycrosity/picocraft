@@ -74,8 +74,7 @@ impl Client {
         }
 
         match event {
-            // This Event should only be possible to be recieved by clients other than the one who
-            // just joined, so in theory don't need to check the uuid here.
+            // This Event should only be possible to be recieved by clients other than the one who just joined, so in theory don't need to check the uuid here.
             WorldEvent::PlayerJoined {
                 player_id,
                 username,
@@ -230,15 +229,14 @@ impl Client {
             self.connection.remote_endpoint()
         );
 
-        //TODO We need a generic timer implemation that works with either tokio or
-        // embassy
+        //TODO We need a generic timer implemation that works with either tokio
+        // or embassy
         let mut ticker = tokio::time::interval(core::time::Duration::from_secs(10));
         let _ = ticker.tick().await; // advance to next tick
         // let mut ticker = Ticker::every(embassy_time::Duration::from_secs(15));
 
         loop {
-            // This method may lose packets if both a packet is received and 15 seconds have
-            // elapsed since the last keep-alive, but thats a good enough tradeoff for now.
+            // This method may lose packets if both a packet is received and 15 seconds have elapsed since the last keep-alive, but thats a good enough tradeoff for now.
             let res = match select3(
                 self.connection.read_packet(),
                 Self::next_event(&mut self.events),
@@ -283,8 +281,7 @@ impl Client {
                 }
             };
 
-            //TODO really, this should be propogated properly, with text from the source
-            // and ideally the path.
+            //TODO really, this should be propogated properly, with text from the source and ideally the path.
             match res {
                 Ok(()) => (),
                 Err(PacketError::InvalidPacket(id, state)) => {

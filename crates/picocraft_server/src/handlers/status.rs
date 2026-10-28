@@ -9,8 +9,7 @@ impl HandlePacket for StatusRequestPacket {
 
         // let server_config = client.server_config().lock().await.borrow();
 
-        // This should really be built with values from the server config for player
-        // count
+        // This should really be built with values from the server config for player count
         let json = clientbound::JsonStatusResponse::builder()
             .players(MAX_PLAYERS as i32, 0)
             //TODO the clone here ideally shouldn't occur
