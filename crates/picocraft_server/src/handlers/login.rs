@@ -17,7 +17,7 @@ const WORLDGEN_BIOME: &[u8] = include_bytes!("login/worldgen_biome.bin");
 
 impl HandlePacket for LoginStartPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        trace!("Packet received: {:?}", &self);
+        trace!("Packet received: {:?}", self);
 
         let login_disconnect = clientbound::LoginDisconnectPacket {
             reason: heapless::format!("{{ text: \"Server is full.\" }}")
@@ -50,7 +50,7 @@ impl HandlePacket for LoginStartPacket {
 
 impl HandlePacket for LoginAcknowledgedPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        debug!("{} [{}] has logged in.", &client.username(), &client.uuid());
+        debug!("{} [{}] has logged in.", client.username(), client.uuid());
 
         client.set_state(State::Configuration);
 

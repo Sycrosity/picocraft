@@ -44,7 +44,7 @@ impl Connection {
         trace!(
             "Reading packet for {} in {:?} state.",
             self.remote_endpoint(),
-            &self.state
+            self.state
         );
 
         // if self.state != State::Play && self.is_legacy_ping().await? {

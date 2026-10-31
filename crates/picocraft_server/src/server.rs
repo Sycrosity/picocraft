@@ -35,7 +35,7 @@ impl Server {
     pub async fn next_connection(&mut self) -> Result<Option<Client>, PicocraftError> {
         match select(self.listener.accept(), shutdown_signal()).await {
             Either::First(Ok((socket, addr))) => {
-                info!("New connection from: {}", &addr);
+                info!("New connection from: {}", addr);
 
                 let client = Client::new(socket, self.system_rng, self.config, self.terrain);
 

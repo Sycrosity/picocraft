@@ -79,9 +79,9 @@ impl Default for ChunkHeightmaps {
 /// Heightmap used in chunk data packets.
 ///
 /// Note: The reason the [`PrefixedArray`] is 37 [`u64`]'s long is that a heightmap for a 16x16 block chunk needs 9 bits per height value (to cover heights 0-256, aka worldheight+1 as the chunk could have no blocks in it).
-/// 
-/// Since the Long's have padding at the end of each long, 63 bits per long are used, which is 7 heightmap values. Therefore, we need ceil(256/7) Long's, which is 37. 
-/// 
+///
+/// Since the Long's have padding at the end of each long, 63 bits per long are used, which is 7 heightmap values. Therefore, we need ceil(256/7) Long's, which is 37.
+///
 /// The 9 bits per entry also covers the current default world height of 384 on vanilla servers, so the same logic applies if the world height is increased in the future.
 #[derive(Debug, Clone, Encode, Decode, PartialEq)]
 pub struct Heightmap {

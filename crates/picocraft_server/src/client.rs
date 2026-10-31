@@ -357,14 +357,14 @@ impl Client {
 
         debug!(
             "Shutting down connection for player: {} [{}]",
-            &self.username(),
+            self.username(),
             self.uuid()
         );
 
         if let Some(player_id) = self.entity_id.take() {
             debug!(
                 "Despawning entity for player {} [{}] with entity ID {:?}",
-                &self.username(),
+                self.username(),
                 self.uuid(),
                 player_id
             );

@@ -3,3 +3,5 @@
 .DS_Store
 .rustfmt.toml
 *.code-workspace
+
+/noise_maps
