@@ -49,9 +49,13 @@ pub struct VarLong(pub i64);
 pub struct Slot {
     pub item_count: VarInt,
     pub item_id: Optional<VarInt>,
+    // for now should always be None
     pub number_of_components_to_add: Optional<VarInt>,
+    // for now should always be None
     pub number_of_components_to_remove: Optional<VarInt>,
-    pub components_to_add: Optional<Array<slot::StructuredComponent, 4>>,
+    //TODO - allow adding components for e.g. item durability
+    // pub components_to_add: Optional<Array<(VarInt, slot::StructuredComponent), 0>>,
+    // pub components_to_remove: Optional<Array<()>, 0>,
 }
 
 // pub type HashedSlot;
