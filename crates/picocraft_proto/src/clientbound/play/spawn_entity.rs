@@ -43,9 +43,7 @@ impl SpawnEntityPacket {
     }
 }
 
-/// These change every version, and realistically should be generated from the
-/// registry, or have a tag for which version they are from when trying to
-/// update the values.
+/// These change every version, and realistically should be generated from the registry, or have a tag for which version they are from when trying to update the values.
 #[derive(Debug, Encode, Decode)]
 #[protocol(value = VarInt)]
 pub enum EntityType {

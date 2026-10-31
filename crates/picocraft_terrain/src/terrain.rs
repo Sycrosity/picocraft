@@ -19,8 +19,7 @@ use crate::terrain::heightmaps::ChunkHeightmaps;
 pub struct Terrain {
     pub(crate) seed: u64,
     pub(crate) terrain_map: NoiseMap256,
-    /// The player y level considered to be "sea level", for which air blocks
-    /// below this level are filled with water, before caves are applied.
+    /// The player y level considered to be "sea level", for which air blocks below this level are filled with water, before caves are applied.
     pub(crate) sea_level: u8,
 }
 

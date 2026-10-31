@@ -45,14 +45,12 @@ impl Encode for LegacyPingPacket {
 
 impl Decode for LegacyPingPacket {
     async fn decode<R: embedded_io_async::Read>(mut buffer: R) -> Result<Self, DecodeError> {
-        //To keep Decode implimentations consistent with other implementations, we have
-        // already read the identifying byte (0xFE) before calling this function.
+        //To keep Decode implimentations consistent with other implementations, we have already read the identifying byte (0xFE) before calling this function.
         let mut buf = [0u8; 4];
 
         buffer.read_exact(&mut buf).await?;
 
-        // We only check against the first 4 bytes, as the rest is not important and can
-        // just be ignored.
+        // We only check against the first 4 bytes, as the rest is not important and can just be ignored.
         if buf == [0x01, 0xfa, 0x00, 0x0b] {
             Ok(LegacyPingPacket)
         } else {

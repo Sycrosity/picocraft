@@ -149,10 +149,7 @@ pub enum PicoCow<'a, T: Clone + 'a> {
     Owned(T),
 }
 
-/// Minecraft uses fixed-point numbers for updating entity positions, rather
-/// than floating points numbers, so we have this type to represent when
-/// minecraft needs to recieve a delta position rather than an absolute
-/// position.
+/// Minecraft uses fixed-point numbers for updating entity positions, rather than floating points numbers, so we have this type to represent when minecraft needs to recieve a delta position rather than an absolute position.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DeltaPosition {
     pub dx: Short,

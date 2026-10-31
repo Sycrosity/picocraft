@@ -37,15 +37,14 @@ impl Connection {
         self.state = state;
     }
 
-    //TODO This isn't a very elegant way to do this - having a "raw packet" type or
-    // similar would be better.
+    //TODO This isn't a very elegant way to do this - having a "raw packet" type or similar would be better.
     pub async fn read_packet(&mut self) -> Result<(VarInt, VarInt), PacketError> {
         self.rx_buf.clear();
 
         trace!(
             "Reading packet for {} in {:?} state.",
             self.remote_endpoint(),
-            &self.state
+            self.state
         );
 
         // if self.state != State::Play && self.is_legacy_ping().await? {
@@ -110,9 +109,7 @@ impl Connection {
         Ok(())
     }
 
-    /// Handle legacy ping packets (0xFE) sent by old Minecraft clients (pre
-    /// 1.7, before the netty rewrite). Returns true if a legacy ping was
-    /// handled, false otherwise.
+    /// Handle legacy ping packets (0xFE) sent by old Minecraft clients (pre 1.7, before the netty rewrite). Returns true if a legacy ping was handled, false otherwise.
     pub async fn is_legacy_ping(&mut self) -> Result<bool, PacketError> {
         use picocraft_core::byteorder::ReadBytesExt;
 
@@ -121,14 +118,12 @@ impl Connection {
         // Peek at the first byte without consuming it incase it's not a legacy ping.
         self.socket.peek(&mut first_byte).await?;
 
-        // Legacy ping packets are prefixed with 0xFE - modern clients should not send
-        // this.
+        // Legacy ping packets are prefixed with 0xFE - modern clients should not send this.
         if first_byte[0] != 0xfe {
             return Ok(false);
         }
 
-        // Consume the first byte (0xFE), consistent with the format of handling other
-        // packets.
+        // Consume the first byte (0xFE), consistent with the format of handling other packets.
         let _ = self.socket.read_u8().await?;
 
         let _ = serverbound::LegacyPingPacket::decode(&mut self.socket)

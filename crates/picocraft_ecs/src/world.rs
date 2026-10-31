@@ -23,8 +23,7 @@ impl<const MAX_PLAYERS: usize, const MAX_SAVED_PLAYERS: usize>
         }
     }
 
-    /// Increments the world's tick count. This should be called once per game
-    /// tick, before any systems are run.
+    /// Increments the world's tick count. This should be called once per game tick, before any systems are run.
     pub fn increment_tick(&mut self) {
         self.tick_count += 1;
     }

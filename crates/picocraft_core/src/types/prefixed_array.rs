@@ -14,9 +14,7 @@ impl<T, const N: usize> PrefixedArray<T, N> {
     }
 }
 
-/// This is an anti-pattern, and probably isn't a good idea in the long run,
-/// however Array is literally just a wrapper around Vec to provide
-/// Encode/Decode impls for non-prefixed Arrays.
+/// This is an anti-pattern, and probably isn't a good idea in the long run, however Array is literally just a wrapper around Vec to provide Encode/Decode impls for non-prefixed Arrays.
 impl<T: Encode, const N: usize> core::ops::DerefMut for PrefixedArray<T, N> {
     fn deref_mut(&mut self) -> &mut Vec<T, N> {
         &mut self.0

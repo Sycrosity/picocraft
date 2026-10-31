@@ -11,7 +11,7 @@ use crate::prelude::*;
 
 impl HandlePacket for AcknowledgeFinishConfigurationPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        trace!("Packet received: {:?}", &self);
+        trace!("Packet received: {:?}", self);
 
         info!(
             "Client {} [{}] has finished configuration.",
@@ -62,9 +62,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
                     );
                 }
                 WaitResult::Message(event @ WorldEvent::ExistingPlayer { .. }) => {
-                    // ignore other messages until we get the PlayerJoined event and any
-                    // ExistingPlayer events for this client since we need to
-                    // know our entity id before doing anything else.
+                    // ignore other messages until we get the PlayerJoined event and any ExistingPlayer events for this client since we need to know our entity id before doing anything else.
 
                     let _ = buffered_events.push(event);
                 }
@@ -122,13 +120,13 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
 
         let player_info_update = clientbound::PlayerInfoUpdatePacket::<3> { actions, players };
 
-        trace!("Packet constructed: {:?}", &player_info_update);
+        trace!("Packet constructed: {:?}", player_info_update);
 
         client.encode_packet(&player_info_update).await?;
 
         let initialise_world_border = clientbound::InitialiseWorldBorderPacket::default();
 
-        trace!("Packet constructed: {:?}", &initialise_world_border);
+        trace!("Packet constructed: {:?}", initialise_world_border);
 
         client.encode_packet(&initialise_world_border).await?;
 
@@ -136,7 +134,7 @@ impl HandlePacket for AcknowledgeFinishConfigurationPacket {
             .event(clientbound::GameEvent::StartWaitingForLevelChunks)
             .build();
 
-        trace!("Packet constructed: {:?}", &game_event);
+        trace!("Packet constructed: {:?}", game_event);
 
         client.encode_packet(&game_event).await?;
 

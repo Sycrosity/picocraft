@@ -5,12 +5,11 @@ use crate::prelude::*;
 
 impl HandlePacket for StatusRequestPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        trace!("Packet received: {:?}", &self);
+        trace!("Packet received: {:?}", self);
 
         // let server_config = client.server_config().lock().await.borrow();
 
-        // This should really be built with values from the server config for player
-        // count
+        // This should really be built with values from the server config for player count
         let json = clientbound::JsonStatusResponse::builder()
             .players(MAX_PLAYERS as i32, 0)
             //TODO the clone here ideally shouldn't occur
@@ -34,7 +33,7 @@ impl HandlePacket for StatusRequestPacket {
             )
             .build();
 
-        trace!("Packet constructed: {:?}", &status_response);
+        trace!("Packet constructed: {:?}", status_response);
 
         client.encode_packet(&status_response).await?;
 
@@ -44,13 +43,13 @@ impl HandlePacket for StatusRequestPacket {
 
 impl HandlePacket for PingRequestPacket {
     async fn handle(self, client: &mut Client) -> Result<(), PacketError> {
-        trace!("Packet received: {:?}", &self);
+        trace!("Packet received: {:?}", self);
 
         let pong_response = clientbound::PongResponsePacket::builder()
             .timestamp(self.timestamp)
             .build();
 
-        trace!("Packet constructed: {:?}", &pong_response);
+        trace!("Packet constructed: {:?}", pong_response);
 
         client.encode_packet(&pong_response).await?;
 

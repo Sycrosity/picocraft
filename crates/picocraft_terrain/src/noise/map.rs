@@ -2,8 +2,7 @@
 //     map: NoiseMap2D<SIZE>,
 // }
 
-/// A 2D noise map with u8 values of size SIZE x SIZE. Must be a multiple of 16
-/// so that it fits on chunk boundaries.
+/// A 2D noise map with u8 values of size SIZE x SIZE. Must be a multiple of 16 so that it fits on chunk boundaries.
 pub struct NoiseMap2D<const SIZE: usize> {
     /// The 2D array representing the noise map, stored as rows of u8 values.
     map: [[u8; SIZE]; SIZE],

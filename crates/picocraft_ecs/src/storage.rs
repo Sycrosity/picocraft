@@ -74,12 +74,10 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
         }
 
         if let Some(existing) = self.sparse[index as usize] {
-            // Overwrite existing value. Maybe instead we should return a Result and let the
-            // caller decide what to do?
+            // Overwrite existing value. Maybe instead we should return a Result and let the caller decide what to do?
             self.dense[existing.get() as usize - 1] = value;
         } else {
-            // SAFETY - We have an assertion that N < 255, so we can
-            // safely cast the length of the dense vector to u8.
+            // SAFETY - We have an assertion that N < 255, so we can safely cast the length of the dense vector to u8.
             self.sparse[index as usize] = NonZeroU8::new(self.dense.len() as u8 + 1);
 
             self.dense
@@ -116,8 +114,8 @@ impl<T: Debug, const N: usize> ComponentStore for SparseSet<T, N> {
             //     .sparse
             //     .iter()
             //     .position(|sparse_element| {
-            //         sparse_element.map(|non_zero| non_zero.get() as usize - 1)
-            //             == Some(last_element_index)
+            //         sparse_element.map(|non_zero| non_zero.get() as usize -
+            // 1)             == Some(last_element_index)
             //     })
             //     .ok_or(ComponentStorageError::NotFound(index))?;
 
@@ -148,8 +146,7 @@ impl<T: Debug, const N: usize> GetComponent for SparseSet<T, N> {
     }
 }
 
-/// A SparseSet for components that only store Zero-Sized Types (e.g. OnGround,
-/// IsTouchingWall, etc.)
+/// A SparseSet for components that only store Zero-Sized Types (e.g. OnGround, IsTouchingWall, etc.)
 pub struct MarkerSet<T: Debug, const N: usize> {
     _marker: core::marker::PhantomData<T>,
     bits: [u128; 2],

@@ -76,10 +76,7 @@ impl Encode for EmptyChunkData {
         // heightmaps
         VarInt(0).encode(&mut buffer).await?;
 
-        // length of data: 16 * (non-air block count + bits per entry + palette block
-        // value + biome bits per entry + biome palette value). Might possibly
-        // change if the plains biome is replaced with another (e.g. void) that has a
-        // VarInt ID of over 0x8f
+        // length of data: 16 * (non-air block count + bits per entry + palette block value + biome bits per entry + biome palette value). Might possibly change if the plains biome is replaced with another (e.g. void) that has a VarInt ID of over 0x8f
 
         VarInt(16 * (2 + 1 + 1 + 1 + 1)).encode(&mut buffer).await?;
 

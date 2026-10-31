@@ -46,8 +46,7 @@ impl<const N: usize> Decode for Identifier<N> {
 
         let path_length = length as usize - NAMESPACE.len() - 1;
 
-        //the error from this shouldn't be possible as we've already checked the
-        // length.
+        //the error from this shouldn't be possible as we've already checked the length.
         path_buf
             .resize_default(path_length)
             .expect("length already checked");
@@ -71,11 +70,7 @@ impl<const N: usize> TryFrom<&str> for Identifier<N> {
 // trait Identifier: Encode + Decode {
 //     const NAMESPACE: &'static str;
 
-//     /// The longest block identifier path I could find was
-//     /// 'cracked_polished_blackstone_bricks' (34), while the longest registry
-//     /// Identifier path I could find was
-// 'worldgen/flat_level_generator_preset'     /// (36). Giving some extra space
-// incase I missed something, 48 should be     /// enough.
+//     /// The longest block identifier path I could find was 'cracked_polished_blackstone_bricks' (34), while the longest registry Identifier path I could find was 'worldgen/flat_level_generator_preset' (36). Giving some extra space incase I missed something, 48 should be enough.
 //     fn path(&self) -> &String<48>;
 
 //     async fn encode_identifier<W: embedded_io_async::Write>(

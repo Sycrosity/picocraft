@@ -22,7 +22,6 @@ pub struct SynchronisePlayerPositionPacket {
     flags: TeleportFlags,
 }
 
-/// Bitfield representing which fields are relative in a teleport packet,
-/// however we don't do relative teleportation yet, and so it is always 0.
+/// Bitfield representing which fields are relative in a teleport packet, however we don't do relative teleportation yet, and so it is always 0.
 #[derive(Debug, Clone, Default, Copy, Encode, Decode)]
 pub struct TeleportFlags(Int);

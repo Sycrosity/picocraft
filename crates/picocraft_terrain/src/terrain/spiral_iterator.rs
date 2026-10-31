@@ -12,8 +12,7 @@ pub enum ChunkKind {
 }
 
 impl BorderedSpiralIterator {
-    /// Creates a spiral that covers `terrain_width + 2` columns (1 air border
-    /// on each side).
+    /// Creates a spiral that covers `terrain_width + 2` columns (1 air border on each side).
     #[must_use]
     pub fn new(terrain_width: i8, spawn_chunk: ChunkColumnCoordinates) -> Self {
         let total_width = terrain_width + 2;
