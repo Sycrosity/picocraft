@@ -82,11 +82,6 @@ impl Client {
                 position,
                 rotation,
             } => {
-                // assert!(
-                //     self.uuid() != uuid,
-                //     "Client should not receive PlayerJoined event for itself."
-                // );
-
                 //TODO this occasionally happens when leaving and rejoining very quickly
                 if self.uuid() == uuid {
                     error!(
@@ -96,6 +91,17 @@ impl Client {
 
                     return Err(PacketError::Unknown);
                 }
+
+                let system_chat_msg = clientbound::SystemChatMessagePacket {
+                    message: heapless::format!(
+                        "{{translate: \"multiplayer.player.joined\", with: [ {{text: \
+                         \"{username}\"}} ]}}"
+                    )
+                    .expect("should be less than 128 chars"),
+                    overlay: false,
+                };
+
+                self.encode_packet(&system_chat_msg).await?;
 
                 let player_info_update =
                     clientbound::PlayerInfoUpdatePacket::<2>::add_player(uuid, username);

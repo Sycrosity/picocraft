@@ -1,3 +1,4 @@
+mod chat_messages;
 pub mod entities;
 mod game_event;
 mod initialise_world_border;
@@ -10,6 +11,7 @@ mod set_center_chunk;
 pub mod spawn_entity;
 mod syncronise_player_position;
 
+pub use chat_messages::*;
 pub use entities::*;
 pub use game_event::*;
 pub use initialise_world_border::*;
