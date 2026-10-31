@@ -7,6 +7,8 @@ mod player_info_remove;
 mod player_info_update;
 pub mod remove_entities;
 mod set_center_chunk;
+mod set_container_content;
+mod set_container_slot;
 pub mod spawn_entity;
 mod syncronise_player_position;
 
@@ -19,5 +21,6 @@ pub use player_info_remove::*;
 pub use player_info_update::*;
 pub use remove_entities::*;
 pub use set_center_chunk::*;
+pub use set_container_content::*;
 pub use spawn_entity::*;
 pub use syncronise_player_position::*;
