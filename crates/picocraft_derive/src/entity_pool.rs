@@ -58,11 +58,31 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 .map(|f| {
                     let entity_attributes = extract_attribute(f, "entity")?;
 
+                    //if there is the canonical flag it is implied that both required and persistent are true
                     let canonical = has_meta_flag(&entity_attributes, "canonical");
-                    let required = canonical
-                        || has_meta_flag(&entity_attributes, "required");
-                    let persistent = canonical
-                        || has_meta_flag(&entity_attributes, "persistent");
+                    let optional_flag = has_meta_flag(&entity_attributes, "optional");
+                    //never strictly needed but can be used to make it more obvious
+                    let required_flag = has_meta_flag(&entity_attributes, "required");
+                    let persistent_flag = has_meta_flag(&entity_attributes, "persistent");
+
+                    if optional_flag && required_flag {
+                        return Err(syn::Error::new(
+                            f.span(),
+                            "cannot have both `required` and `optional` flags on the same \
+                             attribute",
+                        ));
+                    }
+
+                    if optional_flag && canonical {
+                        return Err(syn::Error::new(
+                            f.span(),
+                            "cannot have both `canonical` and `optional` flags on the same \
+                             attribute",
+                        ));
+                    }
+
+                    let required = !optional_flag;
+                    let persistent = canonical || persistent_flag;
                     let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
                         ident: f.ident.as_ref().unwrap(),
