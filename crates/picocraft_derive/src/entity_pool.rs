@@ -3,8 +3,7 @@ use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    Attribute, Data, DeriveInput, Field, Fields, GenericArgument, Ident, Meta, Path, PathArguments,
-    Result, Token, Type,
+    Attribute, Data, DeriveInput, Error, Expr, Field, Fields, GenericArgument, Ident, Meta, Path, PathArguments, Result, Token, Type,
 };
 
 struct PoolField<'a> {
@@ -28,11 +27,11 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
     let pool_attr = parse_pool_attribute(&input.attrs)?;
 
     match input.data {
-        Data::Enum(enum_data) => Err(syn::Error::new(
+        Data::Enum(enum_data) => Err(Error::new(
             enum_data.enum_token.span,
             "cannot derive `EntityPool` on enums.",
         )),
-        Data::Union(union_data) => Err(syn::Error::new(
+        Data::Union(union_data) => Err(Error::new(
             union_data.union_token.span,
             "cannot derive `EntityPool` on unions",
         )),
@@ -40,13 +39,13 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let fields = match &struct_data.fields {
                 Fields::Named(fields) => &fields.named,
                 Fields::Unnamed(fields) => {
-                    return Err(syn::Error::new(
+                    return Err(Error::new(
                         fields.unnamed.span(),
                         "cannot derive `EntityPool` on tuple structs",
                     ));
                 }
                 Fields::Unit => {
-                    return Err(syn::Error::new(
+                    return Err(Error::new(
                         struct_data.struct_token.span,
                         "cannot derive `EntityPool` on unit structs",
                     ));
@@ -64,9 +63,10 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     //never strictly needed but can be used to make it more obvious
                     let required_flag = has_meta_flag(&entity_attributes, "required");
                     let persistent_flag = has_meta_flag(&entity_attributes, "persistent");
+                    let default_flag = has_meta_flag(&entity_attributes, "default");
 
                     if optional_flag && required_flag {
-                        return Err(syn::Error::new(
+                        return Err(Error::new(
                             f.span(),
                             "cannot have both `required` and `optional` flags on the same \
                              attribute",
@@ -74,10 +74,17 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     }
 
                     if optional_flag && canonical {
-                        return Err(syn::Error::new(
+                        return Err(Error::new(
                             f.span(),
                             "cannot have both `canonical` and `optional` flags on the same \
                              attribute",
+                        ));
+                    }
+                    
+                    if persistent_flag && !required_flag && !default_flag {
+                        return Err(Error::new(
+                            f.span(),
+                            "cannot have `persistent` flag on a field that is not also `required` or has a `default` value",
                         ));
                     }
 
@@ -93,25 +100,24 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         persistent,
                     })
                 })
-                .collect::<syn::Result<Vec<PoolField>>>()?;
+                .collect::<Result<Vec<PoolField>>>()?;
 
             let mut pool_fields_iter = pool_fields.iter();
+
+            //ensure there is only one canconical field
             let canonical = pool_fields_iter
                 .find(|f| f.canonical)
                 .filter(|_| !pool_fields_iter.any(|f| f.canonical))
-                .ok_or(syn::Error::new(
+                .ok_or(Error::new(
                     ident.span(),
-                    "EntityPool requires exactly one #[canonical] field",
+                    "EntityPool requires exactly one #[entity(canonical)] field",
                 ))?;
-
-            let canonical_ident = canonical.ident;
-            let canonical_storage_ty = canonical.storage_ty;
 
             let entity_kind = pool_attr
                 .kind
                 .segments
                 .last()
-                .ok_or(syn::Error::new(
+                .ok_or(Error::new(
                     pool_attr.span,
                     "expected a non-empty path for `kind`",
                 ))?
@@ -120,11 +126,10 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
 
             let pool_attr_kind = pool_attr.kind.clone();
 
-            let bundle_name =
-                syn::Ident::new(&format!("{}Bundle", entity_kind), entity_kind.span());
+            let bundle_name = Ident::new(&format!("{}Bundle", entity_kind), entity_kind.span());
 
             let save_data_name =
-                syn::Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
+                Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
 
             let required_fields: Vec<&PoolField> =
                 pool_fields.iter().filter(|f| f.required).collect();
@@ -227,6 +232,9 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
             });
+
+            let canonical_ident = canonical.ident;
+            let canonical_storage_ty = canonical.storage_ty;
 
             Ok(quote! {
 
