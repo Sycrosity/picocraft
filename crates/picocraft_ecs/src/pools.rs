@@ -6,23 +6,19 @@ use crate::storage::{MarkerSet, SparseSet};
 
 #[derive(Default, EntityPool)]
 #[pool(kind = EntityKind::Player)]
-pub struct PlayerPool<const N: usize = 8> {
-    #[canonical]
+pub struct PlayerPool<const N: usize> {
+    #[entity(canonical)]
     pub uuid: SparseSet<Uuid, N>,
-    #[required]
-    #[persistent]
+    #[entity(required, persistent)]
     pub username: SparseSet<Username, N>,
-    #[required]
-    #[persistent]
+    #[entity(required,persistent)]
     pub health: SparseSet<Health, N>,
-    #[required]
-    #[persistent]
+    #[entity(required, persistent)]
     pub position: SparseSet<Position, N>,
     pub velocity: SparseSet<Velocity, N>,
-    #[required]
-    #[persistent]
+    #[entity(required, persistent)]
     pub rotation: SparseSet<Rotation, N>,
-    #[persistent]
+    #[entity(required, persistent)]
     pub dimension: SparseSet<Dimension, N>,
     pub on_ground: MarkerSet<OnGround, N>,
     pub fall_distance: SparseSet<FallDistance, N>,

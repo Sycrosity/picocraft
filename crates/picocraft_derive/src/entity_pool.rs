@@ -1,18 +1,19 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    Attribute, Data, DeriveInput, Field, Fields, GenericArgument, Ident, Path, PathArguments,
-    Result, Type,
+    Attribute, Data, DeriveInput, Field, Fields, GenericArgument, Ident, Meta, Path, PathArguments,
+    Result, Token, Type,
 };
 
 struct PoolField<'a> {
     ident: &'a Ident,
     storage_ty: &'a Type,
     component_ty: &'a Type,
-    is_canonical: bool,
-    is_required: bool,
-    is_persistent: bool,
+    canonical: bool,
+    required: bool,
+    persistent: bool,
 }
 
 pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
@@ -55,25 +56,29 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let pool_fields = fields
                 .iter()
                 .map(|f| {
-                    let is_canonical = has_attribute(f, "canonical");
-                    let is_required = is_canonical || has_attribute(f, "required");
-                    let is_persistent = is_canonical || has_attribute(f, "persistent");
+                    let entity_attributes = extract_attribute(f, "entity")?;
+
+                    let canonical = has_meta_flag(&entity_attributes, "canonical");
+                    let required = canonical
+                        || has_meta_flag(&entity_attributes, "required");
+                    let persistent = canonical
+                        || has_meta_flag(&entity_attributes, "persistent");
                     let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
                         ident: f.ident.as_ref().unwrap(),
                         storage_ty: &f.ty,
                         component_ty,
-                        is_canonical,
-                        is_required,
-                        is_persistent,
+                        canonical,
+                        required,
+                        persistent,
                     })
                 })
                 .collect::<syn::Result<Vec<PoolField>>>()?;
 
             let mut pool_fields_iter = pool_fields.iter();
             let canonical = pool_fields_iter
-                .find(|f| f.is_canonical)
-                .filter(|_| !pool_fields_iter.any(|f| f.is_canonical))
+                .find(|f| f.canonical)
+                .filter(|_| !pool_fields_iter.any(|f| f.canonical))
                 .ok_or(syn::Error::new(
                     ident.span(),
                     "EntityPool requires exactly one #[canonical] field",
@@ -102,10 +107,10 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 syn::Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
 
             let required_fields: Vec<&PoolField> =
-                pool_fields.iter().filter(|f| f.is_required).collect();
+                pool_fields.iter().filter(|f| f.required).collect();
             let all_fields: Vec<&PoolField> = pool_fields.iter().collect();
             let persistent_fields: Vec<&PoolField> =
-                pool_fields.iter().filter(|f| f.is_persistent).collect();
+                pool_fields.iter().filter(|f| f.persistent).collect();
 
             let bundle_fields = required_fields.iter().map(|f| {
                 let ident = f.ident;
@@ -116,7 +121,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let save_data_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
                 let component_ty = f.component_ty;
-                if f.is_required {
+                if f.required {
                     quote! { pub #ident: #component_ty }
                 } else {
                     quote! { pub #ident: ::core::option::Option<#component_ty> }
@@ -125,7 +130,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
 
             let snapshot_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
-                if f.is_required {
+                if f.required {
                     quote! {
                         #ident: crate::storage::GetComponent::get(&self.#ident, index)?.clone()
                     }
@@ -148,16 +153,15 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 }
             });
 
-            let restore_optional_inserts = persistent_fields.iter().filter(|f| !f.is_required).map(
-                |f| {
+            let restore_optional_inserts =
+                persistent_fields.iter().filter(|f| !f.required).map(|f| {
                     let ident = f.ident;
                     quote! {
                         if let Some(val) = save.#ident {
                             crate::storage::ComponentStore::insert(&mut self.#ident, index, val)?;
                         }
                     }
-                },
-            );
+                });
 
             let spawn_inserts = required_fields.iter().map(|f| {
                 let ident = &f.ident;
@@ -315,11 +319,25 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
     }
 }
 
-fn has_attribute(field: &Field, attr_name: &str) -> bool {
-    field
+fn extract_attribute(field: &Field, attr_name: &str) -> Result<Vec<Meta>> {
+    let Some(attribute) = field
         .attrs
         .iter()
-        .any(|attr| attr.path().is_ident(attr_name))
+        .find(|attr| attr.path().is_ident(attr_name))
+    else {
+        return Ok(Vec::new());
+    };
+
+    let list = attribute.meta.require_list()?;
+
+    list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+        .map(|attributes| attributes.into_iter().collect())
+}
+
+fn has_meta_flag(attributes: &[Meta], name: &str) -> bool {
+    attributes
+        .iter()
+        .any(|attribute| matches!(attribute, Meta::Path(path) if path.is_ident(name)))
 }
 
 fn extract_component_type(field: &Field) -> Result<&Type> {

@@ -29,7 +29,7 @@ pub fn derive_decode(item: StdTokenStream) -> StdTokenStream {
     }
 }
 
-#[proc_macro_derive(EntityPool, attributes(pool, canonical, required, persistent))]
+#[proc_macro_derive(EntityPool, attributes(pool, entity))]
 pub fn derive_entity_pool(item: StdTokenStream) -> StdTokenStream {
     match entity_pool::derive_entity_pool(item.into()) {
         Ok(tokens) => tokens.into(),
