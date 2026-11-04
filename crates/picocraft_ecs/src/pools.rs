@@ -15,6 +15,8 @@ pub struct PlayerPool<const N: usize> {
     pub health: SparseSet<Health, N>,
     #[entity(persistent)]
     pub position: SparseSet<Position, N>,
+    //TODO - not sure if this should be optional or not in general
+    #[entity(optional)]
     pub velocity: SparseSet<Velocity, N>,
     #[entity(persistent)]
     pub rotation: SparseSet<Rotation, N>,
@@ -31,4 +33,8 @@ impl<const N: usize> PlayerPool<N> {
     pub fn new() -> Self {
         Self::default()
     }
+
+    pub fn get() {}
+
+    pub fn get_mut() {}
 }

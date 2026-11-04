@@ -3,7 +3,8 @@ use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    Attribute, Data, DeriveInput, Error, Expr, Field, Fields, GenericArgument, Ident, Meta, Path, PathArguments, Result, Token, Type,
+    Attribute, Data, DeriveInput, Error, Expr, Field, Fields, GenericArgument, Ident, Meta, Path,
+    PathArguments, Result, Token, Type,
 };
 
 struct PoolField<'a> {
@@ -83,11 +84,12 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     }
 
                     let required = !optional_flag;
-                    
+
                     if persistent_flag && !required && !default_flag {
                         return Err(Error::new(
                             f.span(),
-                            "cannot have `persistent` flag on a field that is not also `required` or has a `default` value",
+                            "cannot have `persistent` flag on a field that is not also `required` \
+                             or has a `default` value",
                         ));
                     }
 
