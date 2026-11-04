@@ -13,6 +13,7 @@ struct PoolField<'a> {
     canonical: bool,
     required: bool,
     persistent: bool,
+    // default: Option<&'a Expr>,
 }
 
 pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
@@ -80,15 +81,16 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                              attribute",
                         ));
                     }
+
+                    let required = !optional_flag;
                     
-                    if persistent_flag && !required_flag && !default_flag {
+                    if persistent_flag && !required && !default_flag {
                         return Err(Error::new(
                             f.span(),
                             "cannot have `persistent` flag on a field that is not also `required` or has a `default` value",
                         ));
                     }
 
-                    let required = !optional_flag;
                     let persistent = canonical || persistent_flag;
                     let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
@@ -171,12 +173,19 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 quote! { #ident: save.#ident }
             });
 
-            let restore_bundle_inserts = required_fields.iter().map(|f| {
+            let restore_bundle_inserts = required_fields.iter().filter(|f| f.persistent).map(|f| {
                 let ident = f.ident;
                 quote! {
                     crate::storage::ComponentStore::insert(&mut self.#ident, index, bundle.#ident)?;
                 }
             });
+
+            // let restore_bundle_defaults = required_fields.iter().filter(|f| !f.persistent).map(|f| {
+            //     let ident = f.ident;
+            //     quote! {
+            //         crate::storage::ComponentStore::insert(&mut self.#ident, index, bundle.#ident)?;
+            //     }
+            // });
 
             let restore_optional_inserts =
                 persistent_fields.iter().filter(|f| !f.required).map(|f| {
@@ -296,6 +305,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         };
 
                         #(#restore_bundle_inserts)*
+
                         #(#restore_optional_inserts)*
 
                         Ok(crate::entity::EntityRef {
@@ -370,30 +380,30 @@ fn has_meta_flag(attributes: &[Meta], name: &str) -> bool {
 
 fn extract_component_type(field: &Field) -> Result<&Type> {
     let Type::Path(tp) = &field.ty else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             field.ty.span(),
             "EntityPool fields must be a SparseSet<T, N> or MarkerSet<T, N>",
         ));
     };
-    let segment = tp.path.segments.last().ok_or(syn::Error::new(
+    let segment = tp.path.segments.last().ok_or(Error::new(
         field.ty.span(),
         "expected a type path with at least one segment",
     ))?;
 
     let PathArguments::AngleBracketed(args) = &segment.arguments else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             segment.ident.span(),
             "missing generic arguments, expected `SparseSet<T, N>` or `MarkerSet<T, N>`",
         ));
     };
 
-    let first_arg = args.args.first().ok_or(syn::Error::new(
+    let first_arg = args.args.first().ok_or(Error::new(
         segment.ident.span(),
         "missing type argument, expected `SparseSet<T, N>` or `MarkerSet<T, N>`",
     ))?;
 
     let GenericArgument::Type(component_ty) = first_arg else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             segment.ident.span(),
             "first generic argument must be a type, e.g. `SparseSet<Health, N>` where `Health` is \
              a component",
@@ -413,7 +423,7 @@ fn parse_pool_attribute(attributes: &[Attribute]) -> Result<PacketAttr> {
         .iter()
         .find(|&attribute| attribute.path().is_ident("pool"))
     else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             Span::call_site(),
             "missing required `pool` argument for `EntityPool` derive macro",
         ));
@@ -431,7 +441,7 @@ fn parse_pool_attribute(attributes: &[Attribute]) -> Result<PacketAttr> {
     })?;
 
     let Some(kind) = kind else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             attribute.span(),
             "missing required `kind = ...` argument from `pool` attribute for `EntityPool` derive \
              macro",
