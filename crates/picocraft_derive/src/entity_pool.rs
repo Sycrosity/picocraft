@@ -1,18 +1,20 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    Attribute, Data, DeriveInput, Field, Fields, GenericArgument, Ident, Path, PathArguments,
-    Result, Type,
+    Attribute, Data, DeriveInput, Error, Expr, Field, Fields, GenericArgument, Ident, Meta, Path,
+    PathArguments, Result, Token, Type,
 };
 
 struct PoolField<'a> {
     ident: &'a Ident,
     storage_ty: &'a Type,
     component_ty: &'a Type,
-    is_canonical: bool,
-    is_required: bool,
-    is_persistent: bool,
+    canonical: bool,
+    required: bool,
+    persistent: bool,
+    // default: Option<&'a Expr>,
 }
 
 pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
@@ -27,11 +29,11 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
     let pool_attr = parse_pool_attribute(&input.attrs)?;
 
     match input.data {
-        Data::Enum(enum_data) => Err(syn::Error::new(
+        Data::Enum(enum_data) => Err(Error::new(
             enum_data.enum_token.span,
             "cannot derive `EntityPool` on enums.",
         )),
-        Data::Union(union_data) => Err(syn::Error::new(
+        Data::Union(union_data) => Err(Error::new(
             union_data.union_token.span,
             "cannot derive `EntityPool` on unions",
         )),
@@ -39,13 +41,13 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let fields = match &struct_data.fields {
                 Fields::Named(fields) => &fields.named,
                 Fields::Unnamed(fields) => {
-                    return Err(syn::Error::new(
+                    return Err(Error::new(
                         fields.unnamed.span(),
                         "cannot derive `EntityPool` on tuple structs",
                     ));
                 }
                 Fields::Unit => {
-                    return Err(syn::Error::new(
+                    return Err(Error::new(
                         struct_data.struct_token.span,
                         "cannot derive `EntityPool` on unit structs",
                     ));
@@ -55,38 +57,71 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let pool_fields = fields
                 .iter()
                 .map(|f| {
-                    let is_canonical = has_attribute(f, "canonical");
-                    let is_required = is_canonical || has_attribute(f, "required");
-                    let is_persistent = is_canonical || has_attribute(f, "persistent");
+                    let entity_attributes = extract_attribute(f, "entity")?;
+
+                    //if there is the canonical flag it is implied that both required and persistent are true
+                    let canonical = has_meta_flag(&entity_attributes, "canonical");
+                    let optional_flag = has_meta_flag(&entity_attributes, "optional");
+                    //never strictly needed but can be used to make it more obvious
+                    let required_flag = has_meta_flag(&entity_attributes, "required");
+                    let persistent_flag = has_meta_flag(&entity_attributes, "persistent");
+                    let default_flag = has_meta_flag(&entity_attributes, "default");
+
+                    if optional_flag && required_flag {
+                        return Err(Error::new(
+                            f.span(),
+                            "cannot have both `required` and `optional` flags on the same \
+                             attribute",
+                        ));
+                    }
+
+                    if optional_flag && canonical {
+                        return Err(Error::new(
+                            f.span(),
+                            "cannot have both `canonical` and `optional` flags on the same \
+                             attribute",
+                        ));
+                    }
+
+                    let required = !optional_flag;
+
+                    if persistent_flag && !required && !default_flag {
+                        return Err(Error::new(
+                            f.span(),
+                            "cannot have `persistent` flag on a field that is not also `required` \
+                             or has a `default` value",
+                        ));
+                    }
+
+                    let persistent = canonical || persistent_flag;
                     let component_ty = extract_component_type(f)?;
                     Ok(PoolField {
                         ident: f.ident.as_ref().unwrap(),
                         storage_ty: &f.ty,
                         component_ty,
-                        is_canonical,
-                        is_required,
-                        is_persistent,
+                        canonical,
+                        required,
+                        persistent,
                     })
                 })
-                .collect::<syn::Result<Vec<PoolField>>>()?;
+                .collect::<Result<Vec<PoolField>>>()?;
 
             let mut pool_fields_iter = pool_fields.iter();
-            let canonical = pool_fields_iter
-                .find(|f| f.is_canonical)
-                .filter(|_| !pool_fields_iter.any(|f| f.is_canonical))
-                .ok_or(syn::Error::new(
-                    ident.span(),
-                    "EntityPool requires exactly one #[canonical] field",
-                ))?;
 
-            let canonical_ident = canonical.ident;
-            let canonical_storage_ty = canonical.storage_ty;
+            //ensure there is only one canconical field
+            let canonical = pool_fields_iter
+                .find(|f| f.canonical)
+                .filter(|_| !pool_fields_iter.any(|f| f.canonical))
+                .ok_or(Error::new(
+                    ident.span(),
+                    "EntityPool requires exactly one #[entity(canonical)] field",
+                ))?;
 
             let entity_kind = pool_attr
                 .kind
                 .segments
                 .last()
-                .ok_or(syn::Error::new(
+                .ok_or(Error::new(
                     pool_attr.span,
                     "expected a non-empty path for `kind`",
                 ))?
@@ -95,17 +130,16 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
 
             let pool_attr_kind = pool_attr.kind.clone();
 
-            let bundle_name =
-                syn::Ident::new(&format!("{}Bundle", entity_kind), entity_kind.span());
+            let bundle_name = Ident::new(&format!("{}Bundle", entity_kind), entity_kind.span());
 
             let save_data_name =
-                syn::Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
+                Ident::new(&format!("{}SaveData", entity_kind), entity_kind.span());
 
             let required_fields: Vec<&PoolField> =
-                pool_fields.iter().filter(|f| f.is_required).collect();
+                pool_fields.iter().filter(|f| f.required).collect();
             let all_fields: Vec<&PoolField> = pool_fields.iter().collect();
             let persistent_fields: Vec<&PoolField> =
-                pool_fields.iter().filter(|f| f.is_persistent).collect();
+                pool_fields.iter().filter(|f| f.persistent).collect();
 
             let bundle_fields = required_fields.iter().map(|f| {
                 let ident = f.ident;
@@ -116,7 +150,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
             let save_data_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
                 let component_ty = f.component_ty;
-                if f.is_required {
+                if f.required {
                     quote! { pub #ident: #component_ty }
                 } else {
                     quote! { pub #ident: ::core::option::Option<#component_ty> }
@@ -125,7 +159,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
 
             let snapshot_fields = persistent_fields.iter().map(|f| {
                 let ident = f.ident;
-                if f.is_required {
+                if f.required {
                     quote! {
                         #ident: crate::storage::GetComponent::get(&self.#ident, index)?.clone()
                     }
@@ -141,23 +175,29 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                 quote! { #ident: save.#ident }
             });
 
-            let restore_bundle_inserts = required_fields.iter().map(|f| {
+            let restore_bundle_inserts = required_fields.iter().filter(|f| f.persistent).map(|f| {
                 let ident = f.ident;
                 quote! {
                     crate::storage::ComponentStore::insert(&mut self.#ident, index, bundle.#ident)?;
                 }
             });
 
-            let restore_optional_inserts = persistent_fields.iter().filter(|f| !f.is_required).map(
-                |f| {
+            // let restore_bundle_defaults = required_fields.iter().filter(|f| !f.persistent).map(|f| {
+            //     let ident = f.ident;
+            //     quote! {
+            //         crate::storage::ComponentStore::insert(&mut self.#ident, index, bundle.#ident)?;
+            //     }
+            // });
+
+            let restore_optional_inserts =
+                persistent_fields.iter().filter(|f| !f.required).map(|f| {
                     let ident = f.ident;
                     quote! {
                         if let Some(val) = save.#ident {
                             crate::storage::ComponentStore::insert(&mut self.#ident, index, val)?;
                         }
                     }
-                },
-            );
+                });
 
             let spawn_inserts = required_fields.iter().map(|f| {
                 let ident = &f.ident;
@@ -203,6 +243,9 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
             });
+
+            let canonical_ident = canonical.ident;
+            let canonical_storage_ty = canonical.storage_ty;
 
             Ok(quote! {
 
@@ -264,6 +307,7 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
                         };
 
                         #(#restore_bundle_inserts)*
+
                         #(#restore_optional_inserts)*
 
                         Ok(crate::entity::EntityRef {
@@ -315,39 +359,53 @@ pub fn derive_entity_pool(item: TokenStream) -> Result<TokenStream> {
     }
 }
 
-fn has_attribute(field: &Field, attr_name: &str) -> bool {
-    field
+fn extract_attribute(field: &Field, attr_name: &str) -> Result<Vec<Meta>> {
+    let Some(attribute) = field
         .attrs
         .iter()
-        .any(|attr| attr.path().is_ident(attr_name))
+        .find(|attr| attr.path().is_ident(attr_name))
+    else {
+        return Ok(Vec::new());
+    };
+
+    let list = attribute.meta.require_list()?;
+
+    list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+        .map(|attributes| attributes.into_iter().collect())
+}
+
+fn has_meta_flag(attributes: &[Meta], name: &str) -> bool {
+    attributes
+        .iter()
+        .any(|attribute| matches!(attribute, Meta::Path(path) if path.is_ident(name)))
 }
 
 fn extract_component_type(field: &Field) -> Result<&Type> {
     let Type::Path(tp) = &field.ty else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             field.ty.span(),
             "EntityPool fields must be a SparseSet<T, N> or MarkerSet<T, N>",
         ));
     };
-    let segment = tp.path.segments.last().ok_or(syn::Error::new(
+    let segment = tp.path.segments.last().ok_or(Error::new(
         field.ty.span(),
         "expected a type path with at least one segment",
     ))?;
 
     let PathArguments::AngleBracketed(args) = &segment.arguments else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             segment.ident.span(),
             "missing generic arguments, expected `SparseSet<T, N>` or `MarkerSet<T, N>`",
         ));
     };
 
-    let first_arg = args.args.first().ok_or(syn::Error::new(
+    let first_arg = args.args.first().ok_or(Error::new(
         segment.ident.span(),
         "missing type argument, expected `SparseSet<T, N>` or `MarkerSet<T, N>`",
     ))?;
 
     let GenericArgument::Type(component_ty) = first_arg else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             segment.ident.span(),
             "first generic argument must be a type, e.g. `SparseSet<Health, N>` where `Health` is \
              a component",
@@ -367,7 +425,7 @@ fn parse_pool_attribute(attributes: &[Attribute]) -> Result<PacketAttr> {
         .iter()
         .find(|&attribute| attribute.path().is_ident("pool"))
     else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             Span::call_site(),
             "missing required `pool` argument for `EntityPool` derive macro",
         ));
@@ -385,7 +443,7 @@ fn parse_pool_attribute(attributes: &[Attribute]) -> Result<PacketAttr> {
     })?;
 
     let Some(kind) = kind else {
-        return Err(syn::Error::new(
+        return Err(Error::new(
             attribute.span(),
             "missing required `kind = ...` argument from `pool` attribute for `EntityPool` derive \
              macro",

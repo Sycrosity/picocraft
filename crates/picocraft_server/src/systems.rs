@@ -147,6 +147,7 @@ pub fn system_player_joined(world: &mut World, username: String<16>, uuid: UUID)
             uuid: Uuid(uuid),
             username: Username(username.clone()),
             health: Health(20.0),
+            dimension: Dimension::Overworld,
             //TODO new player spawn pos should come from terrain and random number gen
             position,
             rotation,
